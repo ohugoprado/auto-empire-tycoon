@@ -1,5 +1,7 @@
 # Auto Empire Tycoon — 100 melhorias priorizadas
 
+**Plataforma prioritária: iPhone (iOS).** Todas as próximas entregas devem ser pensadas para toque, tela vertical, safe areas, teclado virtual, desempenho e instalação na App Store. Steam/desktop não é prioridade.
+
 Este documento é um backlog, **não** uma declaração de 100 recursos entregues. Os itens marcados como *implementado inicialmente* ou *implementado parcialmente* existem na prévia Alpha 2.6/2.7, mas ainda dependem de testes funcionais e balanceamento. Demais itens estão propostos.
 
 ## 1. Indústria e desenvolvimento
@@ -139,3 +141,15 @@ Este documento é um backlog, **não** uma declaração de 100 recursos entregue
 3. Testes de lógica econômica, limites e regressão.
 4. Testes funcionais no navegador e revisão de interface mobile.
 5. Ajustes de balanceamento após simulações longas.
+
+
+## Critérios específicos para iPhone
+
+- Interface utilizável em telas de 320–430 pontos de largura, sem rolagem horizontal.
+- Controles de toque com área mínima de 44 × 44 pontos.
+- Barra inferior fora da área do indicador Home e suporte ao recorte superior.
+- Campos com fonte de 16 px ou mais para evitar zoom automático no Safari.
+- Fluxos críticos (comprar, vender, contratar, fabricar, backup) operáveis com uma mão.
+- Testes reais no Safari iOS e em build instalada via Xcode/TestFlight antes de considerar uma entrega concluída.
+- Persistência local validada em atualização de versão e retorno do aplicativo do segundo plano.
+- App Store: empacotamento iOS, ícones, telas de privacidade e processo de revisão.
