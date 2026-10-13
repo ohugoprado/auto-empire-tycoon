@@ -37,6 +37,7 @@ const screen=document.createElement('section');
 screen.id='ae-company-screen';screen.setAttribute('role','dialog');screen.setAttribute('aria-modal','true');screen.setAttribute('aria-labelledby','ae-company-title');
 screen.innerHTML='<div class="ae-onboard-card"><div class="ae-eyebrow">AUTO EMPIRE · SUA HISTÓRIA COMEÇA AQUI</div><h1 id="ae-company-title">Construa seu império automotivo</h1><p>Escolha o nome da sua concessionária e apresente quem está no comando. Sua identidade aparecerá durante a campanha.</p><form id="ae-company-form"><label for="ae-company-name">Nome da empresa</label><input id="ae-company-name" name="company" maxlength="42" autocomplete="organization" placeholder="Ex.: Aurora Motors" required><label for="ae-owner-name">Nome do proprietário</label><input id="ae-owner-name" name="owner" maxlength="42" autocomplete="name" placeholder="Ex.: Alex Silva" required><label for="ae-difficulty">Dificuldade</label><select id="ae-difficulty" name="difficulty"><option value="casual">Casual — comece com vantagem</option><option value="normal" selected>Empreendedor — equilibrado</option><option value="hard">Magnata — desafio maior</option></select><div class="ae-difficulty-help" id="ae-difficulty-help"></div><div class="ae-error" id="ae-company-error" aria-live="polite"></div><div class="ae-onboard-actions"><button type="button" class="ghost" id="ae-company-cancel">Voltar</button><button type="submit" id="ae-company-submit">Começar minha história →</button></div></form><p id="ae-company-footnote">Sua campanha atual e seus veículos serão preservados.</p></div>';
 document.body.appendChild(screen);
+let creatingNew=false;
 const form=screen.querySelector('form'),company=screen.querySelector('#ae-company-name'),owner=screen.querySelector('#ae-owner-name'),cancel=screen.querySelector('#ae-company-cancel'),difficulty=screen.querySelector('#ae-difficulty');
 const explain=()=>{screen.querySelector('#ae-difficulty-help').textContent=difficulties[difficultyOf(difficulty.value)].description};difficulty.addEventListener('change',explain);
 const main=document.querySelector('main.content')||document.querySelector('.content');
@@ -50,7 +51,7 @@ const renderIdentity=()=>{
 };
 const show=(required)=>{
  screen.classList.add('is-open');document.body.style.overflow='hidden';
- company.value=profile?.company||'';owner.value=profile?.owner||'';difficulty.value=difficultyOf(s?.difficulty||profile?.difficulty);difficulty.disabled=!!profile;explain();
+ company.value=profile?.company||'';owner.value=profile?.owner||'';difficulty.value=difficultyOf(s?.difficulty||profile?.difficulty);difficulty.disabled=!!profile&&!creatingNew;explain();
  screen.querySelector('#ae-company-error').textContent='';
  cancel.hidden=!!required;
  screen.querySelector('#ae-company-submit').textContent=required?'Fundar concessionária →':'Salvar identidade';
@@ -61,10 +62,10 @@ const hide=()=>{screen.classList.remove('is-open');document.body.style.overflow=
 cancel.addEventListener('click',hide);
 form.addEventListener('submit',e=>{
  e.preventDefault();
- const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(profile?.difficulty||difficulty.value)};
+ const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty)};
  if(!valid(next.company)||!valid(next.owner)){screen.querySelector('#ae-company-error').textContent='Informe nomes com pelo menos dois caracteres válidos.';return}
  try{localStorage.setItem(profileKey,JSON.stringify(next))}catch(err){screen.querySelector('#ae-company-error').textContent='Não foi possível salvar. Verifique o armazenamento do navegador.';return}
- profile=next;if(s&&!s.difficulty){s.difficulty=next.difficulty;save()}renderIdentity();hide();
+ profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else if(s&&!s.difficulty){s.difficulty=next.difficulty;save()}renderIdentity();hide();
  if(typeof toast==='function')toast('Bem-vindo à '+next.company+'!');
 });
 renderIdentity();
@@ -73,11 +74,13 @@ const previousSeed=seed;
 seed=function(){previousSeed();const mode=difficultyOf(profile?.difficulty||difficulty.value);s.difficulty=mode;s.cash=difficulties[mode].cash;save()};
 const previousTickDay=tickDay;
 tickDay=function(){const before=s.cash,day=s.day;previousTickDay();const mode=difficulties[difficultyOf(s.difficulty)];if(s.day!==day&&s.day%30===0){s.cash+=1200-mode.rent;save()}if(s.cash!==before&&typeof render==='function')render()};
-const previousNewGame=newGame;
 newGame=function(){
- if(!confirm('Apagar sua campanha e começar novamente? O nome da empresa e do proprietário será mantido.'))return;
- if(profile){profile.difficulty=difficultyOf(difficulty.value);try{localStorage.setItem(profileKey,JSON.stringify(profile))}catch(e){}}seed();paused=true;showTab();renderIdentity();toast('Nova campanha iniciada');
+ if(!confirm('Iniciar uma nova campanha? O estoque e o dinheiro atuais serão substituídos.'))return;
+ creatingNew=true;show(false);difficulty.disabled=false;
+ screen.querySelector('#ae-company-submit').textContent='Criar nova campanha →';
+ screen.querySelector('#ae-company-footnote').textContent='A nova campanha substitui o progresso atual ao confirmar. Escolha a dificuldade.';
 };
+cancel.addEventListener('click',()=>{creatingNew=false});
 function showTab(){if(typeof window.show==='function')window.show('garage');else if(typeof render==='function')render()}
 document.title='Auto Empire Tycoon — '+VERSION;
 const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
