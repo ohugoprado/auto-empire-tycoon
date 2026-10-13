@@ -923,4 +923,68 @@ const oldRender=render;
 render=function(){oldRender();syncSlot()};
 syncSlot();
 })();
+</script><script id="alpha105-stability">
+(function(){
+'use strict';
+const VERSION='Alpha 1.0.5';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD 1050';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='TYCOON · '+VERSION+' · REFINAMENTO';
+const css=document.createElement('style');
+css.textContent=`
+/* 1.0.5: stable mobile stacking and clearer priority */
+.content{padding-bottom:calc(148px + env(safe-area-inset-bottom))!important}
+.bottom{z-index:30}
+#garage{display:flex;flex-direction:column;gap:10px}
+#garage>.scene-wrap{order:1;margin:0}
+#garage>#ae-garage-buttons{order:2;margin:0}
+#garage>#ae-slot-status{order:3;margin:0}
+#garage>#ae-garage-detail{order:4;margin:0}
+#garage>#ae-test-bar{order:8;margin:0}
+#garage>#ae-visual-stats{order:5;margin:0}
+#garage>#ae-management{order:7;margin:0}
+#garage>#ae-staff{order:9;margin:0}
+#garage>#ae-polish-notes{display:none!important}
+#garage>.section-head{order:6;margin:4px 0}
+#garage>#stock{order:6}
+#garage>#ae-polish-selection{display:none!important}
+#garage>.tiny{order:4}
+#garage .scene-label{display:none!important}
+#ae-slot-status{background:#213746}
+#ae-garage-detail{margin:0}
+#ae-garage-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#ae-garage-buttons button{margin:0;min-width:0}
+#ae-staff .staff-row{padding:10px 0}
+#ae-test-bar .actions{gap:8px}
+#ae-test-bar.ae-expanded .actions{display:flex}
+#ae-test-bar:not(.ae-expanded) .actions{display:none}
+#ae-test-bar:not(.ae-expanded)>p{display:none}
+@media(max-width:430px){#garage{gap:9px}.panel{margin-bottom:0}#ae-garage-buttons button{min-height:48px}}
+`;document.head.appendChild(css);
+// Stage 1: organize the garage around its scene instead of test tools.
+const garage=document.getElementById('garage');
+const scene=garage&&garage.querySelector('.scene-wrap');
+const test=document.getElementById('ae-test-bar');
+if(garage&&scene&&test){garage.insertBefore(scene,garage.firstChild);garage.appendChild(test)}
+// Stage 2: guard the animation from stale selection after save restore.
+const buttons=document.getElementById('ae-garage-buttons');
+if(buttons){
+ buttons.setAttribute('role','group');buttons.setAttribute('aria-label','Selecionar vaga da garagem');
+ const announce=document.getElementById('ae-slot-status');
+ if(announce)announce.setAttribute('aria-live','polite');
+}
+// Stage 3: use a single public refresh entry point for all legacy UI wrappers.
+// The underlying feature-specific render hooks are retained for save compatibility.
+let rendering=false,queued=false;
+const legacyRender=render;
+render=function(){
+ if(rendering){queued=true;return}
+ rendering=true;
+ try{legacyRender()}finally{rendering=false}
+ if(queued){queued=false;queueMicrotask(()=>render())}
+};
+const notes=document.getElementById('ae-polish-notes');if(notes)notes.remove();
+const debug=document.getElementById('ae-debug');if(debug){const summary=debug.querySelector('summary');if(summary)summary.textContent='🛠 Diagnóstico · '+VERSION}
+render();
+})();
 </script></body></html>
