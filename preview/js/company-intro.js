@@ -66,7 +66,7 @@ form.addEventListener('submit',e=>{
  const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty),headquarters:creatingNew||!profile?headquarters.value:profile.headquarters};
  if(!valid(next.company)||!valid(next.owner)){screen.querySelector('#ae-company-error').textContent='Informe nomes com pelo menos dois caracteres válidos.';return}
  try{localStorage.setItem(profileKey,JSON.stringify(next))}catch(err){screen.querySelector('#ae-company-error').textContent='Não foi possível salvar. Verifique o armazenamento do navegador.';return}
- profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else if(s&&!s.difficulty){s.difficulty=next.difficulty;save()}renderIdentity();hide();
+ const firstProfile=!profile;profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else{if(s&&!s.difficulty)s.difficulty=next.difficulty;if(firstProfile&&s?.day===1&&s?.sales===0&&s?.stock?.length===0){s.empire=s.empire||{};s.empire.world={owned:[next.headquarters],hq:next.headquarters,active:next.headquarters,founded:next.headquarters}}save()}renderIdentity();hide();if(typeof render==='function')render();
  if(typeof toast==='function')toast('Bem-vindo à '+next.company+'!');
 });
 renderIdentity();
