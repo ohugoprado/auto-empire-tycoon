@@ -23,9 +23,10 @@ function bidResult(){
  meta.attempts++;
  c.attempts=meta.attempts;
  if(bid>=reserve){
+  // Respect the existing seller's reserve so the original acquisition logic remains authoritative.
   if(bid>=numeric(c.ask)*.97)s.rep=clamp(numeric(s.rep)+1,0,100);
-  const original=originalSubmit;
-  original();
+  // The original purchase routine performs the cash, stock, ledger and save updates.
+  originalSubmit();
   return true;
  }
  const remaining=p.patience-meta.attempts;
