@@ -1,6 +1,6 @@
 # Auto Empire Tycoon — 100 melhorias priorizadas
 
-Este documento é um backlog, **não** uma declaração de 100 recursos entregues. Os itens marcados como *implementado inicialmente* existem na prévia Alpha 2.6.0, mas ainda dependem de testes funcionais e balanceamento. Demais itens estão propostos.
+Este documento é um backlog, **não** uma declaração de 100 recursos entregues. Os itens marcados como *implementado inicialmente* ou *implementado parcialmente* existem na prévia Alpha 2.6/2.7, mas ainda dependem de testes funcionais e balanceamento. Demais itens estão propostos.
 
 ## 1. Indústria e desenvolvimento
 
@@ -18,9 +18,9 @@ Este documento é um backlog, **não** uma declaração de 100 recursos entregue
 ## 2. Fábrica avançada
 
 - [ ] 011 — Capacidade fabril por unidade
-- [ ] 012 — Cadeia de fornecedores por região
-- [ ] 013 — Contratos de peças com prazos
-- [ ] 014 — Controle de qualidade por lote
+- [x] 012 — Cadeia de fornecedores por região *(implementado parcialmente na Alpha 2.7; requer testes funcionais)*
+- [x] 013 — Contratos de peças com prazos *(implementado parcialmente na Alpha 2.7; requer testes funcionais)*
+- [x] 014 — Controle de qualidade por lote *(implementado parcialmente na Alpha 2.7; requer testes funcionais)*
 - [ ] 015 — Recall por defeitos de fabricação
 - [ ] 016 — Protótipos e testes de durabilidade
 - [ ] 017 — Custos fixos de fábrica e depreciação
@@ -83,7 +83,7 @@ Este documento é um backlog, **não** uma declaração de 100 recursos entregue
 ## 7. Gestão e análise
 
 - [ ] 061 — Demonstrativo de resultados mensal
-- [ ] 062 — Fluxo de caixa projetado para 30 dias
+- [x] 062 — Fluxo de caixa projetado para 30 dias *(implementado parcialmente na Alpha 2.7; requer testes funcionais)*
 - [ ] 063 — Balanço patrimonial simplificado
 - [ ] 064 — Margem líquida após tributos
 - [ ] 065 — Custo médio por veículo vendido
