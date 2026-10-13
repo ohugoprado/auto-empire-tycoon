@@ -54,7 +54,7 @@ function ordered(items,mode,type){
 }
 function decorate(target,items,type){
  const root=document.getElementById(target);if(!root)return;
- const cards=[...root.querySelectorAll(':scope > .panel')];
+ const cards=[...root.children].filter(el=>el.classList?.contains('panel'));
  // The original game renders one card per vehicle in array order.
  if(cards.length!==items.length)return;
  const orderedItems=ordered(items,prefs[type],type);
