@@ -144,4 +144,74 @@ render();
   render=function(){previousRender();refreshIntel()};
   refreshIntel();
 })();
+</script><script id="alpha07-garage">
+(function(){
+  'use strict';
+  const canvas=document.getElementById('scene');
+  if(!canvas)return;
+  canvas.style.cursor='pointer';
+  canvas.setAttribute('role','button');
+  canvas.setAttribute('tabindex','0');
+  canvas.setAttribute('aria-label','Garagem interativa: toque nas vagas para ver os veículos');
+  const detail=document.createElement('div');
+  detail.id='ae-garage-detail';
+  detail.className='panel';
+  detail.style.marginTop='8px';
+  canvas.parentElement.insertAdjacentElement('afterend',detail);
+  let selected=0;
+  const previousDraw=drawScene;
+  drawScene=function(){
+    previousDraw();
+    const ctx=canvas.getContext('2d');
+    const spots=Math.min(s.slots,6);
+    for(let i=0;i<spots;i++){
+      const x=165+(i%3)*56,y=130+Math.floor(i/3)*37+(i%3)*-16;
+      ctx.fillStyle=i===selected?'#ffce56':'#eaf4f8';
+      ctx.fillRect(x+4,y-11,15,11);
+      ctx.fillStyle='#17232c';
+      ctx.font='bold 9px monospace';
+      ctx.fillText(String(i+1),x+8,y-3);
+    }
+    refreshDetail();
+  };
+  function refreshDetail(){
+    const car=s.stock[selected];
+    if(!car){
+      detail.innerHTML='<b>🅿️ Vaga '+(selected+1)+'</b><p class="tiny">Vaga livre. Compre um veículo no mercado para ocupar este espaço.</p>';
+      return;
+    }
+    const invested=(Number(car.bought)||0)+(Number(car.spent)||0);
+    const expected=(Number(car.value)||0)*(.7+(Number(car.condition)||0)/300);
+    detail.innerHTML='<b>🚗 Vaga '+(selected+1)+' · '+esc(car.name)+'</b>'+
+      '<div class="kv"><span>Categoria</span><b>'+esc(car.kind)+'</b></div>'+
+      '<div class="kv"><span>Condição</span><b>'+car.condition+'%</b></div>'+
+      '<div class="kv"><span>Capital investido</span><b>'+fmt(invested)+'</b></div>'+
+      '<div class="kv"><span>Valor estimado de venda</span><b>'+fmt(expected)+'</b></div>'+
+      '<p class="tiny">Estimativa antes de despesas e negociações.</p>';
+  }
+  function selectSpot(i){
+    if(i<0||i>=Math.min(s.slots,6))return;
+    selected=i;
+    drawScene();
+  }
+  canvas.addEventListener('click',event=>{
+    const r=canvas.getBoundingClientRect();
+    const x=(event.clientX-r.left)*canvas.width/r.width;
+    const y=(event.clientY-r.top)*canvas.height/r.height;
+    let best=-1,dist=Infinity;
+    for(let i=0;i<Math.min(s.slots,6);i++){
+      const sx=165+(i%3)*56+30,sy=130+Math.floor(i/3)*37+(i%3)*-16;
+      const d=Math.hypot((x-sx)/1.3,y-sy);
+      if(d<dist){dist=d;best=i}
+    }
+    if(dist<43)selectSpot(best);
+  });
+  canvas.addEventListener('keydown',event=>{
+    if(event.key==='ArrowRight'||event.key==='ArrowDown'){event.preventDefault();selectSpot((selected+1)%Math.min(s.slots,6))}
+    if(event.key==='ArrowLeft'||event.key==='ArrowUp'){event.preventDefault();selectSpot((selected+Math.min(s.slots,6)-1)%Math.min(s.slots,6))}
+  });
+  const oldRender=render;
+  render=function(){oldRender();if(selected>=Math.min(s.slots,6))selected=0;drawScene()};
+  drawScene();
+})();
 </script></body></html>
