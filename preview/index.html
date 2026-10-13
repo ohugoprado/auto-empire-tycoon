@@ -1582,4 +1582,120 @@ css.textContent='#ae-vehicle-spotlight{display:flex;align-items:center;gap:10px;
 css.textContent+="#ae-vehicle-spotlight .ae-spotlight-facts{font-size:11px;color:#f1e1bc;font-weight:700;line-height:1.4}#ae-vehicle-spotlight .ae-spotlight-status{font-size:10px;color:#a5d5c3;line-height:1.3}";
 document.head.appendChild(css);
 })();
+</script><script id="alpha150-operations">
+(function(){
+'use strict';
+const VERSION='Alpha 1.5.0',BUILD='1500';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.5.0 · CENTRAL DE GESTÃO';
+const css=document.createElement('style');
+css.textContent=`
+#ae-ops{background:linear-gradient(155deg,#223b4b,#102330);border:1px solid #648395;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 14px 32px #0005}
+#ae-ops .ops-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+#ae-ops .ops-title b{font-size:16px;color:#ffe0a0}
+#ae-ops .ops-sub{color:#b9d0d8;font-size:11px;line-height:1.5}
+#ae-ops .ops-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0}
+#ae-ops .ops-kpi{padding:10px 7px;border-radius:10px;background:#0b1e2b;border:1px solid #395666;min-width:0}
+#ae-ops .ops-kpi span{display:block;font-size:10px;color:#a9c3ce;margin-bottom:5px}
+#ae-ops .ops-kpi strong{display:block;font-size:clamp(12px,3.7vw,17px);color:#f7d68e;overflow-wrap:anywhere}
+#ae-ops .ops-tabs{display:flex;gap:5px;overflow-x:auto;padding:3px 0 8px}
+#ae-ops .ops-tabs button{flex:1;min-width:82px;white-space:nowrap;background:#294456;color:#d5e8eb;border:1px solid #466c7b;padding:10px 8px;font-size:11px}
+#ae-ops .ops-tabs button.active{background:#f2c877;color:#152a36}
+#ae-ops .ops-panel{min-height:80px}
+#ae-ops .ops-item{background:#152c3b;border:1px solid #385565;border-radius:12px;padding:11px;margin:7px 0}
+#ae-ops .ops-item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#ae-ops .ops-item-head b{font-size:13px}
+#ae-ops .ops-item-head strong{font-size:13px;color:#f4d189;text-align:right}
+#ae-ops .ops-muted{font-size:11px;color:#b3cbd4;line-height:1.55;margin:5px 0}
+#ae-ops .ops-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+#ae-ops .ops-actions button{flex:1;min-height:38px;font-size:11px;padding:8px}
+#ae-ops .ops-actions .secondary{background:#375367;color:#e4f2f4}
+#ae-ops .ops-meter{height:6px;border-radius:10px;background:#0c1a25;overflow:hidden;margin:7px 0}
+#ae-ops .ops-meter i{display:block;height:100%;background:linear-gradient(90deg,#4abfa4,#f0d27f);border-radius:10px}
+#ae-ops .ops-alert{border-left:3px solid #e6be72;padding:8px 10px;background:#1d3442;margin:8px 0;border-radius:5px;font-size:11px;color:#e5eff0;line-height:1.5}
+#ae-ops .ops-empty{padding:14px;text-align:center;color:#b8cbd3;font-size:12px}
+@media(min-width:600px){#ae-ops .ops-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
+`;
+document.head.appendChild(css);
+const garage=document.getElementById('garage');if(!garage)return;
+const root=document.createElement('section');root.id='ae-ops';root.setAttribute('aria-label','Central de gestão da concessionária');
+root.innerHTML='<div class="ops-title"><div><b>🏢 Central de gestão</b><div class="ops-sub">Estoque, vendas e oportunidades em um só lugar</div></div></div><div class="ops-kpis" id="ae-ops-kpis"></div><div class="ops-tabs" role="group" aria-label="Áreas da central"><button type="button" data-ops-tab="inventory" class="active">🚘 Estoque</button><button type="button" data-ops-tab="sales">🤝 Vendas</button><button type="button" data-ops-tab="market">📈 Mercado</button><button type="button" data-ops-tab="finance">💰 Caixa</button></div><div class="ops-panel" id="ae-ops-panel" aria-live="polite"></div>';
+const header=garage.querySelector('#ae-scene-header');if(header)header.insertAdjacentElement('beforebegin',root);else garage.prepend(root);
+let active='inventory';
+const escapeHtml=v=>String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const money=n=>Math.round(n).toLocaleString('pt-BR')+' CR';
+const nfmt=n=>Math.round(n).toLocaleString('pt-BR');
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+const fair=c=>c.value*(.70+c.condition/300);
+const cost=c=>(Number(c.bought)||0)+(Number(c.spent)||0);
+const margin=c=>(c.listed?c.price:fair(c))-cost(c);
+const offerCount=()=>s.stock.reduce((n,c)=>n+(Array.isArray(c.offers)?c.offers.length:0),0);
+const item=(title,value,body,actions='')=>'<div class="ops-item"><div class="ops-item-head"><b>'+escapeHtml(title)+'</b><strong>'+escapeHtml(value)+'</strong></div><div class="ops-muted">'+body+'</div>'+actions+'</div>';
+const action=(label,fn,id,secondary=false)=>'<button type="button" class="'+(secondary?'secondary':'')+'" data-ops-action="'+fn+'" data-ops-id="'+id+'">'+label+'</button>';
+function refresh(){
+ if(!s||!root.isConnected)return;
+ const stock=s.stock||[],listed=stock.filter(c=>c.listed),offers=offerCount();
+ const invested=stock.reduce((n,c)=>n+cost(c),0),expected=stock.reduce((n,c)=>n+fair(c),0);
+ const listedValue=listed.reduce((n,c)=>n+Number(c.price||0),0);
+ const free=Math.max(0,s.slots-stock.length);
+ const kpis=[['Caixa',money(s.cash)],['Capital em carros',money(invested)],['Valor estimado',money(expected)],['Anúncios',listed.length],['Propostas',offers],['Vagas livres',free]];
+ document.getElementById('ae-ops-kpis').innerHTML=kpis.map(([label,value])=>'<div class="ops-kpi"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+ root.querySelectorAll('[data-ops-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.opsTab===active);b.setAttribute('aria-pressed',String(b.dataset.opsTab===active))});
+ const out=document.getElementById('ae-ops-panel');
+ if(active==='inventory'){
+  let html='';
+  if(stock.length>=s.slots)html+='<div class="ops-alert">Garagem cheia: venda um veículo ou amplie a capacidade para continuar comprando.</div>';
+  else if(!stock.length)html+='<div class="ops-alert">Sua primeira decisão: compre um carro no mercado e avalie o custo de reparo antes de anunciá-lo.</div>';
+  html+=stock.map(c=>{
+   const m=margin(c),marginPct=cost(c)>0?100*m/cost(c):0;
+   const meta=escapeHtml(c.kind)+' · '+c.year+' · '+nfmt(c.km)+' km · condição '+c.condition+'%';
+   const value='Margem '+(m>=0?'+':'')+money(m);
+   const sub=meta+'<div class="ops-meter"><i style="width:'+clamp(c.condition,0,100)+'%"></i></div>Investido: '+money(cost(c))+' · '+(c.listed?'Anúncio: '+money(c.price):'Preço justo estimado: '+money(fair(c)))+' · margem potencial: '+Math.round(marginPct)+'%';
+   const buttons='<div class="ops-actions">'+(c.condition<99?action('🔧 Reparar','repair',c.id,true):'')+action(c.listed?'🏷 Reprecificar':'🏷 Anunciar','list',c.id)+((c.offers||[]).length?action('💬 Ver propostas ('+c.offers.length+')','offers',c.id):'')+'</div>';
+   return item(c.name,value,sub,buttons)
+  }).join('');
+  out.innerHTML=html||'<div class="ops-empty">Nenhum veículo em estoque.</div>';
+ }else if(active==='sales'){
+  const leads=stock.flatMap(c=>(c.offers||[]).map(o=>({c,o}))).sort((a,b)=>b.o.amount-a.o.amount);
+  let html='<div class="ops-alert">'+offers+' proposta(s) ativa(s) · '+listed.length+' veículo(s) anunciado(s) · '+money(listedValue)+' em anúncios.</div>';
+  html+=leads.map(({c,o})=>item(c.name, money(o.amount), 'Comprador: '+escapeHtml(o.name)+' · Resultado estimado: '+money(o.amount-cost(c)),'<div class="ops-actions">'+action('🤝 Analisar propostas','offers',c.id)+'</div>')).join('');
+  if(!leads.length)html+='<div class="ops-empty">Ainda não há propostas. Anuncie veículos e avance o tempo da simulação para atrair compradores.</div>';
+  out.innerHTML=html;
+ }else if(active==='market'){
+  const market=(s.market||[]).map(c=>({...c,discount:(fair(c)-c.ask)/Math.max(1,fair(c))})).sort((a,b)=>b.discount-a.discount);
+  let html='<div class="ops-alert">Oportunidades ordenadas pela diferença entre o valor justo estimado e o preço pedido. O lucro não é garantido: considere reparos, negociação e tempo de venda.</div>';
+  html+=market.slice(0,6).map(c=>{
+   const spread=fair(c)-c.ask,net=spread-(c.repair||0)*.7;
+   const available=free>0&&s.cash>=c.ask;
+   const details=escapeHtml(c.kind)+' · '+c.year+' · '+c.condition+'% de condição · reparo estimado '+money(c.repair||0)+' · diferença após reparo aproximado '+money(net);
+   return item(c.name,(spread>=0?'+':'')+money(spread),details,'<div class="ops-actions">'+action(available?'🤝 Negociar':'Ver negociação','buy',c.id,!available)+'</div>');
+  }).join('');
+  out.innerHTML=html||'<div class="ops-empty">Nenhum anúncio disponível no mercado.</div>';
+ }else{
+  const expenses=(s.ledger||[]).filter(x=>x.amount<0).slice(0,20).reduce((n,x)=>n-x.amount,0);
+  const revenues=(s.ledger||[]).filter(x=>x.amount>0).slice(0,20).reduce((n,x)=>n+x.amount,0);
+  const projected=stock.reduce((n,c)=>n+margin(c),0);
+  let html='<div class="ops-alert">A margem potencial usa os preços atuais ou valores justos estimados. Não é lucro realizado e não inclui todas as despesas fixas.</div>';
+  html+=item('Capital de giro',money(s.cash),'Saldo disponível para compras, reparos e despesas.');
+  html+=item('Margem potencial do estoque',(projected>=0?'+':'')+money(projected),'Estimativa se todos os veículos fossem vendidos pelos preços indicados.');
+  html+=item('Margem realizada',money(s.profit||0),nfmt(s.sales||0)+' venda(s) concluída(s), antes dos custos fixos.');
+  html+=item('Últimas 20 movimentações',money(revenues-expenses),'Entradas: '+money(revenues)+' · saídas: '+money(expenses)+'.');
+  out.innerHTML=html;
+ }
+}
+root.addEventListener('click',event=>{
+ const tabButton=event.target.closest('[data-ops-tab]');if(tabButton){active=tabButton.dataset.opsTab;refresh();return}
+ const button=event.target.closest('[data-ops-action]');if(!button)return;
+ const id=Number(button.dataset.opsId);
+ switch(button.dataset.opsAction){
+  case 'repair':repair(id);break;
+  case 'list':listDialog(id);break;
+  case 'offers':offersDialog(id);break;
+  case 'buy':if(s.stock.length>=s.slots){toast('Garagem cheia');return}buyDialog(id);break;
+ }
+});
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
+refresh();
+})();
 </script></body></html>
