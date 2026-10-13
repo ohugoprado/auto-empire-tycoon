@@ -1698,4 +1698,84 @@ root.addEventListener('click',event=>{
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
 refresh();
 })();
+</script><script id="alpha160-art-direction">
+(function(){
+'use strict';
+const VERSION='Alpha 1.6.0',BUILD='1600';
+document.title='Auto Empire Tycoon — '+VERSION;
+const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.6.0 · EDIÇÃO VISUAL';
+const style=document.createElement('style');
+style.textContent=`
+/* Art direction v1.6: unified cinematic automotive management UI */
+:root{--bg:#08121b;--panel:#142533;--panel2:#1e3442;--line:#38586a;--gold:#f3c978;--green:#82d9b7;--muted:#adc6d2;--red:#f69e99}
+body{background:radial-gradient(ellipse 110% 50% at 50% -20%,#315466 0%,#132938 44%,#07131e 100%);color:#edf6f5;letter-spacing:.01em}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 49.8%,#ffffff04 50%,transparent 50.2%);background-size:16px 16px;opacity:.22;z-index:0}
+.shell{position:relative;z-index:1;max-width:740px}
+.top{padding:19px 17px 17px;position:relative;overflow:hidden;border-bottom:1px solid #486a7960;background:linear-gradient(120deg,#1b3544e8,#0d2230ed);margin-bottom:12px}
+.top:after{content:'';position:absolute;width:170px;height:170px;border:1px solid #ffffff0a;border-radius:50%;right:-75px;top:-100px;box-shadow:0 0 0 20px #ffffff04,0 0 0 40px #ffffff03;pointer-events:none}
+.logo{font-size:clamp(23px,5vw,31px);font-weight:1000;letter-spacing:-1.2px;text-shadow:0 3px 12px #0008}
+.logo em{color:#f6d38c}
+.top .tag{font-size:9px;letter-spacing:1.5px;color:#a7c5ce;margin-top:5px}
+.day{background:#0b1c29;border:1px solid #496979;border-radius:11px;padding:9px 11px;font-size:12px;min-width:100px;box-shadow:inset 0 1px 0 #ffffff0b}
+.content{padding:0 12px}
+.panel{background:linear-gradient(155deg,#1b3040,#101f2c);border:1px solid #3e6071;border-radius:16px;box-shadow:0 10px 25px #020a1180,inset 0 1px 0 #ffffff0a}
+.stats{gap:8px}
+.stats .panel{background:linear-gradient(140deg,#203c4c,#142837);border-color:#52717f}
+.stat{padding:14px 10px;position:relative;overflow:hidden}
+.stat:after{content:'';position:absolute;inset:auto 0 0;height:2px;background:linear-gradient(90deg,transparent,#d7ad6e88,transparent)}
+.label{font-size:9px;letter-spacing:1.15px;font-weight:850;color:#b1cad2}
+.num{font-size:clamp(13px,3.8vw,20px);color:#f8d38b}
+.clockbar{background:linear-gradient(90deg,#142b3a,#1d3949);padding:12px}
+.speeds button{min-width:36px}
+button{transition:background-color .14s,transform .12s,box-shadow .12s;border-radius:10px}
+button:active{transform:scale(.97)}
+button:not(.ghost){box-shadow:inset 0 1px 0 #fff6,0 3px 10px #0003}
+button.ghost{background:#2c485a;color:#e1f0f2;border:1px solid #547182}
+.title{font-size:17px;letter-spacing:-.25px}
+#garage>.scene-wrap{border:2px solid #7596a0!important;border-radius:18px!important;box-shadow:0 20px 38px #0009,inset 0 0 0 1px #d7e4df30!important;position:relative}
+#garage>.scene-wrap:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#ffffff10 0,transparent 34%,#00000022 100%);border-radius:16px}
+#garage>.scene-wrap canvas{image-rendering:auto!important}
+#ae-ops{border-color:#8a9d9b!important;background:linear-gradient(155deg,#244151,#102532)!important}
+#ae-ops .ops-kpi{background:linear-gradient(145deg,#1a3543,#0e2430)!important;border-color:#456a77!important}
+#ae-ops .ops-item{background:linear-gradient(125deg,#1a3645,#112735)!important;border-color:#456877!important}
+#ae-ops .ops-item-head strong{color:#f6d48d}
+#ae-vehicle-spotlight{border:1px solid #658797!important;background:linear-gradient(135deg,#244456,#102634)!important;box-shadow:0 8px 22px #0005}
+#ae-fleet-gallery{background:linear-gradient(160deg,#1c3544,#0d2533)!important}
+.vehicle{align-items:center}
+.carart{width:110px;min-width:110px;height:80px;background:radial-gradient(ellipse at 50% 45%,#476c7c,#183140 75%);border:1px solid #5a7a87;border-radius:12px;overflow:hidden}
+.carart:after{width:72px;bottom:11px;opacity:.6}
+.carart .ae-car-thumb{width:100px;height:72px;position:relative;z-index:1;background-repeat:no-repeat;image-rendering:auto;filter:drop-shadow(0 5px 3px #0007)}
+.vname{font-size:15px;letter-spacing:-.25px}
+.price{color:#f8d38b}
+.pill{border:1px solid #7ad2b350}
+.bottom{background:#0b1c29f7;border-top:1px solid #4c6d7e;backdrop-filter:blur(18px);box-shadow:0 -10px 30px #0005}
+.navinner button{border-radius:12px;color:#abc6d0}
+.navinner button.active{background:linear-gradient(145deg,#365469,#203d4d);color:#ffe0a1;box-shadow:inset 0 0 0 1px #6e8a90}
+.modal{background:linear-gradient(145deg,#233d4d,#112633);border-color:#819c9f;box-shadow:0 30px 100px #000c}
+.modal input{border-color:#607f8e}
+#ae-art-signature{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin:6px 0 12px;border:1px solid #527181;border-radius:12px;background:linear-gradient(100deg,#233c4a,#132b39);font-size:10px;letter-spacing:.9px;color:#d2e5e8;font-weight:800}
+#ae-art-signature b{color:#f6d18b}
+@media(max-width:380px){.carart{width:88px;min-width:88px;height:69px}.carart .ae-car-thumb{transform:scale(.82);transform-origin:left center}.stats .stat{padding:11px 6px}.num{font-size:13px}}
+@media(prefers-reduced-motion:reduce){button{transition:none}}
+`;
+document.head.appendChild(style);
+const sceneWrap=document.querySelector('#garage .scene-wrap');
+if(sceneWrap&&!document.getElementById('ae-art-signature')){
+ const ribbon=document.createElement('div');ribbon.id='ae-art-signature';ribbon.innerHTML='<span>✦ SOLARA MOTOR DISTRICT</span><b>SHOWROOM · ISOMÉTRICO</b>';sceneWrap.insertAdjacentElement('beforebegin',ribbon);
+}
+// Reuse the real six-class atlas for every inventory and marketplace card.
+const classes=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
+carSvg=function(car){
+ const idx=Math.max(0,classes.indexOf(car.kind||'Hatch'));
+ const bg=-idx*100;
+ return '<div class="ae-car-thumb" role="img" aria-label="Ilustração de '+esc(car.kind||'Hatch')+'" style="background-image:url(./assets/car-sprites-v2.svg?v=1600);background-size:600px 72.222px;background-position:'+bg+'px 0"></div>';
+};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(()=>{
+ const ribbon=document.getElementById('ae-art-signature');if(!ribbon)return;
+ const hour=Math.floor(s.minute/60);const part=hour<11?'MANHÃ':hour<17?'TARDE':'NOITE';
+ ribbon.querySelector('b').textContent='SHOWROOM · '+part;
+});
+if(typeof render==='function')render();
+})();
 </script></body></html>
