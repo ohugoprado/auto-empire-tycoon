@@ -52,7 +52,7 @@ function refresh(){
  panel.querySelector('#ae-command-alerts').innerHTML=alerts().map(a=>'<div class="ae-command-alert'+(a.urgent?' urgent':a.good?' good':'')+'">'+esc(a.text)+'</div>').join('');
  panel.querySelector('#ae-command-foot').innerHTML='Capital em veículos: <b>'+fmt(cost)+'</b> · Vendas totais: <b>'+s.sales+'</b>';
 }
-function focusTab(id){show(id);window.scrollTo?.({top:0,behavior:'instant'})}
+function focusTab(id){show(id);window.scrollTo?.({top:0,behavior:'auto'})}
 panel.addEventListener('click',ev=>{
  const action=ev.target.closest('[data-command]')?.dataset.command;
  if(!action)return;
