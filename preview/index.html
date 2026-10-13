@@ -1216,4 +1216,68 @@ html,body{max-width:100%;overflow-x:hidden}
 const scene=document.getElementById('scene');
 if(scene)requestAnimationFrame(()=>drawScene());
 })();
+</script><script id="alpha110-mobile-qa">
+(function(){
+'use strict';
+const VERSION='Alpha 1.1.0',BUILD='1100';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.1.0 · ESTABILIDADE MOBILE';
+const css=document.createElement('style');
+css.textContent=`
+/* Stage 1: prevent the iPhone home indicator and browser chrome covering content */
+html{scroll-padding-bottom:170px}
+.content{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important}
+.bottom{padding-bottom:calc(9px + env(safe-area-inset-bottom));z-index:40}
+#garage>.scene-wrap{width:100%;overflow:hidden;contain:layout paint}
+#garage>#ae-scene-header{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#ae-camera-controls{width:100%}
+#ae-camera-controls button{min-width:0;white-space:normal}
+#ae-garage-buttons button{min-width:0;word-break:normal;overflow-wrap:break-word}
+#garage>#ae-test-bar:not(.ae-expanded){padding:8px 12px}
+#garage>#ae-test-bar:not(.ae-expanded) .actions{display:none!important}
+#garage>#ae-test-bar:not(.ae-expanded) .tiny{display:none!important}
+#ae-test-toggle{width:100%}
+#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#ae-visual-stats>div{min-width:0}
+#ae-visual-stats b{font-variant-numeric:tabular-nums}
+@media(max-width:360px){#ae-visual-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#ae-visual-stats>div:last-child{grid-column:1/-1}}
+`;document.head.appendChild(css);
+// Stage 2: keyboard and screen-reader friendly garage controls.
+const controls=document.getElementById('ae-garage-buttons');
+if(controls){
+ controls.setAttribute('role','group');
+ controls.setAttribute('aria-label','Vagas da concessionária');
+ const sync=()=>{
+  for(const b of controls.querySelectorAll('button[data-ae-slot]')){
+   const i=Number(b.dataset.aeSlot),active=!b.classList.contains('ghost');
+   b.setAttribute('aria-pressed',String(active));
+   b.setAttribute('aria-label','Vaga '+(i+1)+(s.stock[i]?' ocupada por '+s.stock[i].name:' livre'));
+  }
+ };
+ controls.addEventListener('click',()=>queueMicrotask(sync));
+ sync();
+}
+// Stage 3: explicit, user-controlled reset of the zoom (without touching saved cars).
+const camera=document.getElementById('ae-camera-controls');
+if(camera){
+ const note=document.createElement('span');
+ note.className='tiny';note.textContent='A câmera altera somente a visualização.';
+ note.style.display='block';note.style.marginTop='5px';
+ camera.insertAdjacentElement('afterend',note);
+}
+const debug=document.getElementById('ae-debug');
+if(debug){
+ const summary=debug.querySelector('summary');if(summary)summary.textContent='🛠 Diagnóstico · '+VERSION;
+ const diagnostics=debug.querySelector('pre');
+ debug.addEventListener('toggle',()=>{
+  if(debug.open&&diagnostics){
+   const canvas=document.getElementById('scene');
+   const rect=canvas?canvas.getBoundingClientRect():{width:0,height:0};
+   const extra='\nEscala da cena: '+Math.round(rect.width)+' × '+Math.round(rect.height)+'\nVersão: '+VERSION+' · '+BUILD;
+   if(!diagnostics.textContent.includes('Escala da cena:'))diagnostics.textContent+=extra;
+  }
+ });
+}
+})();
 </script></body></html>
