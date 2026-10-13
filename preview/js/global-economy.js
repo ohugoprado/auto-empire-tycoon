@@ -46,7 +46,7 @@ function updateDay(){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
   if(s.stock.length>=s.slots){job.due=s.day+1;continue}
-  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true,designQuality:job.quality||null,designId:job.designId||null};
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null};
   const supplier=job.supplier||'standard';
   const defectRate=supplier==='economy'?.07:supplier==='premium'?.012:.03;
   if(Math.random()<defectRate){
@@ -80,7 +80,7 @@ function produceCost(){const f=init().factory;return Math.round((14500+f.level*1
 function show(){
  const e=init(),c=e.crisis,f=e.factory,city=byId(s.empire.world?.active),active=crisisFor(city?.id);
  const cashForecast=s.cash+s.stock.reduce((a,x)=>a+(Number(x.value)||0)*.5,0);
- document.getElementById('ae-econ-status').innerHTML='<div class="ae-econ-cell"><small>Inflação acumulada</small><b>'+((e.inflation-1)*100).toFixed(1).replace('.',',')+'%</b></div><div class="ae-econ-cell"><small>Mercado ativo</small><b>'+esc(city?.name||'Solara')+'</b></div><div class="ae-econ-cell"><small>Risco financeiro</small><b>'+(cashForecast<0?'Crítico':s.cash<0?'Atenção':'Controlado')+'</b></div><div class="ae-econ-cell"><small>Indústria</small><b>'+(f.opened?'Nível '+f.level:'Não fundada')+'</b></div>';
+ document.getElementById('ae-econ-status').innerHTML='<div class="ae-econ-cell"><small>Inflação acumulada</small><b>'+((e.inflation-1)*100).toFixed(1).replace('.',',')+'%</b></div><div class="ae-econ-cell"><small>Mercado ativo</small><b>'+esc(city?.name||'São Paulo')+'</b></div><div class="ae-econ-cell"><small>Risco financeiro</small><b>'+(cashForecast<0?'Crítico':s.cash<0?'Atenção':'Controlado')+'</b></div><div class="ae-econ-cell"><small>Indústria</small><b>'+(f.opened?'Nível '+f.level:'Não fundada')+'</b></div>';
  document.getElementById('ae-econ-crisis').innerHTML='<p class="'+(active.id==='stable'?'ae-econ-hint':'ae-econ-danger')+'">'+esc(active.name)+': '+esc(active.description)+(active.id==='stable'?'':' · até o dia '+c.end)+'</p>'+(e.distressDays?'<p class="ae-econ-danger">Insolvência: '+e.distressDays+'/7 dias. Recupere o patrimônio líquido.</p>':'')+(e.bankrupt?'<p class="ae-econ-danger">FALÊNCIA DECLARADA. Campanha encerrada. Exporte o backup ou inicie uma nova campanha.</p>':'');
  document.getElementById('ae-econ-factory').innerHTML='<p class="ae-econ-hint">'+(f.opened?'Fabricante: '+esc(f.brand)+' · modelo '+esc(f.model)+' · produzidos '+f.produced+' · na fila '+f.queue.length:'Abra uma fabricante por '+money(factoryCost())+' CR para produzir sua própria marca.')+'</p><p class="ae-econ-hint">Custo estimado por carro: '+money(produceCost())+' CR · produção: '+Math.max(2,8-f.level)+' dias · uma vaga por veículo finalizado.</p>';
  panel.querySelectorAll('[data-econ]').forEach(b=>b.disabled=e.bankrupt||(b.dataset.econ==='open'?f.opened:b.dataset.econ==='produce'?!f.opened:b.dataset.econ==='upgrade'?!f.opened||f.level>=4:false));
@@ -91,7 +91,7 @@ panel.addEventListener('click',ev=>{
  const e=init(),f=e.factory;if(e.bankrupt)return toast('Empresa falida');
  if(action==='open'){
   if(f.opened)return;const cost=factoryCost();if(s.cash<cost)return toast('Capital insuficiente');
-  const brand=prompt('Nome da fabricante (2 a 24 caracteres):',s.empire.world?.hq==='solara'?'Solara Motors':'Empire Motors');
+  const brand=prompt('Nome da fabricante (2 a 24 caracteres):',s.empire.world?.hq==='saopaulo'?'São Paulo Motors':'Empire Motors');
   if(brand===null)return;const name=brand.trim().replace(/[<>]/g,'').slice(0,24);if(name.length<2)return toast('Nome inválido');
   if(!confirm('Fundar '+name+' por '+money(cost)+' CR?'))return;
   if(!transact(cost,'Fundação da fabricante'))return;f.opened=true;f.brand=name;note('Fabricante '+name+' fundada.');
