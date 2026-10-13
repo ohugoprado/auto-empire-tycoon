@@ -63,7 +63,7 @@ document.querySelectorAll('.bottom button[data-tab]').forEach(button=>{
  button.addEventListener('click',()=>{
   restoreFocus();
   window.requestAnimationFrame?.(()=>{
-   window.scrollTo?.({top:0,behavior:'instant'});
+   window.scrollTo?.({top:0,behavior:'auto'});
   });
  },{passive:true});
 });
