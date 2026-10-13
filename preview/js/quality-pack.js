@@ -48,9 +48,12 @@ function filterStock(){
  if(filterLock||!stock||!s)return;
  const cards=[...stock.children],cars=s.stock||[];
  if(cards.length!==cars.length)return;
+ // Keep vehicle identity attached to each DOM card across repeated sorting/filtering.
+ if(cards.some(node=>!node.dataset.aeCarId))cards.forEach((node,i)=>{node.dataset.aeCarId=String(cars[i]?.id??'')});
+ const byId=new Map(cards.map(node=>[node.dataset.aeCarId,node]));
  filterLock=true;
  try{
-  const ordered=cars.map((car,i)=>({car,node:cards[i],index:i}));
+  const ordered=cars.map((car,i)=>({car,node:byId.get(String(car.id)),index:i})).filter(x=>x.node);
   const key=car=>sort==='price'?Number(car.price||car.value||0):sort==='profit'?Number(car.price||car.value||0)-Number(car.bought||0)-Number(car.spent||0):sort==='age'?Number(car.days||0):0;
   if(sort!=='default')ordered.sort((a,b)=>key(b.car)-key(a.car)||a.index-b.index);
   const fragment=document.createDocumentFragment();let visible=0;
@@ -66,7 +69,7 @@ function updateReport(){
  const rent={casual:700,normal:1200,hard:1900}[s.difficulty]||1200;
  const items=[['Caixa disponível',money(s.cash)],['Capital no estoque',money(data.invested)],['Receita anunciada',money(data.asking)],['Lucro bruto estimado',money(data.gross)],['Despesas fixas / 30 dias',money(payroll+rent)],['Vendas concluídas',s.sales||0]];
  report.innerHTML=items.map(([label,value])=>'<div><small>'+label+'</small><b>'+value+'</b></div>').join('');
- const summary=id('summary');if(summary){const old=summary.querySelector('.ae-rent-correction');if(old)old.remove();const el=document.createElement('div');el.className='kv ae-rent-correction';el.innerHTML='<span>Aluguel efetivo / 30 dias</span><b>'+money(rent)+'</b>';summary.append(el)}
+ const summary=id('summary');if(summary){const old=summary.querySelector('.ae-rent-correction');if(old)old.remove()}
 }
 function updateTip(){
  if(!s)return;
@@ -106,6 +109,7 @@ async function importSave(file){
  if(!file||file.size>2e6)return toast('Arquivo inválido ou muito grande');
  let data;try{data=JSON.parse(await file.text())}catch(e){return toast('JSON inválido')}
  if(data?.format!=='autoempire-backup'||data.version!==1||data.save?.version!==2||!Array.isArray(data.save.stock)||!Array.isArray(data.save.market)||!Array.isArray(data.save.ledger)||!Array.isArray(data.save.logs)||!Number.isFinite(Number(data.save.cash))||!Number.isFinite(Number(data.save.day)))return toast('Backup incompatível');
+ if(data.save.stock.length>500||data.save.market.length>500||data.save.ledger.length>2000||data.save.logs.length>2000||!Number.isInteger(Number(data.save.day))||Number(data.save.day)<1||!Number.isFinite(Number(data.save.slots))||Number(data.save.slots)<1||Number(data.save.slots)>1000)return toast('Backup com dados inconsistentes');
  if(!confirm('Importar este backup e substituir a campanha atual?'))return;
  try{localStorage.setItem('autoempire_preview_v06',JSON.stringify(data.save));if(data.profile&&typeof data.profile.company==='string'&&typeof data.profile.owner==='string')localStorage.setItem('autoempire_company_profile_v1',JSON.stringify(data.profile));location.reload()}catch(e){toast('Falha ao restaurar o backup')}
 }
