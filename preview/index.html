@@ -1793,4 +1793,39 @@ carSvg=function(car){
 });
 if(typeof render==='function')render();
 })();
+</script><script id="alpha180-asset-loader">
+(function(){
+'use strict';
+// Asset-ready presentation: new artwork takes priority, existing illustrations remain fallback.
+// Binary files are supplied separately in the downloadable production package.
+const artRoot='./assets/studio/';
+const names={Hatch:'vehicle_hatch',SUV:'vehicle_suv','Sedã':'vehicle_sedan',Picape:'vehicle_pickup',Compacto:'vehicle_compact',Esportivo:'vehicle_sports'};
+const ready={};
+Object.values(names).forEach(name=>{
+ const image=new Image();image.onload=()=>{ready[name]=true;document.querySelectorAll('[data-studio-art="'+name+'"]').forEach(el=>{el.style.backgroundImage='url("'+artRoot+name+'.webp")';el.classList.add('studio-ready')})};
+ image.src=artRoot+name+'.webp';
+});
+const style=document.createElement('style');
+style.textContent='.ae-car-thumb.studio-ready{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;filter:drop-shadow(0 5px 8px #0008)}.studio-hero{width:100%;aspect-ratio:1355/419;object-fit:cover;display:block;border-radius:14px;border:1px solid #76909c;box-shadow:0 12px 28px #0008;margin:10px 0}.studio-brand{max-width:300px;width:65%;height:auto;display:block;margin:0 auto 8px}.studio-art-caption{font-size:10px;color:#a7c1cc;margin:0 0 10px;text-align:center}';
+document.head.appendChild(style);
+const oldCarSvg=carSvg;
+carSvg=function(car){
+ const name=names[car.kind]||names.Hatch;
+ const base=oldCarSvg(car);
+ if(ready[name])return '<div class="ae-car-thumb studio-ready" data-studio-art="'+name+'" role="img" aria-label="Ilustração de '+esc(car.kind||'Hatch')+'" style="background-image:url('+artRoot+name+'.webp)"></div>';
+ return base.replace('class="ae-car-thumb"','class="ae-car-thumb" data-studio-art="'+name+'"');
+};
+const scene=document.querySelector('#garage .scene-wrap');
+if(scene){
+ const hero=new Image();hero.className='studio-hero';hero.alt='Concessionária Auto Empire Motors — ambiente artístico';hero.loading='lazy';
+ hero.onload=()=>{scene.insertAdjacentElement('beforebegin',hero)};
+ hero.src=artRoot+'showroom_environment.webp';
+}
+const top=document.querySelector('.top .logo');
+if(top){
+ const logo=new Image();logo.className='studio-brand';logo.alt='Auto Empire Tycoon';logo.onload=()=>{top.insertAdjacentElement('beforebegin',logo)};logo.src=artRoot+'hero_branding.webp';
+}
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(()=>{});
+if(typeof render==='function')render();
+})();
 </script></body></html>
