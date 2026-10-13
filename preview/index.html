@@ -14,8 +14,33 @@ function vehicleDetails(id){let c=s.stock.find(v=>v.id===id);if(!c)return;modalC
 function fixFault(id){let c=s.stock.find(v=>v.id===id);if(!c||!c.fault||c.faultFixed)return;let cost=faultCost(c);if(s.cash<cost)return toast('Caixa insuficiente');s.cash-=cost;c.spent=(c.spent||0)+cost;c.faultFixed=true;c.condition=Math.min(100,c.condition+9);entry('Reparo estrutural · '+c.name,-cost);note('Defeito corrigido em '+c.name);save();render();vehicleDetails(id);toast('Defeito corrigido')}
 const originalBuyDialog=buyDialog;
 buyDialog=function(id){originalBuyDialog(id);let c=s.market.find(v=>v.id===id);if(!c)return;let box=document.createElement('div');box.className='inspectbox';box.innerHTML=`<b>🔎 Histórico mecânico</b><div class="extra">${c.faultRevealed?(c.fault?'<span class="red">'+esc(c.fault)+'</span>':'Nenhum defeito grave detectado'):'Há risco de defeitos ocultos. Uma vistoria reduz a incerteza.'}</div><div class="actions"><button class="ghost smallbtn" onclick="inspectCar(${id},'market')">Vistoriar · 350 CR</button></div>`;$('modalbody').insertBefore(box,$('modalbody').querySelector('.divider'))};
-const originalRender=render;
-render=function(){originalRender();document.querySelectorAll('#stock .panel').forEach((el,i)=>{let c=s.stock[i];if(!c)return;let b=document.createElement('button');b.className='ghost smallbtn';b.textContent='🔎 Ficha / vistoria';b.onclick=()=>vehicleDetails(c.id);let act=el.querySelector('.actions');if(act)act.appendChild(b);if(c.faultRevealed&&c.fault&&!c.faultFixed){let tag=document.createElement('div');tag.className='extra red';tag.textContent='⚠ '+c.fault;el.querySelector('.vinfo').appendChild(tag)}});document.querySelectorAll('#listings .panel').forEach((el,i)=>{let c=s.market[i];if(!c)return;let x=document.createElement('div');x.className='extra';x.textContent=c.inspected?(c.fault?'⚠ Vistoria: '+c.fault:'✓ Vistoria sem defeito grave'):'🔎 Histórico não verificado';el.querySelector('.vinfo').appendChild(x)})};
+// Vehicle inspection UI is registered with the shared render refresh pipeline.
+function aeRefreshInspections(){
+ document.querySelectorAll('#stock .panel').forEach((el,i)=>{
+  const c=s.stock[i];if(!c)return;
+  const act=el.querySelector('.actions');
+  if(act&&!act.querySelector('[data-ae-inspect]')){
+   const b=document.createElement('button');
+   b.className='ghost smallbtn';b.dataset.aeInspect='1';
+   b.textContent='🔎 Ficha / vistoria';b.onclick=()=>vehicleDetails(c.id);
+   act.appendChild(b);
+  }
+  if(c.faultRevealed&&c.fault&&!c.faultFixed){
+   const info=el.querySelector('.vinfo');
+   if(info&&!info.querySelector('[data-ae-fault]')){
+    const tag=document.createElement('div');tag.className='extra red';tag.dataset.aeFault='1';
+    tag.textContent='⚠ '+c.fault;info.appendChild(tag);
+   }
+  }
+ });
+ document.querySelectorAll('#listings .panel').forEach((el,i)=>{
+  const c=s.market[i],info=el.querySelector('.vinfo');if(!c||!info)return;
+  let line=info.querySelector('[data-ae-inspection]');
+  if(!line){line=document.createElement('div');line.className='extra';line.dataset.aeInspection='1';info.appendChild(line)}
+  line.textContent=c.inspected?(c.fault?'⚠ Vistoria: '+c.fault:'✓ Vistoria sem defeito grave'):'🔎 Histórico não verificado';
+ });
+}
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(aeRefreshInspections);
 const originalOffersDialog=offersDialog;
 offersDialog=function(id){originalOffersDialog(id);let c=s.stock.find(v=>v.id===id);if(!c)return;let el=$('modalbody');let html=`<div class="inspectbox"><b>Perfil dos compradores</b><p class="tiny">Cada cliente tem prioridades e orçamento próprios. Ofertas não garantem lucro.</p>${(c.offers||[]).map(o=>`<div class="buyer">👤 ${esc(o.name)} · ${esc(o.preference||'Busca bom custo-benefício')}<div class="extra">Orçamento: ${fmt(o.budget||o.amount)}</div></div>`).join('')}</div>`;el.insertAdjacentHTML('beforeend',html)};
 const originalTickDay=tickDay;
@@ -1291,6 +1316,18 @@ document.title='Auto Empire Tycoon — Alpha 1.2.6';
 const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.6 · BUILD 1260';
 const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.6 · MERCADO E FINANÇAS';
 const title=document.querySelector('#garage .section-head .title');if(title)title.textContent='🚗 Meu estoque';
+const style=document.createElement('style');
+style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
+document.head.appendChild(style);
+})();
+</script><script id="alpha127-refactor">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.7';
+const version=document.getElementById('ae-version');
+if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.7 · BUILD 1270';
+const tag=document.querySelector('.top .tag');
+if(tag)tag.textContent='ALPHA 1.2.7 · VISTORIAS E INTERFACE';
 const style=document.createElement('style');
 style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
 document.head.appendChild(style);
