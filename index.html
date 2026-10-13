@@ -73,7 +73,7 @@ render();
         const cards=[...listings.children];
         const records=cards.map(el=>{
           const match=el.querySelector('button[onclick^="buyDialog("]');
-          const id=match&&match.getAttribute('onclick').match(/buyDialog\\((\\d+)\\)/);
+          const id=match&&match.getAttribute('onclick').match(/buyDialog\((\d+)\)/);
           return {el,car:id?byId.get(id[1]):null};
         }).filter(x=>x.car);
         const key=c=>sort==='cheap'?c.ask:sort==='expensive'?-c.ask:sort==='condition'?-c.condition:sort==='margin'?-(c.value-c.ask):0;
@@ -111,6 +111,8 @@ render();
   const market=document.getElementById('market');
   const listings=document.getElementById('listings');
   if(!market||!listings)return;
+  const header=market.querySelector('.section-head .title');
+  if(header)header.textContent='🚗 Mercado de Solara · Alpha 0.7';
   const panel=document.createElement('section');
   panel.className='panel';
   panel.id='ae-intel';
