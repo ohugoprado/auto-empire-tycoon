@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="92" viewBox="0 0 720 92"><title>Auto Empire Tycoon — carrocerias Alpha 1.4.0</title><g transform="translate(0 0)">
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="92" viewBox="0 0 720 92"><title>Auto Empire Tycoon — carrocerias Alpha 1.4.1</title><defs>
+<linearGradient id="bodyLight" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffffff" stop-opacity=".32"/><stop offset=".45" stop-color="#ffffff" stop-opacity=".03"/><stop offset="1" stop-color="#071e2a" stop-opacity=".24"/></linearGradient>
+<linearGradient id="glassLight" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f1ffff" stop-opacity=".72"/><stop offset=".45" stop-color="#a6deed" stop-opacity=".17"/><stop offset="1" stop-color="#113c53" stop-opacity=".32"/></linearGradient>
+</defs><g transform="translate(0 0)">
 <title>Hatch</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
 <path d="M18 55L57 32L105 53L64 76Z" fill="#369cdb" stroke="#20394a" stroke-width="2"/>
@@ -28,6 +31,10 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M34 47L46 28L68 25L84 40L89 48L64 59Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M40 45L49 32L59 30L59 49L48 52Z M64 30L68 30L79 41L84 47L64 55Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g><g transform="translate(120 0)">
 <title>SUV</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
@@ -58,6 +65,10 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M29 46L42 19L68 14L89 35L96 47L65 62Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M36 44L46 23L59 21L59 49L45 55Z M64 20L68 20L84 37L90 46L64 57Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g><g transform="translate(240 0)">
 <title>Sedã</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
@@ -88,6 +99,10 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M29 47L45 28L72 26L88 43L94 50L62 61Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M36 46L48 32L59 31L59 51L45 55Z M64 31L70 30L82 43L87 48L64 56Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g><g transform="translate(360 0)">
 <title>Picape</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
@@ -118,6 +133,10 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M27 47L40 21L63 19L75 40L78 49L59 59Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M34 45L43 25L54 23L54 47L44 53Z M59 24L63 24L71 40L73 47L59 53Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g><g transform="translate(480 0)">
 <title>Compacto</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
@@ -148,6 +167,10 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M35 48L48 31L65 28L81 43L84 50L62 61Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M41 47L51 35L58 34L58 50L48 53Z M63 33L65 33L76 44L79 48L63 56Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g><g transform="translate(600 0)">
 <title>Esportivo</title>
 <ellipse cx="61" cy="80" rx="47" ry="8" fill="#09212f" opacity=".25"/>
@@ -178,4 +201,8 @@
 <path d="M19 62L34 70M80 74L95 66" stroke="#6e8993" stroke-width="1.5" stroke-linecap="round"/>
 <path d="M24 64L29 67M84 72L90 68" stroke="#fff" stroke-width="1.1" opacity=".85"/>
 <path d="M61 53L61 62" stroke="#173a48" stroke-width="1" opacity=".6"/>
+<path d="M29 52L48 38L75 37L92 49L96 54L63 64Z" fill="url(#bodyLight)" opacity=".7"/>
+<path d="M38 51L51 41L60 41L60 54L47 57Z M65 41L74 41L85 49L89 53L65 59Z" fill="url(#glassLight)" opacity=".75"/>
+<path d="M24 53L52 66M70 68L96 55" fill="none" stroke="#fff" stroke-width=".9" opacity=".25"/>
+<path d="M21 58L32 63M89 63L100 58" fill="none" stroke="#071d28" stroke-width="1.8" opacity=".45"/>
 </g></svg>
