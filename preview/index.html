@@ -856,9 +856,7 @@ const car=(ctx,c,x,y)=>{
  ctx.restore();
 };
 /* Retired obsolete scene renderer (alpha106-art-direction); Alpha 1.2.0 uses the shared sprite scene. */
-const oldRender=render;
-render=function(){oldRender();drawScene()};
-drawScene();
+/* Replaced duplicate render hook with the shared frame scheduler. */
 })();
 </script><script id="alpha107-art-systems">
 (function(){
@@ -1195,5 +1193,29 @@ css.textContent=`
 #garage>#ae-test-bar:not(.ae-expanded){padding:7px 12px}
 `;document.head.appendChild(css);
 requestAnimationFrame(()=>drawScene());
+})();
+</script><script id="alpha121-refactor-release">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.1';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.1 · BUILD 1210';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.1 · SPRITES E ESTABILIDADE';
+const style=document.createElement('style');
+style.textContent=`
+#garage>.scene-wrap{border-radius:14px;overflow:hidden}
+#garage>#ae-garage-buttons button{min-height:45px}
+#garage>#ae-garage-buttons button:focus-visible{outline:3px solid #ffdf8b}
+#ae-camera-controls button.active{background:#f3cb77;color:#152a36}
+#garage>#ae-slot-status{margin-top:0}
+#garage>#ae-test-bar{order:12!important}
+`;document.head.appendChild(style);
+const events=document.getElementById('events');
+if(events){
+ const details=document.createElement('details');details.className='panel';details.id='ae-art-check';
+ details.innerHTML='<summary style="cursor:pointer;font-weight:800">🎨 Biblioteca de sprites · 1.2.1</summary><p class="tiny">Seis modelos isométricos: Hatch, SUV, Sedã, Picape, Compacto e Esportivo.</p><img src="./assets/car-sprites.svg" alt="Seis veículos isométricos do jogo" style="display:block;width:100%;max-width:720px;background:#263f4a;border-radius:9px;padding:8px"><p class="tiny">Se a imagem não aparecer, a biblioteca de arte não carregou corretamente.</p>';
+ events.appendChild(details);
+}
+const canvas=document.getElementById('scene');
+if(canvas&&typeof drawScene==='function')requestAnimationFrame(()=>drawScene());
 })();
 </script></body></html>
