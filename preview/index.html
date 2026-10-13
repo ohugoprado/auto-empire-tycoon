@@ -65,18 +65,28 @@ render();
     const listings=document.getElementById('listings');
     if(listings){listings.parentNode.insertBefore(controls,listings);const select=controls.querySelector('#ae-kind');
       for(const k of [...new Set(catalog.map(c=>c[3]))].sort()){const o=document.createElement('option');o.value=k;o.textContent=k;select.appendChild(o)}
-      function filter(){
-        const kind=select.value,sort=controls.querySelector('#ae-sort').value;
-        const cards=[...listings.children];const cars=s.market||[];
-        const byId=new Map(cars.map(c=>[String(c.id),c]));const records=cards.map(el=>({el,car:byId.get(el.dataset.aeCarId)})).filter(x=>x.car);
-        records.forEach(x=>x.el.style.display=kind==='all'||x.car.kind===kind?'':'none');
+      // Rebuild from the canonical market data on every change.
+      // Never infer a vehicle's category from a previously sorted DOM position.
+      function applyMarketView(){
+        const kind=select.value, sort=controls.querySelector('#ae-sort').value;
+        const byId=new Map(s.market.map(c=>[String(c.id),c]));
+        const cards=[...listings.children];
+        const records=cards.map(el=>{
+          const match=el.querySelector('button[onclick^="buyDialog("]');
+          const id=match&&match.getAttribute('onclick').match(/buyDialog\\((\\d+)\\)/);
+          return {el,car:id?byId.get(id[1]):null};
+        }).filter(x=>x.car);
         const key=c=>sort==='cheap'?c.ask:sort==='expensive'?-c.ask:sort==='condition'?-c.condition:sort==='margin'?-(c.value-c.ask):0;
-        records.sort((a,b)=>key(a.car)-key(b.car)).forEach(x=>listings.appendChild(x.el));
+        records.sort((a,b)=>key(a.car)-key(b.car)).forEach(({el,car})=>{
+          el.style.display=(kind==='all'||car.kind===kind)?'':'none';
+          listings.appendChild(el);
+        });
       }
-      select.onchange=filter;controls.querySelector('#ae-sort').onchange=filter;
+      select.onchange=()=>render();
+      controls.querySelector('#ae-sort').onchange=()=>render();
       const originalMarketRender=render;
-      render=function(){originalMarketRender();[...listings.children].forEach((el,i)=>{if(s.market[i])el.dataset.aeCarId=String(s.market[i].id)});filter()};
-      [...listings.children].forEach((el,i)=>{if(s.market[i])el.dataset.aeCarId=String(s.market[i].id)});filter();
+      render=function(){originalMarketRender();applyMarketView()};
+      applyMarketView();
     }
   }
   const reports=document.getElementById('reports');
