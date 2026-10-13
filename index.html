@@ -68,15 +68,15 @@ render();
       function filter(){
         const kind=select.value,sort=controls.querySelector('#ae-sort').value;
         const cards=[...listings.children];const cars=s.market||[];
-        const records=cards.map((el,i)=>({el,car:cars[i]})).filter(x=>x.car);
+        const byId=new Map(cars.map(c=>[String(c.id),c]));const records=cards.map(el=>({el,car:byId.get(el.dataset.aeCarId)})).filter(x=>x.car);
         records.forEach(x=>x.el.style.display=kind==='all'||x.car.kind===kind?'':'none');
         const key=c=>sort==='cheap'?c.ask:sort==='expensive'?-c.ask:sort==='condition'?-c.condition:sort==='margin'?-(c.value-c.ask):0;
         records.sort((a,b)=>key(a.car)-key(b.car)).forEach(x=>listings.appendChild(x.el));
       }
       select.onchange=filter;controls.querySelector('#ae-sort').onchange=filter;
       const originalMarketRender=render;
-      render=function(){originalMarketRender();filter()};
-      filter();
+      render=function(){originalMarketRender();[...listings.children].forEach((el,i)=>{if(s.market[i])el.dataset.aeCarId=String(s.market[i].id)});filter()};
+      [...listings.children].forEach((el,i)=>{if(s.market[i])el.dataset.aeCarId=String(s.market[i].id)});filter();
     }
   }
   const reports=document.getElementById('reports');
