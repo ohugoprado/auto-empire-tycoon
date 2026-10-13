@@ -59,7 +59,10 @@ function updateDay(){
   s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
  }
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
- if(s.cash<0&&s.cash+liquidation<0)e.distressDays++;else e.distressDays=0;
+ // Loans are liabilities, not profit: borrowing cannot erase insolvency.
+ const liabilities=(Array.isArray(s.empire?.bank?.loans)?s.empire.bank.loans:[]).reduce((a,l)=>a+Math.max(0,Number(l.balance)||0),0);
+ const netLiquidation=(Number(s.cash)||0)+liquidation-liabilities;
+ if(netLiquidation<0)e.distressDays++;else e.distressDays=0;
  if(e.distressDays>=7){e.bankrupt=true;paused=true;note('FALÊNCIA: insolvência persistente por 7 dias. Campanha encerrada.');toast('Sua empresa entrou em falência.');}
 }
 const style=document.createElement('style');style.textContent=`
