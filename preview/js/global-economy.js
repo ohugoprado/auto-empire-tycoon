@@ -133,7 +133,7 @@ tickDay=function(){
  if(s.day===previousDay)return;
  const e=init();
  // A crisis affects new proposals only, never retroactively changes an accepted offer.
- for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const demand=factor(car.originCity||s.empire.world?.active);if(demand>=1)continue;for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)/100)*100)}car.interested=offers.length>0}
+ for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const demand=factor(car.originCity||s.empire.world?.active);for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}const designBoost=car.manufactured&&Number.isFinite(Number(car.designQuality))?1+Math.max(0,Number(car.designQuality)-65)*.002:1;offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)*designBoost/100)*100)}car.interested=offers.length>0}
  updateDay();save();
 };
 const previousSubmit=submitBid;
