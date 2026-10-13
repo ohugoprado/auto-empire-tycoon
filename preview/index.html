@@ -935,13 +935,23 @@ function scene(){
  }
  const active=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
  const chosen=active?Number(active.dataset.aeSlot):0;
- for(let i=0;i<Math.min(6,s.slots);i++){
-  const [x,y]=spots[i],sel=i===chosen;
-  poly(c,[[x-30,y],[x,y-14],[x+30,y],[x,y+14]],sel?'#e0bc67':'#597780');
-  c.strokeStyle=sel?'#fff0aa':'#cbdcd9';c.lineWidth=sel?2:1;c.beginPath();c.moveTo(x-29,y);c.lineTo(x,y-13);c.lineTo(x+29,y);c.lineTo(x,y+13);c.closePath();c.stroke();
-  if(s.stock[i])vehicleSprite(c,s.stock[i],x,y-5);
-  box(c,x-7,y+14,14,12,sel?'#ffda83':'#dbe9e7');
-  c.fillStyle='#243843';c.font='bold 10px monospace';c.fillText(String(i+1),x-3,y+23);
+ // Draw back-to-front so vehicles and markers overlap in a consistent isometric order.
+ const visible=spots.slice(0,Math.min(6,s.slots)).map(([x,y],i)=>({x,y,i})).sort((a,b)=>a.y-b.y||a.x-b.x);
+ for(const {x,y,i} of visible){
+  const selected=i===chosen,car=s.stock[i];
+  // Subtle parking pad and contact shadow beneath the vehicle.
+  poly(c,[[x-30,y],[x,y-14],[x+30,y],[x,y+14]],selected?'#d6ad59':'#587984');
+  c.strokeStyle=selected?'#ffe4a0':'#b4cbc9';c.lineWidth=selected?2:1;
+  c.beginPath();c.moveTo(x-29,y);c.lineTo(x,y-13);c.lineTo(x+29,y);c.lineTo(x,y+13);c.closePath();c.stroke();
+  if(car){
+   c.fillStyle='rgba(11,29,37,.26)';c.beginPath();c.ellipse(x,y+6,23,7,-.25,0,Math.PI*2);c.fill();
+   vehicleSprite(c,car,x,y-5);
+   if(car.listed){box(c,x+17,y-16,17,9,'#173f40');c.fillStyle='#bdf1cf';c.font='bold 6px sans-serif';c.fillText('VENDA',x+18,y-10)}
+  }else{
+   c.fillStyle='rgba(15,36,45,.3)';c.font='bold 7px sans-serif';c.fillText('LIVRE',x-11,y+2);
+  }
+  box(c,x-7,y+15,14,11,selected?'#ffda83':'#dbe9e7');
+  c.fillStyle='#243843';c.font='bold 9px monospace';c.fillText(String(i+1),x-3,y+23);
  }
  box(c,0,234,384,16,'#183440');c.fillStyle='#d4e8e9';c.font='bold 10px monospace';c.fillText('SOLARA · SHOWROOM',10,245);c.fillStyle='#f7d791';c.fillText(s.stock.length+'/'+s.slots+' VAGAS',305,245);
 }
@@ -1347,5 +1357,16 @@ css.textContent='#garage>.scene-wrap{background:#234454!important;border:1px sol
 document.head.appendChild(css);
 const art=document.getElementById('ae-art-check');
 if(art){const img=document.createElement('img');img.src='./assets/dealership-scene.svg';img.alt='Ilustração isométrica da concessionária Solara';img.style.cssText='display:block;width:100%;border-radius:9px;margin-top:12px;background:#234454';art.appendChild(img)}
+})();
+</script><script id="alpha130-visual">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.3.0';
+const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.0 · BUILD 1300';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.0 · SHOWROOM ISOMÉTRICO';
+const style=document.createElement('style');
+style.textContent='#garage>.scene-wrap{border:1px solid #8da6a9!important;border-radius:15px!important;overflow:hidden;box-shadow:0 15px 32px #0007}#garage>#ae-garage-buttons button{min-height:48px}#garage>#ae-slot-status{border-radius:11px}#garage>#ae-scene-header strong{letter-spacing:.2px}';
+document.head.appendChild(style);
+const art=document.getElementById('ae-art-check');if(art){const title=art.querySelector('summary');if(title)title.textContent='🎨 Galeria de arte · Alpha 1.3.0'}
 })();
 </script></body></html>
