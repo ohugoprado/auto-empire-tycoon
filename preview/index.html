@@ -909,7 +909,7 @@ const box=(c,x,y,w,h,f)=>{c.fillStyle=f;c.fillRect(x,y,w,h)};
 const aeAtlas=new Image();let aeAtlasReady=false;
 aeAtlas.onload=()=>{aeAtlasReady=true;requestAnimationFrame(()=>drawScene())};
 aeAtlas.onerror=()=>{aeAtlasReady=false};
-aeAtlas.src='./assets/car-sprites-v2.svg?v=1470';
+aeAtlas.src='./assets/car-sprites-v2.svg?v=1600';
 function vehicleSprite(ctx,car,x,y){
  const order=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
  const index=Math.max(0,order.indexOf(car.kind||'Hatch'));
@@ -926,7 +926,7 @@ function vehicleSprite(ctx,car,x,y){
 const aeDealership=new Image();let aeDealershipReady=false;
 aeDealership.onload=()=>{aeDealershipReady=true;requestAnimationFrame(()=>drawScene())};
 aeDealership.onerror=()=>{aeDealershipReady=false};
-aeDealership.src='./assets/dealership-scene.svg?v=1470';
+aeDealership.src='./assets/dealership-scene.svg?v=1600';
 function scene(){
  const c=canvas.getContext('2d');if(!c)return;
  c.imageSmoothingEnabled=false;
@@ -997,6 +997,21 @@ function scene(){
  c.fillStyle=open?'#9de1bc':'#d8a8a8';c.beginPath();c.arc(16,16,3,0,Math.PI*2);c.fill();
  c.fillStyle='#e2f1ed';c.font='bold 8px sans-serif';
  c.fillText(open?(listedCars.length+' ANÚNCIOS · '+offersCount+' PROPOSTAS'):'SHOWROOM FECHADO',24,19);c.restore();
+ // Alpha 1.6: architectural scene atmosphere follows simulation time.
+ const clockHour=Math.floor(s.minute/60);
+ c.save();
+ if(clockHour>=19||clockHour<6){
+  c.fillStyle='rgba(7,18,40,.34)';c.fillRect(0,0,384,234);
+  const glow=c.createRadialGradient(110,150,3,110,150,92);
+  glow.addColorStop(0,'rgba(255,209,129,.28)');glow.addColorStop(1,'rgba(255,209,129,0)');
+  c.fillStyle=glow;c.fillRect(0,40,230,194);
+  c.fillStyle='#ffdfa1';c.fillRect(116,143,3,3);c.fillRect(193,108,3,3);
+ }else if(clockHour>=16){
+  c.fillStyle='rgba(244,161,95,.085)';c.fillRect(0,0,384,234);
+ }else if(clockHour<9){
+  c.fillStyle='rgba(124,186,208,.10)';c.fillRect(0,0,384,234);
+ }
+ c.restore();
  box(c,0,234,384,16,'#183440');c.fillStyle='#d4e8e9';c.font='bold 10px monospace';c.fillText('SOLARA · SHOWROOM',10,245);c.fillStyle='#f7d791';c.fillText(s.stock.length+'/'+s.slots+' VAGAS',305,245);
 }
 // Stage 2: only the final scene renderer is used for painting after initialization.
@@ -1441,7 +1456,7 @@ const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.
 const gallery=document.getElementById('ae-art-check');
 if(gallery){
  const images=gallery.querySelectorAll('img[src*="car-sprites.svg"]');
- images.forEach(img=>{img.src='./assets/car-sprites-v2.svg?v=1470';img.style.background='#dce8e8'});
+ images.forEach(img=>{img.src='./assets/car-sprites-v2.svg?v=1600';img.style.background='#dce8e8'});
 }
 })();
 </script><script id="alpha133-mobile-gallery">
@@ -1460,7 +1475,7 @@ if(garage&&heading&&!document.getElementById('ae-fleet-gallery')){
  models.forEach((model,index)=>{
   const item=document.createElement('div');item.className='ae-fleet-item';
   const windowEl=document.createElement('div');windowEl.className='ae-fleet-viewport';
-  const img=document.createElement('img');img.src='./assets/car-sprites-v2.svg?v=1470';img.alt='Carroceria '+model;img.loading='lazy';
+  const img=document.createElement('img');img.src='./assets/car-sprites-v2.svg?v=1600';img.alt='Carroceria '+model;img.loading='lazy';
   img.style.left=(-index*180)+'px';
   windowEl.appendChild(img);
   const name=document.createElement('strong');name.textContent=model;
@@ -1534,7 +1549,7 @@ if(scene)scene.insertAdjacentElement('afterend',panel);
 else heading.appendChild(panel);
 const atlas=new Image();let ready=false;
 atlas.onload=()=>{ready=true;refresh()};atlas.onerror=()=>{ready=false;refresh()};
-atlas.src='./assets/car-sprites-v2.svg?v=1470';
+atlas.src='./assets/car-sprites-v2.svg?v=1600';
 const categories=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
 let previous='';
 function refresh(){
