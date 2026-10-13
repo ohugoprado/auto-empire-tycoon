@@ -667,4 +667,59 @@ if(buttons&&canvas){
  updateSelection();
 }
 })();
+</script><script id="alpha102-polish-pass">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.2';
+const banner=document.getElementById('ae-version');
+if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.2 · BUILD 1020';
+const style=document.createElement('style');
+style.textContent=`
+:root{--ae-bg:#0d1721;--ae-edge:#496475;--ae-surface:#1a2c38;--ae-highlight:#f6c967}
+body{background:linear-gradient(165deg,#172b39 0%,#0d1721 55%);color:#eaf3f6}
+.panel{background:var(--ae-surface);border:1px solid var(--ae-edge);border-radius:12px;margin-bottom:12px}
+.title{letter-spacing:.15px}
+button{min-height:40px;border-radius:9px;line-height:1.25;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--ae-highlight);outline-offset:2px}
+.scene-wrap{border:2px solid #7c9aa7;border-radius:14px;overflow:hidden;background:#1b3440}
+#scene{display:block;width:100%;height:auto;max-height:none}
+#ae-garage-buttons button:not(.ghost){background:#f6c967!important;color:#182c36!important;border-color:#f6c967!important;box-shadow:0 0 0 2px #f6c96755}
+#ae-garage-detail{background:#213947;border-color:#9bb5bc}
+#ae-visual-stats>div{background:#1d3442;border-color:#587686}
+#ae-visual-stats span{display:block;line-height:1.3}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.kv span{min-width:0}.kv b{text-align:right;overflow-wrap:anywhere}
+#ae-polish-selection{padding:7px 9px;background:#283e4a;border-radius:8px;margin:5px 0}
+@media(max-width:420px){.scene-label{font-size:11px}.section-head{display:flex;flex-wrap:wrap;gap:8px}.section-head button{max-width:100%}.kv{font-size:12px}}
+`;
+document.head.appendChild(style);
+// Keep canvas rendering and controls aligned through a single slot coordinate table.
+const canvas=document.getElementById('scene'),buttons=document.getElementById('ae-garage-buttons');
+if(canvas&&buttons){
+ const positions=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
+ const select=e=>{
+  const rect=canvas.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const x=(e.clientX-rect.left)*canvas.width/rect.width,y=(e.clientY-rect.top)*canvas.height/rect.height;
+  let closest=-1,best=1e9;
+  positions.slice(0,Math.min(6,s.slots)).forEach(([px,py],i)=>{
+   const d=Math.hypot((x-px)*.75,y-py);
+   if(d<best){best=d;closest=i}
+  });
+  if(closest>=0&&best<24){
+   const button=buttons.querySelector('[data-ae-slot="'+closest+'"]');
+   if(button)button.click();
+  }
+ };
+ // Capture before historical click handlers so only the final calibrated hit-test selects a slot.
+ canvas.addEventListener('click',e=>{e.stopImmediatePropagation();select(e)},true);
+}
+// Reserve one place for version notes and avoid duplicated persistent status labels.
+const garage=document.getElementById('garage');
+if(garage){
+ const notes=document.createElement('div');notes.className='panel';notes.id='ae-polish-notes';
+ notes.innerHTML='<b>🛠️ Alpha 1.0.2 · Polimento visual</b><p class="tiny">Alinhamento dos toques na garagem, contraste das vagas, cartões responsivos e leitura dos indicadores financeiros. As futuras filiais internacionais e o IPO ficam no planejamento; ainda não fazem parte da simulação.</p>';
+ garage.appendChild(notes);
+}
+})();
 </script></body></html>
