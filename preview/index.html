@@ -806,14 +806,7 @@ if(buttons){
 }
 // Stage 3: use a single public refresh entry point for all legacy UI wrappers.
 // The underlying feature-specific render hooks are retained for save compatibility.
-let rendering=false,queued=false;
-const legacyRender=render;
-render=function(){
- if(rendering){queued=true;return}
- rendering=true;
- try{legacyRender()}finally{rendering=false}
- if(queued){queued=false;queueMicrotask(()=>render())}
-};
+// Guard and frame scheduling are unified in alpha107-art-systems.
 const notes=document.getElementById('ae-polish-notes');if(notes)notes.remove();
 const debug=document.getElementById('ae-debug');if(debug){const summary=debug.querySelector('summary');if(summary)summary.textContent='🛠 Diagnóstico · '+VERSION}
 render();
@@ -970,12 +963,24 @@ if(buttons)buttons.addEventListener('click',()=>requestAnimationFrame(scene));
 canvas.addEventListener('click',()=>requestAnimationFrame(scene));
 // Stage 3: prevent repeated scene paints on every DOM refresh; paint once per animation frame.
 const oldRender=render;
-let scheduled=false;
+let scheduled=false,rendering=false,queued=false;
+function requestScenePaint(){
+ if(scheduled)return;
+ scheduled=true;
+ requestAnimationFrame(()=>{scheduled=false;drawScene()});
+}
 render=function(){
- oldRender();
- if(typeof window.aeRefreshVisualStats==='function')window.aeRefreshVisualStats();
- for(const refresh of (window.aeUiRefreshers||[])){try{refresh()}catch(error){console.error('AE panel refresh failed',error)}}
- if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;drawScene()})}
+ if(rendering){queued=true;return}
+ rendering=true;
+ try{
+  oldRender();
+  if(typeof window.aeRefreshVisualStats==='function')window.aeRefreshVisualStats();
+  for(const refresh of (window.aeUiRefreshers||[])){
+   try{refresh()}catch(error){console.error('AE panel refresh failed',error)}
+  }
+  requestScenePaint();
+ }finally{rendering=false}
+ if(queued){queued=false;queueMicrotask(()=>render())}
 };
 scene();
 })();
@@ -1328,6 +1333,16 @@ const version=document.getElementById('ae-version');
 if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.7 · BUILD 1270';
 const tag=document.querySelector('.top .tag');
 if(tag)tag.textContent='ALPHA 1.2.7 · VISTORIAS E INTERFACE';
+const style=document.createElement('style');
+style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
+document.head.appendChild(style);
+})();
+</script><script id="alpha128-unified-render">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.8';
+const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.8 · BUILD 1280';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.8 · RENDER UNIFICADO';
 const style=document.createElement('style');
 style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
 document.head.appendChild(style);
