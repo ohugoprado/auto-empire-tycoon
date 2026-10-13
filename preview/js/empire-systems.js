@@ -48,7 +48,7 @@ tickDay=function(){
  ensure();const before=s.day;const counts=new Map(s.stock.map(c=>[c.id,(c.offers||[]).length]));originalTick();if(s.day===before)return;
  const e=s.empire;
  // Difficulty, staff and market trends influence newly generated buyer offers.
- for(const car of s.stock){const offers=car.offers||[],start=counts.get(car.id)||0;for(let j=start;j<offers.length;j++){const offer=offers[j];if(!offer||!Number.isFinite(Number(offer.amount)))continue;const trend=car.kind===e.trend.kind?e.trend.impact:0;const boost=1+trend+(e.staff.seller||0)*.018+(getMode().demand-1)*.13;offer.amount=Math.max(100,Math.round(offer.amount*boost/100)*100)}}
+ for(const car of s.stock){const offers=car.offers||[],start=counts.get(car.id)||0;for(let j=start;j<offers.length;j++){const offer=offers[j];if(!offer||!Number.isFinite(Number(offer.amount)))continue;const trend=car.kind===e.trend.kind?e.trend.impact:0;const boost=e.marketIndex*(1+trend+(e.staff.seller||0)*.018+(getMode().demand-1)*.13);offer.amount=Math.max(100,Math.round(offer.amount*boost/100)*100)}}
  // Economic cycles are deterministic within a campaign day; changes are announced in the event log.
  if(s.day%7===0){const ix=Math.floor(s.day/7)%scenarios.length;e.trend=scenarios[ix];e.marketIndex=clamp(e.marketIndex+((ix%3)-1)*.035,.82,1.18);note('Mercado: '+e.trend.title+'. '+e.trend.description)}
  if(s.day%15===0){e.competitors=1+(Math.floor(s.day/15)%4);note('Concorrência regional: '+e.competitors+' empresas disputando anúncios.')}
@@ -113,7 +113,7 @@ function counterOffer(i){
  save();offersDialog(c.id);
 }
 const originalAccept=acceptOffer;
-acceptOffer=function(i){const c=s.stock.find(v=>v.id===modalCar);if(!c)return;const before=s.sales;originalAccept(i);if(s.sales>before){checkMilestones();save();render()}};
+acceptOffer=function(i){const c=s.stock.find(v=>v.id===modalCar);if(!c)return;const offer=c.offers?.[i];if(offer&&window.AETradeMath){const a=window.AETradeMath.analyze(c,offer.amount);if(a.gross<0&&!confirm('Esta venda terá prejuízo bruto de '+cash(-a.gross)+'. Deseja continuar?'))return}const before=s.sales;originalAccept(i);if(s.sales>before){checkMilestones();save();render()}};
 const originalExpand=expand;
 expand=function(){const before=s.slots;originalExpand();if(s.slots>before){checkMilestones();save()}};
 const originalBuy=submitBid;
@@ -149,7 +149,7 @@ function renderPanel(){
  panel.querySelector('#ae-empire-level').textContent=achieved+'/'+milestones.length+' marcos';
  panel.querySelectorAll('[data-empire-tab]').forEach(b=>b.classList.toggle('active',b.dataset.empireTab===active));
  let html='';
- if(active==='objectives')html=milestones.map(m=>'<div class="ae-empire-row"><div><b>'+(e.achievements[m.id]?'✓ ':'○ ')+m.title+'</b><small>'+(e.achievements[m.id]?'Concluído no dia '+e.achievements[m.id]:'Recompensa: '+cash(m.reward))+'</small></div></div>').join('');
+ if(active==='objectives')html='<p class="tiny">Marcos permanentes, sem prazos e sem punição por ficar offline.</p>'+milestones.map(m=>'<div class="ae-empire-row"><div><b>'+(e.achievements[m.id]?'✓ ':'○ ')+m.title+'</b><small>'+(e.achievements[m.id]?'Concluído no dia '+e.achievements[m.id]:'Recompensa: '+cash(m.reward))+'</small></div></div>').join('');
  if(active==='staff')html=Object.entries(staffCatalog).map(([id,v])=>'<div class="ae-empire-row"><div><b>'+v.label+' · '+e.staff[id]+'/5</b><small>'+v.benefit+' · salário mensal '+cash(v.cost)+' por pessoa</small></div><button type="button" data-hire="'+id+'" '+(e.staff[id]>=5?'disabled':'')+'>Contratar</button></div>').join('');
  if(active==='market')html='<div class="ae-empire-row"><div><b>'+esc(e.trend.title)+'</b><small>'+esc(e.trend.description)+'</small></div></div><div class="ae-empire-row"><div><b>Índice econômico: '+Math.round(e.marketIndex*100)+'</b><small>Concorrentes ativos: '+e.competitors+'</small></div></div><p class="tiny">Tendências mudam a cada 7 dias; a concorrência pode retirar anúncios do mercado.</p>';
  if(active==='expansion')html='<div class="ae-empire-row"><div><b>Unidades: '+e.branches+'/8</b><small>Nova unidade: '+cash(60000*e.branches)+' · +2 vagas</small></div><button type="button" data-expand-branch '+(e.branches>=8?'disabled':'')+'>Expandir</button></div><p class="tiny">Unidades adicionais aumentam a capacidade do estoque, mas exigem investimento.</p>';
