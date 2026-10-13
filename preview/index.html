@@ -1716,10 +1716,10 @@ refresh();
 </script><script id="alpha160-art-direction">
 (function(){
 'use strict';
-const VERSION='Alpha 1.8.1',BUILD='1811';
+const VERSION='Alpha 1.8.2',BUILD='1820';
 document.title='Auto Empire Tycoon — '+VERSION;
 const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.8.1 · ESTÚDIO AUTOMOTIVO';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.8.2 · INSPEÇÃO VISUAL';
 const style=document.createElement('style');
 style.textContent=`
 /* Art direction v1.6: unified cinematic automotive management UI */
@@ -1826,13 +1826,42 @@ if(garage&&!document.getElementById('ae-studio-inspector')){
  const inspector=document.createElement('section');inspector.id='ae-studio-inspector';inspector.setAttribute('aria-label','Inspeção artística do veículo');
  inspector.innerHTML='<div class="studio-head"><span>✦ ESTÚDIO AUTOMOTIVO</span><span class="studio-label">VISUALIZAÇÃO AMPLIADA</span></div><div class="studio-stage"><div class="studio-fallback">Selecione um veículo da garagem</div></div><div class="studio-foot"><span id="studio-selected-name">Garagem</span><strong id="studio-selected-meta">Selecione um veículo</strong></div>';
  const scene=document.querySelector('#garage .scene-wrap');if(scene)scene.insertAdjacentElement('afterend',inspector);else garage.appendChild(inspector);
+ const inspectActions=document.createElement('div');
+ inspectActions.className='studio-actions';
+ inspectActions.innerHTML='<button type="button" id="studio-zoom" aria-label="Ampliar imagem do veículo">⤢ Ampliar veículo</button><button type="button" id="studio-next" aria-label="Próxima vaga">Próxima vaga →</button>';
+ inspector.appendChild(inspectActions);
+ const lightbox=document.createElement('dialog');lightbox.id='studio-lightbox';lightbox.setAttribute('aria-label','Imagem ampliada do veículo');
+ lightbox.innerHTML='<button type="button" class="studio-close" aria-label="Fechar imagem ampliada">✕ Fechar</button><h3></h3><img alt=""><p></p>';
+ document.body.appendChild(lightbox);
+ lightbox.querySelector('.studio-close').addEventListener('click',()=>lightbox.close());
+ lightbox.addEventListener('click',e=>{if(e.target===lightbox)lightbox.close()});
+ inspector.querySelector('#studio-zoom').addEventListener('click',()=>{
+  const source=inspector.querySelector('.studio-stage img');
+  if(!source||!source.complete||!source.naturalWidth)return;
+  lightbox.querySelector('h3').textContent=inspector.querySelector('#studio-selected-name').textContent;
+  lightbox.querySelector('p').textContent=inspector.querySelector('#studio-selected-meta').textContent;
+  lightbox.querySelector('img').src=source.src;
+  lightbox.querySelector('img').alt=source.alt;
+  if(!lightbox.open)lightbox.showModal();
+ });
+ inspector.querySelector('#studio-next').addEventListener('click',()=>{
+  const buttons=Array.from(document.querySelectorAll('#ae-garage-buttons button[data-ae-slot]'));
+  if(!buttons.length)return;
+  const active=buttons.findIndex(b=>!b.classList.contains('ghost'));
+  buttons[(active+1)%buttons.length].click();
+  requestAnimationFrame(refreshStudio);
+ });
+ const actionsCss=document.createElement('style');
+ actionsCss.textContent=`#ae-studio-inspector .studio-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}#ae-studio-inspector .studio-actions button{flex:1;min-height:40px;border:1px solid #728f9d;background:#294b5c;color:#f9dfae;border-radius:10px;font-weight:800;cursor:pointer}#ae-studio-inspector .studio-actions button:disabled{opacity:.4;cursor:not-allowed}#studio-lightbox{width:min(94vw,800px);max-height:90dvh;padding:15px;background:#102735;border:1px solid #7893a0;border-radius:16px;color:#f8e2b5;box-shadow:0 20px 90px #000c}#studio-lightbox::backdrop{background:#010911e8}#studio-lightbox img{display:block;width:100%;max-height:65dvh;object-fit:contain;border-radius:12px;background:#203948}#studio-lightbox .studio-close{float:right;padding:9px 14px;border:0;border-radius:9px;background:#e9c87c;color:#172a34;font-weight:900}#studio-lightbox h3{font-size:17px;margin:8px 0}#studio-lightbox p{font-size:12px;color:#b9cfd8}`;
+ document.head.appendChild(actionsCss);
  const refreshStudio=()=>{
   const selected=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
   const slot=selected?Number(selected.dataset.aeSlot):0;
   const car=s.stock[slot]||null;
   const stage=inspector.querySelector('.studio-stage');
   const label=inspector.querySelector('#studio-selected-name'),meta=inspector.querySelector('#studio-selected-meta');
-  if(!car){stage.innerHTML='<div class="studio-fallback">Esta vaga está livre. Compre um veículo para visualizá-lo aqui.</div>';label.textContent='Vaga '+(slot+1);meta.textContent='LIVRE';return}
+  if(!car){inspector.querySelector('#studio-zoom').disabled=true;stage.innerHTML='<div class="studio-fallback">Esta vaga está livre. Compre um veículo para visualizá-lo aqui.</div>';label.textContent='Vaga '+(slot+1);meta.textContent='LIVRE';return}
+  inspector.querySelector('#studio-zoom').disabled=false;
   const asset=names[car.kind]||names.Hatch;
   label.textContent=car.name||car.kind;
   meta.textContent=(car.year||'')+' · '+(car.condition||0)+'% conservação';
