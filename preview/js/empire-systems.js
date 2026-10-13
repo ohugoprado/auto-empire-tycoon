@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const modes={casual:{demand:1.25},normal:{demand:1},hard:{demand:.78}};
-const staffCatalog={seller:{label:'Vendedor',cost:2200,benefit:'Melhora o interesse de compradores'},mechanic:{label:'Mecânico',cost:1800,benefit:'Reduz custos de reparo'},analyst:{label:'Avaliador',cost:1500,benefit:'Desconta custos de pesquisa'}};
+const staffCatalog={seller:{label:'Vendedor',cost:850,hireFee:2200,benefit:'Melhora o interesse de compradores'},mechanic:{label:'Mecânico',cost:700,hireFee:1800,benefit:'Reduz custos de reparo'},analyst:{label:'Avaliador',cost:550,hireFee:1500,benefit:'Desconta custos de pesquisa'}};
 const milestones=[
 {id:'first',title:'Primeira venda',test:()=>s.sales>=1,reward:300},
 {id:'five',title:'Cinco vendas',test:()=>s.sales>=5,reward:700},
@@ -164,7 +164,7 @@ panel.addEventListener('click',ev=>{
  const tabButton=ev.target.closest('[data-empire-tab]');
  if(tabButton){active=tabButton.dataset.empireTab;renderPanel();return}
  const hire=ev.target.closest('[data-hire]');
- if(hire){const id=hire.dataset.hire,v=staffCatalog[id];if(!v)return;ensure();if(s.empire.staff[id]>=5)return toast('Limite de funcionários');const fee=v.cost;if(s.cash<fee)return toast('Caixa insuficiente');if(!confirm('Contratar '+v.label+' por '+cash(fee)+' de custo inicial e '+cash(v.cost)+'/mês?'))return;s.cash-=fee;s.empire.staff[id]++;entry('Contratação · '+v.label,-fee);note('Novo funcionário: '+v.label);checkMilestones();save();render();return}
+ if(hire){const id=hire.dataset.hire,v=staffCatalog[id];if(!v)return;ensure();if(s.empire.staff[id]>=5)return toast('Limite de funcionários');const fee=v.hireFee;if(s.cash<fee)return toast('Caixa insuficiente');if(!confirm('Contratar '+v.label+' por '+cash(fee)+' de custo inicial e '+cash(v.cost)+'/mês?'))return;s.cash-=fee;s.empire.staff[id]++;entry('Contratação · '+v.label,-fee);note('Novo funcionário: '+v.label);checkMilestones();save();render();return}
  if(ev.target.closest('[data-expand-branch]')){ensure();const e=s.empire,cost=60000*e.branches;if(e.branches>=8||s.cash<cost)return toast('Capital insuficiente ou limite de unidades');if(!confirm('Abrir nova unidade por '+cash(cost)+'?'))return;s.cash-=cost;e.branches++;s.slots+=2;entry('Nova unidade',-cost);note('Nova unidade inaugurada!');checkMilestones();save();render()}
 });
 const previousRender=render;
