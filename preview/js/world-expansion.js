@@ -61,7 +61,7 @@ function renderWorld(){
  if(!s)return;const w=ensureWorld(),hq=byId(w.hq),active=byId(w.active);
  const signature=[w.hq,w.active,w.owned.join(','),Math.floor(s.cash/100),s.day].join('|');if(signature===lastWorldSignature)return;lastWorldSignature=signature;
  document.getElementById('ae-world-count').textContent=w.owned.length+' mercados · '+new Set(w.owned.map(id=>byId(id).country)).size+' países';
- document.getElementById('ae-world-kpi').textContent='Sede: '+hq.name+', '+hq.country+' · Operando: '+active.name+' · Custo internacional: '+cash(w.owned.reduce((n,id)=>n+byId(id).upkeep,0))+'/30 dias';
+ document.getElementById('ae-world-kpi').textContent='Sede: '+hq.name+', '+hq.country+' · Operando: '+active.name+' · Custo internacional (sede -10%): '+cash(Math.round(w.owned.reduce((n,id)=>n+byId(id).upkeep,0)*.9))+'/30 dias';
  const options=cities.map(c=>'<option value="'+c.id+'" '+(!w.owned.includes(c.id)?'disabled':'')+'> '+c.flag+' '+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
  const hqSel=document.getElementById('ae-world-hq');hqSel.innerHTML=options;hqSel.value=w.hq;
  const activeSel=document.getElementById('ae-world-active');activeSel.innerHTML=cities.filter(c=>w.owned.includes(c.id)).map(c=>'<option value="'+c.id+'">'+c.flag+' '+escape(c.name)+'</option>').join('');activeSel.value=w.active;
@@ -94,7 +94,7 @@ const prevTick=tickDay;
 tickDay=function(){
  const before=s.day;prevTick();if(s.day===before)return;
  const w=ensureWorld();
- if(s.day%30===0){const upkeep=w.owned.reduce((sum,id)=>sum+(byId(id)?.upkeep||0),0);if(upkeep){s.cash-=upkeep;w.totalUpkeep+=upkeep;entry('Custos internacionais',-upkeep);note('Subsidiárias: despesas mensais de '+cash(upkeep))}}
+ if(s.day%30===0){const upkeep=Math.round(w.owned.reduce((sum,id)=>sum+(byId(id)?.upkeep||0),0)*.9);if(upkeep){s.cash-=upkeep;w.totalUpkeep+=upkeep;entry('Custos internacionais',-upkeep);note('Subsidiárias: despesas mensais de '+cash(upkeep))}}
  // Local advantage applies to buyer proposals created on this simulated day.
  // Existing offers are never altered by switching markets.
  save();
