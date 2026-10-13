@@ -27,4 +27,72 @@ drawScene=function(){originalDrawScene();const cv=$('scene'),ctx=cv.getContext('
 // Preserve existing saves; add missing v0.3 fields lazily.
 for(let c of [...s.stock,...s.market]){if(c.fault===undefined)c.fault=null;if(c.inspected===undefined)c.inspected=false;if(c.faultRevealed===undefined)c.faultRevealed=false;if(c.faultFixed===undefined)c.faultFixed=false}
 render();
-</script><script>if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{})); }</script></body></html>
+</script><script>if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{})); }</script>
+<script id="alpha06-consolidation">
+(function(){
+  'use strict';
+  const events=document.getElementById('events');
+  if(events){
+    const p=document.createElement('div');
+    p.className='panel';
+    p.innerHTML='<b>💾 Backup da campanha</b><p class="tiny">Exporte antes de atualizar. A importação substitui o progresso deste navegador.</p><div class="actions"><button id="ae-export" class="ghost">Exportar backup</button><button id="ae-import" class="ghost">Importar backup</button></div><input type="file" id="ae-backup-file" accept=".json,application/json" style="display:none">';
+    events.appendChild(p);
+    document.getElementById('ae-export').onclick=function(){
+      try{
+        save();
+        const blob=new Blob([JSON.stringify({app:'Auto Empire Tycoon',schema:1,game:s,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=url;a.download='auto-empire-backup-dia-'+s.day+'.json';document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Backup exportado!');
+      }catch(e){toast('Erro ao exportar backup')}
+    };
+    document.getElementById('ae-import').onclick=()=>document.getElementById('ae-backup-file').click();
+    document.getElementById('ae-backup-file').onchange=async function(){
+      const file=this.files&&this.files[0];if(!file)return;
+      try{
+        if(file.size>2*1024*1024)throw Error('Arquivo muito grande');
+        const obj=JSON.parse(await file.text());const game=obj&&obj.game;
+        if(!game||typeof game.cash!=='number'||!Number.isFinite(game.cash)||!Array.isArray(game.stock)||!Array.isArray(game.market)||!Array.isArray(game.ledger)||!Array.isArray(game.logs)||typeof game.day!=='number'||!Number.isFinite(game.day)||typeof game.nextId!=='number')throw Error('Formato inválido');
+        if(!confirm('Substituir a campanha atual pelo backup?'))return;
+        localStorage.setItem(KEY,JSON.stringify(game));location.reload();
+      }catch(e){toast('Backup inválido: '+e.message)}finally{this.value=''}
+    };
+  }
+  const market=document.getElementById('market');
+  if(market){
+    const controls=document.createElement('div');controls.className='panel';
+    controls.innerHTML='<div class="flex"><label for="ae-kind">Categoria</label><select id="ae-kind" style="max-width:58%;padding:9px;border-radius:8px;background:#243542;color:white"><option value="all">Todas</option></select></div><div class="flex" style="margin-top:8px"><label for="ae-sort">Ordenar por</label><select id="ae-sort" style="max-width:58%;padding:9px;border-radius:8px;background:#243542;color:white"><option value="default">Original</option><option value="cheap">Menor preço</option><option value="expensive">Maior preço</option><option value="condition">Melhor condição</option><option value="margin">Maior margem estimada</option></select></div>';
+    const listings=document.getElementById('listings');
+    if(listings){listings.parentNode.insertBefore(controls,listings);const select=controls.querySelector('#ae-kind');
+      for(const k of [...new Set(catalog.map(c=>c[3]))].sort()){const o=document.createElement('option');o.value=k;o.textContent=k;select.appendChild(o)}
+      function filter(){
+        const kind=select.value,sort=controls.querySelector('#ae-sort').value;
+        const cards=[...listings.children];const cars=s.market||[];
+        const records=cards.map((el,i)=>({el,car:cars[i]})).filter(x=>x.car);
+        records.forEach(x=>x.el.style.display=kind==='all'||x.car.kind===kind?'':'none');
+        const key=c=>sort==='cheap'?c.ask:sort==='expensive'?-c.ask:sort==='condition'?-c.condition:sort==='margin'?-(c.value-c.ask):0;
+        records.sort((a,b)=>key(a.car)-key(b.car)).forEach(x=>listings.appendChild(x.el));
+      }
+      select.onchange=filter;controls.querySelector('#ae-sort').onchange=filter;
+      const originalMarketRender=render;
+      render=function(){originalMarketRender();filter()};
+      filter();
+    }
+  }
+  const reports=document.getElementById('reports');
+  if(reports){
+    const p=document.createElement('div');p.className='panel';p.id='ae-extra-finances';
+    reports.appendChild(p);
+    const oldRender=render;
+    render=function(){
+      oldRender();
+      const el=document.getElementById('ae-extra-finances');if(!el)return;
+      const stock=s.stock||[],invested=stock.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
+      const estimated=stock.reduce((sum,c)=>sum+(Number(c.value)||0)*(.7+(Number(c.condition)||0)/300),0);
+      const occupancy=s.slots?Math.round(stock.length/s.slots*100):0;
+      el.innerHTML='<b>📈 Indicadores adicionais</b><div class="divider"></div><div class="flex"><span>Capital investido no estoque</span><b>'+fmt(invested)+'</b></div><div class="flex"><span>Valor estimado do estoque</span><b>'+fmt(estimated)+'</b></div><div class="flex"><span>Ocupação da garagem</span><b>'+occupancy+'%</b></div><div class="flex"><span>Lucro acumulado por venda (média)</span><b>'+fmt(s.sales?s.profit/s.sales:0)+'</b></div>';
+    };
+    render();
+  }
+})();
+</script></body></html>
