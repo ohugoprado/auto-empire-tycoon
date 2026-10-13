@@ -4,7 +4,7 @@
 (()=>{
 const kinds=['hatch','suv','sedan','pickup','compact','sports'];
 document.querySelectorAll('article.car').forEach((card,index)=>{
- const file='../assets/studio/vehicle_'+kinds[index]+'.webp';
+ const file='../assets/vehicle_'+kinds[index]+'.webp';
  const image=new Image();image.alt='Arte de estúdio: '+card.querySelector('h2').textContent;
  image.className='studio-preview';image.loading='lazy';
  image.onload=()=>{card.querySelector('.art').appendChild(image);card.dataset.studioReady='1'};
