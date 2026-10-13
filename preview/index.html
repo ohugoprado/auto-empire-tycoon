@@ -969,9 +969,14 @@ function scene(){
   box(c,x-7,y+15,14,11,selected?'#ffda83':'#dbe9e7');
   c.fillStyle='#243843';c.font='bold 9px monospace';c.fillText(String(i+1),x-3,y+23);
  }
- // Alpha 1.4.8: light showroom activity (purely decorative, no gameplay effects).
+ // Alpha 1.4.9: visual activity reflects actual inventory, offers and business hours.
  const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  const phase=reduceMotion?0:((Date.now()/1000)%24);
+ const listedCars=s.stock.filter(car=>car.listed);
+ const offersCount=s.stock.reduce((total,car)=>total+(Array.isArray(car.offers)?car.offers.length:0),0);
+ const businessHour=Math.floor(s.minute/60);
+ const open=businessHour>=8&&businessHour<19;
+ const activityCount=open?Math.min(3,listedCars.length+(offersCount>0?1:0)):0;
  function pedestrian(px,py,coat,offset){
   const bob=reduceMotion?0:Math.sin(phase*7+offset)*.8;
   c.save();c.fillStyle='rgba(8,25,35,.22)';c.beginPath();c.ellipse(px+2,py+2,5,2,0,0,Math.PI*2);c.fill();
@@ -981,14 +986,17 @@ function scene(){
   c.fillStyle='#f3c69f';c.beginPath();c.arc(px,py-13+bob,2.4,0,Math.PI*2);c.fill();
   c.strokeStyle='#e0bc94';c.lineWidth=1;c.beginPath();c.moveTo(px-2,py-9+bob);c.lineTo(px-4,py-5+bob);c.moveTo(px+2,py-9+bob);c.lineTo(px+4,py-5+bob);c.stroke();c.restore();
  }
- // Visitors remain in the forecourt walkway, away from the parking slots.
- const walkerX=reduceMotion?70:54+((phase*4)%56);
- pedestrian(walkerX,216-walkerX*.09,'#d6ac63',0);
- pedestrian(333,186,'#75b4a9',1.6);
- // Small showroom activity indicator.
- c.save();c.fillStyle='rgba(14,38,48,.88)';c.fillRect(7,8,99,16);
- c.fillStyle='#9de1bc';c.beginPath();c.arc(16,16,3,0,Math.PI*2);c.fill();
- c.fillStyle='#e2f1ed';c.font='bold 8px sans-serif';c.fillText('SHOWROOM ATIVO',24,19);c.restore();
+ if(activityCount>0){
+  const walkerX=reduceMotion?70:54+((phase*4)%56);
+  pedestrian(walkerX,216-walkerX*.09,'#d6ac63',0);
+ }
+ if(activityCount>1)pedestrian(333,186,'#75b4a9',1.6);
+ if(activityCount>2)pedestrian(300,202,'#bb85a7',2.4);
+ // Status is tied to gameplay state; visitors remain an illustrative proxy.
+ c.save();c.fillStyle='rgba(14,38,48,.92)';c.fillRect(7,8,145,17);
+ c.fillStyle=open?'#9de1bc':'#d8a8a8';c.beginPath();c.arc(16,16,3,0,Math.PI*2);c.fill();
+ c.fillStyle='#e2f1ed';c.font='bold 8px sans-serif';
+ c.fillText(open?(listedCars.length+' ANÚNCIOS · '+offersCount+' PROPOSTAS'):'SHOWROOM FECHADO',24,19);c.restore();
  box(c,0,234,384,16,'#183440');c.fillStyle='#d4e8e9';c.font='bold 10px monospace';c.fillText('SOLARA · SHOWROOM',10,245);c.fillStyle='#f7d791';c.fillText(s.stock.length+'/'+s.slots+' VAGAS',305,245);
 }
 // Stage 2: only the final scene renderer is used for painting after initialization.
@@ -1504,9 +1512,9 @@ document.head.appendChild(css);
 </script><script id="alpha135-vehicle-spotlight">
 (function(){
 'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.4.8';
-const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.4.8 · BUILD 1480';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.4.8 · SHOWROOM VIVO';
+document.title='Auto Empire Tycoon — Alpha 1.4.9';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.4.9 · BUILD 1490';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.4.9 · ATIVIDADE COMERCIAL';
 const galleryLink=document.createElement('a');galleryLink.href='./galeria/';galleryLink.textContent='🖼️ Ver frota em tela cheia';galleryLink.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;margin:8px 0;border:1px solid #7394a7;border-radius:12px;background:#203c4b;color:#e6f7ff;font-weight:800;text-decoration:none';const galleryHeading=document.getElementById('ae-scene-header');if(galleryHeading&&!document.getElementById('ae-gallery-link')){galleryLink.id='ae-gallery-link';galleryHeading.insertAdjacentElement('afterend',galleryLink);}
 const garage=document.getElementById('garage'),heading=document.getElementById('ae-scene-header');
 if(!garage||!heading||document.getElementById('ae-vehicle-spotlight'))return;
