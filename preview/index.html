@@ -1910,4 +1910,52 @@ if(top){
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(()=>{});
 if(typeof render==='function')render();
 })();
+</script><script id="alpha190-text-first">
+(function(){
+'use strict';
+const VERSION='Alpha 1.9.0',BUILD='1900';
+document.title='Auto Empire Tycoon — '+VERSION;
+const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.9.0 · GESTÃO ESTRATÉGICA';
+const style=document.createElement('style');
+style.textContent=`
+/* Text-first mode: financial information and management decisions take priority. */
+.studio-hero,.studio-brand,#ae-studio-inspector,#studio-lightbox{display:none!important}
+#garage .scene-wrap{display:none!important}
+.ae-car-thumb{display:none!important}
+.ae-text-stock{display:flex;gap:9px;align-items:center;min-width:0;flex:1}
+.ae-text-stock .ae-text-kind{font-size:10px;font-weight:900;letter-spacing:.7px;color:#f3ce82;background:#203846;border:1px solid #567282;border-radius:6px;padding:6px 8px;white-space:nowrap}
+.ae-text-stock .ae-text-name{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ae-text-garage{margin:12px 0;border:1px solid #496a78;border-radius:14px;background:#122b38;padding:14px}
+#ae-text-garage h3{font-size:14px;color:#f5d28b;margin:0 0 9px}
+#ae-text-garage .ae-text-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#ae-text-garage .ae-text-metric{padding:10px;background:#1a3645;border:1px solid #35596b;border-radius:10px}
+#ae-text-garage .ae-text-metric span{display:block;color:#b5ccd6;font-size:11px}
+#ae-text-garage .ae-text-metric strong{display:block;font-size:16px;margin-top:4px;color:#f7e0ae;overflow-wrap:anywhere}
+@media(min-width:700px){#ae-text-garage .ae-text-summary{grid-template-columns:repeat(4,minmax(0,1fr))}}
+`;
+document.head.appendChild(style);
+const garage=document.getElementById('garage');
+if(garage){
+ const dashboard=document.createElement('section');dashboard.id='ae-text-garage';dashboard.setAttribute('aria-label','Resumo da concessionária');
+ dashboard.innerHTML='<h3>PAINEL DA CONCESSIONÁRIA</h3><div class="ae-text-summary"></div>';
+ const buttons=document.getElementById('ae-garage-buttons');if(buttons)buttons.insertAdjacentElement('beforebegin',dashboard);else garage.prepend(dashboard);
+ const update=()=>{
+  const stock=Array.isArray(s?.stock)?s.stock:[];
+  const listed=stock.filter(c=>c.listed).length;
+  const invested=stock.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
+  const cells=[['Veículos no estoque',stock.length+' / '+(s?.slots||0)],['Anunciados',listed],['Capital investido',typeof fmt==='function'?fmt(invested):invested.toLocaleString('pt-BR')],['Reputação',(s?.rep??0)+'/100']];
+  dashboard.querySelector('.ae-text-summary').innerHTML=cells.map(([k,v])=>'<div class="ae-text-metric"><span>'+k+'</span><strong>'+v+'</strong></div>').join('');
+ };
+ (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(update);
+ update();
+}
+const originalCarSvg=carSvg;
+carSvg=function(car){
+ const kind=esc(String(car?.kind||'Veículo'));
+ const name=esc(String(car?.name||'Sem modelo'));
+ return '<div class="ae-text-stock" aria-label="'+kind+' — '+name+'"><span class="ae-text-kind">'+kind+'</span><span class="ae-text-name">'+name+'</span></div>';
+};
+if(typeof render==='function')render();
+})();
 </script></body></html>
