@@ -143,14 +143,13 @@ acceptOffer=function(i){
  const car=s.stock.find(c=>c.id===modalCar);
  const crisis=crisisFor(car?.originCity||s.empire.world?.active);
  if(crisis.id==='war')return toast('Vendas suspensas nesta região devido ao conflito. Aguarde a normalização ou transfira o veículo.');
- const before=s.sales,oldCash=s.cash;
+ const before=s.sales,offerAmount=Number(car?.offers?.[i]?.amount)||0;
  const result=previousAccept(i);
  if(s.sales>before){
   const city=byId(car?.originCity),country=city?.country||'Brasil';
   const taxes={'Brasil':.035,'Estados Unidos':.025,'Reino Unido':.03,'França':.035,'Alemanha':.03,'Japão':.025,'Coreia do Sul':.025,'Emirados Árabes Unidos':.02,'Singapura':.02,'Austrália':.03,'Canadá':.03,'México':.025,'Argentina':.035,'Itália':.035,'Índia':.03};
   const rate=taxes[country]||.03;
-  const received=Math.max(0,s.cash-oldCash);
-  const tax=Math.round(received*rate);
+  const tax=Math.round(offerAmount*rate);
   if(tax){s.cash-=tax;s.profit-=tax;entry('Tributo comercial · '+country,-tax);note('Tributo de '+country+': '+money(tax)+' CR')}
   const e=init();e.regionalReputation[country]=Math.min(100,(Number(e.regionalReputation[country])||50)+1);
   save();render();
