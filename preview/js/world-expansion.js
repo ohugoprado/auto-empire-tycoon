@@ -30,6 +30,8 @@ function ensureWorld(){
  if(!Array.isArray(w.owned)){let start='saopaulo';try{const p=JSON.parse(localStorage.getItem('autoempire_company_profile_v1')||'null');if(byId(p?.headquarters))start=p.headquarters}catch(e){}w.owned=[start];w.hq=start;w.active=start;w.founded=start}
  w.owned=[...new Set(w.owned.map(id=>id==='solara'?'saopaulo':id).filter(id=>!!byId(id)))];
  if(!w.owned.length)w.owned=['saopaulo'];
+ // Existing campaigns migrated from Solara retain their free founding branch.
+ if(w.founded==='solara')w.founded='saopaulo';
  if(w.hq==='solara')w.hq='saopaulo';if(!byId(w.hq)||!w.owned.includes(w.hq))w.hq=w.owned[0];
  if(w.active==='solara')w.active='saopaulo';if(!byId(w.active)||!w.owned.includes(w.active))w.active=w.owned[0];
  if(!Number.isFinite(Number(w.totalUpkeep)))w.totalUpkeep=0;
