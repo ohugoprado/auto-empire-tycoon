@@ -86,4 +86,32 @@
 <g><path d="M291 119L291 142" stroke="#c2d8d7" stroke-width="2"/><path d="M284 119L299 119" stroke="#ffe2a1" stroke-width="3"/><circle cx="291" cy="119" r="9" fill="#ffe8a0" opacity=".08"/><path d="M16 148L16 166" stroke="#aec7c5" stroke-width="2"/><path d="M10 148L22 148" stroke="#ffe2a1" stroke-width="3"/></g>
 <path d="M17 134L104 174" stroke="#f2d59b" stroke-width="1.1" opacity=".65"/>
 <path d="M114 169L208 124" stroke="#f2d59b" stroke-width="1.1" opacity=".5"/>
+<!-- Alpha 1.7.0: premium exterior finishing pass -->
+<g opacity=".7">
+ <path d="M6 204L191 243L376 176" fill="none" stroke="#b7c9bf" stroke-width="1.1" stroke-dasharray="5 6"/>
+ <path d="M6 211L191 249L383 182" fill="none" stroke="#0b2837" stroke-width="2"/>
+ <path d="M114 175L211 129" stroke="#f4e3b8" stroke-width="1.2"/>
+ <path d="M21 139L102 178" stroke="#f4e3b8" stroke-width="1.2"/>
+</g>
+<!-- Architectural shadow and surface light, drawn away from parking vehicles -->
+<path d="M10 134L107 181L215 130L215 137L107 188L10 141Z" fill="#071e2a" opacity=".19"/>
+<path d="M216 120L279 151L328 125L328 132L279 158L216 127Z" fill="#071e2a" opacity=".19"/>
+<g stroke="#e6f6ec" stroke-width="1.1" opacity=".52" fill="none">
+ <path d="M36 114l15 7M58 125l15 7M80 136l14 7"/>
+ <path d="M130 143l16-8M154 131l15-8M177 119l16-8"/>
+</g>
+<!-- Entry floor treatment -->
+<path d="M105 171L128 159L151 170L127 182Z" fill="#294e5b" stroke="#e0c184" stroke-width="1.2"/>
+<path d="M111 171L128 163L145 171L127 178Z" fill="#476b71"/>
+<path d="M113 171L127 177L141 170" fill="none" stroke="#e9d29a" stroke-width="1.2"/>
+<!-- Sidewalk wayfinding -->
+<g font-family="Arial,sans-serif" font-weight="800" font-size="6" letter-spacing=".6" fill="#d6e7d9" opacity=".7">
+ <text x="293" y="192" transform="rotate(-20 293 192)">ENTRADA</text>
+ <text x="30" y="222" transform="rotate(12 30 222)">SOLARA</text>
+</g>
+<!-- Glazed facade highlight -->
+<path d="M29 104L41 110L41 127L29 121Z" fill="#f1ffff" opacity=".12"/>
+<path d="M55 117L66 123L66 139L55 133Z" fill="#f1ffff" opacity=".10"/>
+<path d="M135 132L145 127L145 146L135 151Z" fill="#f1ffff" opacity=".10"/>
+<path d="M165 117L175 112L175 132L165 137Z" fill="#f1ffff" opacity=".12"/>
 </svg>
