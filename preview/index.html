@@ -254,4 +254,48 @@ if(detail){
  detail.parentElement.insertBefore(hint,detail);
 }
 })();
+</script><script id="alpha082-testing">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 0.8.2';
+const version=document.getElementById('ae-version');
+if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 0.8.2 · BUILD 0802';
+const bar=document.getElementById('ae-test-bar');
+if(!bar)return;
+const newButton=document.createElement('button');
+newButton.type='button';newButton.className='ghost';newButton.textContent='🚘 Montar garagem de demonstração';
+bar.querySelector('.actions').appendChild(newButton);
+const status=document.createElement('div');status.className='panel';status.id='ae-slot-status';
+const buttons=document.getElementById('ae-garage-buttons');
+if(buttons)buttons.insertAdjacentElement('afterend',status);
+function refresh(){
+ const active=buttons&&buttons.querySelector('button:not(.ghost)[data-ae-slot]');
+ const index=active?Number(active.dataset.aeSlot):0;
+ const car=s.stock[index];
+ status.innerHTML='<b>🔎 Seleção ativa: Vaga '+(index+1)+'</b><p class="tiny">'+(car?esc(car.name)+' · '+esc(car.kind)+' · '+car.condition+'% de condição':'Vaga vazia — selecione outra vaga ou compre um carro')+'</p>';
+}
+if(buttons)buttons.addEventListener('click',()=>refresh());
+const originalRender=render;
+render=function(){originalRender();refresh()};
+newButton.addEventListener('click',()=>{
+ const capacity=6;
+ s.slots=Math.max(s.slots,capacity);
+ const needed=Math.max(0,Math.min(3,capacity-s.stock.length));
+ if(needed===0){document.getElementById('ae-test-feedback').textContent='Garagem já possui pelo menos 6 veículos; use as vagas para testar.';render();return}
+ const chosen=[];
+ for(let i=0;i<needed;i++){
+  let c=makeCar();
+  c.kind=['Compacto','SUV','Picape'][i%3];
+  c.name=['Nexo Compact (demo)','Montara Cross (demo)','Ravik Utility (demo)'][i%3];
+  c.color=['#5fbc8b','#cf544a','#d5b66c'][i%3];
+  c.bought=0;c.spent=0;c.listed=false;c.offers=[];c.price=0;
+  s.stock.push(c);chosen.push(c.name);
+ }
+ note('Garagem de demonstração: '+chosen.join(', '));
+ save();render();
+ document.getElementById('ae-test-feedback').textContent=chosen.length+' carros de demonstração adicionados gratuitamente. Selecione Vaga 1, 2 ou 3.';
+});
+const css=document.createElement('style');css.textContent='#ae-slot-status{border:1px solid #ffca57;margin-top:7px}#ae-garage-buttons button:not(.ghost){outline:2px solid #ffca57;outline-offset:1px}#ae-test-bar .actions{flex-wrap:wrap}';document.head.appendChild(css);
+refresh();
+})();
 </script></body></html>
