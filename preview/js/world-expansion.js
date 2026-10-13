@@ -31,8 +31,8 @@ function ensureWorld(){
  if(!Array.isArray(w.owned)){let start='solara';try{const p=JSON.parse(localStorage.getItem('autoempire_company_profile_v1')||'null');if(byId(p?.headquarters))start=p.headquarters}catch(e){}w.owned=[start];w.hq=start;w.active=start;w.founded=start}
  w.owned=[...new Set(w.owned.filter(id=>!!byId(id)))];
  if(!w.owned.length)w.owned=['solara'];
- if(!byId(w.hq))w.hq='solara';
- if(!byId(w.active)||!w.owned.includes(w.active))w.active='solara';
+ if(!byId(w.hq)||!w.owned.includes(w.hq))w.hq=w.owned[0];
+ if(!byId(w.active)||!w.owned.includes(w.active))w.active=w.owned[0];
  if(!Number.isFinite(Number(w.totalUpkeep)))w.totalUpkeep=0;
  if(!Number.isFinite(Number(w.acquisitions)))w.acquisitions=0;
  if(!Array.isArray(w.history))w.history=[];
@@ -56,8 +56,10 @@ const styles=document.createElement('style');styles.textContent=`
 `;document.head.appendChild(styles);
 const panel=document.createElement('section');panel.id='ae-world';panel.innerHTML='<div class="ae-world-top"><h3>🌍 Rede internacional</h3><small id="ae-world-count"></small></div><p class="tiny">Escolha sua sede e adquira subsidiárias em mercados com especializações diferentes. Cada unidade adiciona vagas e custos mensais.</p><div class="ae-world-toolbar"><label class="tiny">Sede global<select id="ae-world-hq"></select></label><label class="tiny">Mercado ativo<select id="ae-world-active"></select></label></div><div class="ae-world-kpi" id="ae-world-kpi"></div><div class="ae-world-grid" id="ae-world-cities"></div>';
 const garage=document.getElementById('garage');if(garage)garage.append(panel);
+let lastWorldSignature='';
 function renderWorld(){
  if(!s)return;const w=ensureWorld(),hq=byId(w.hq),active=byId(w.active);
+ const signature=[w.hq,w.active,w.owned.join(','),Math.floor(s.cash/100),s.day].join('|');if(signature===lastWorldSignature)return;lastWorldSignature=signature;
  document.getElementById('ae-world-count').textContent=w.owned.length+' mercados · '+new Set(w.owned.map(id=>byId(id).country)).size+' países';
  document.getElementById('ae-world-kpi').textContent='Sede: '+hq.name+', '+hq.country+' · Operando: '+active.name+' · Custo internacional: '+cash(w.owned.reduce((n,id)=>n+byId(id).upkeep,0))+'/30 dias';
  const options=cities.map(c=>'<option value="'+c.id+'" '+(!w.owned.includes(c.id)?'disabled':'')+'> '+c.flag+' '+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
