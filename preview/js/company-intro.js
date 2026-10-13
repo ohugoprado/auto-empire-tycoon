@@ -73,7 +73,7 @@ if(!profile)show(true);
 const previousSeed=seed;
 seed=function(){previousSeed();const mode=difficultyOf(profile?.difficulty||difficulty.value);s.difficulty=mode;s.cash=difficulties[mode].cash;save()};
 const previousTickDay=tickDay;
-tickDay=function(){const before=s.cash,day=s.day;previousTickDay();const mode=difficulties[difficultyOf(s.difficulty)];if(s.day!==day&&s.day%30===0){s.cash+=1200-mode.rent;save()}if(s.cash!==before&&typeof render==='function')render()};
+tickDay=function(){const day=s.day;previousTickDay();if(s.day!==day&&s.day%30===0){const mode=difficulties[difficultyOf(s.difficulty)];s.cash+=1200-mode.rent;save()}};
 newGame=function(){
  if(!confirm('Iniciar uma nova campanha? O estoque e o dinheiro atuais serão substituídos.'))return;
  creatingNew=true;show(false);difficulty.disabled=false;
