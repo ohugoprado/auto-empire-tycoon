@@ -2,10 +2,10 @@
 
 (function(){
 'use strict';
-const VERSION='Alpha 1.9.2',BUILD='1920';
+const VERSION='Alpha 1.9.3',BUILD='1930';
 document.title='Auto Empire Tycoon — '+VERSION;
 const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.9.2 · GESTÃO TEXTUAL';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.9.3 · NEGOCIAÇÃO ANALÍTICA';
 const style=document.createElement('style');
 style.textContent=`
 /* Text-first mode: financial information and management decisions take priority. */
@@ -49,12 +49,9 @@ if(garageIntel){
  if(summary)summary.insertAdjacentElement('afterend',intelligence);else garageIntel.prepend(intelligence);
  const refreshIntelligence=()=>{
   const stock=Array.isArray(s?.stock)?s.stock:[];
+  const summary=window.AETradeMath.summary(stock);
   const listed=stock.filter(c=>c.listed);
-  const asking=listed.reduce((sum,c)=>sum+(Number(c.price)||0),0);
-  const invested=stock.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
-  const listedCosts=listed.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
-  const gross=asking-listedCosts;
-  const margin=asking>0?100*gross/asking:0;
+  const {asking,invested,gross,margin}=summary;
   const format=typeof fmt==='function'?fmt:(v)=>'R$ '+Math.round(v).toLocaleString('pt-BR');
   const metrics=[['Valor anunciado',format(asking)],['Lucro bruto potencial',format(gross)],['Margem potencial',margin.toFixed(1).replace('.',',')+'%'],['Capital imobilizado',format(invested)]];
   intelligence.querySelector('.ae-intel-metrics').innerHTML=metrics.map(([k,v])=>'<div class="ae-intel-metric"><span>'+k+'</span><b>'+v+'</b></div>').join('');
