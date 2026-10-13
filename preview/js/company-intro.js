@@ -3,14 +3,14 @@
 'use strict';
 const VERSION='Alpha 2.4.0',BUILD='2400';
 const profileKey='autoempire_company_profile_v1';
-const foundingCities=[["solara","Brasil · Solara"],["saopaulo","Brasil · São Paulo"],["newyork","Estados Unidos · Nova York"],["losangeles","Estados Unidos · Los Angeles"],["london","Reino Unido · Londres"],["paris","França · Paris"],["berlin","Alemanha · Berlim"],["tokyo","Japão · Tóquio"],["seoul","Coreia do Sul · Seul"],["dubai","Emirados Árabes Unidos · Dubai"],["singapore","Singapura · Singapura"],["sydney","Austrália · Sydney"],["toronto","Canadá · Toronto"],["mexicocity","México · Cidade do México"],["buenosaires","Argentina · Buenos Aires"],["rome","Itália · Roma"],["mumbai","Índia · Mumbai"]];
+const foundingCities=[["saopaulo","Brasil · São Paulo"],["newyork","Estados Unidos · Nova York"],["losangeles","Estados Unidos · Los Angeles"],["london","Reino Unido · Londres"],["paris","França · Paris"],["berlin","Alemanha · Berlim"],["tokyo","Japão · Tóquio"],["seoul","Coreia do Sul · Seul"],["dubai","Emirados Árabes Unidos · Dubai"],["singapore","Singapura · Singapura"],["sydney","Austrália · Sydney"],["toronto","Canadá · Toronto"],["mexicocity","México · Cidade do México"],["buenosaires","Argentina · Buenos Aires"],["rome","Itália · Roma"],["mumbai","Índia · Mumbai"]];
 const difficulties=Object.freeze({casual:{name:'Casual',cash:55000,rent:700,offers:1.25,description:'Mais capital, custos menores e compradores mais ativos.'},normal:{name:'Empreendedor',cash:35000,rent:1200,offers:1,description:'Equilíbrio entre oportunidade e risco.'},hard:{name:'Magnata',cash:22000,rent:1900,offers:.8,description:'Caixa apertado, despesas maiores e vendas mais difíceis.'}});
 const difficultyOf=v=>Object.hasOwn(difficulties,v)?v:'normal';
 const text=(v,max)=>String(v||'').trim().replace(/\s+/g,' ').slice(0,max);
 const valid=(v)=>v.length>=2&&/[\p{L}\p{N}]/u.test(v);
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const readProfile=()=>{
- try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty),headquarters:foundingCities.some(c=>c[0]===v.headquarters)?v.headquarters:'solara'}:null}catch(e){return null}
+ try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty),headquarters:foundingCities.some(c=>c[0]===v.headquarters)?v.headquarters :'saopaulo'}:null}catch(e){return null}
 };
 let profile=readProfile();
 const style=document.createElement('style');
