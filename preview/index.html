@@ -1716,10 +1716,10 @@ refresh();
 </script><script id="alpha160-art-direction">
 (function(){
 'use strict';
-const VERSION='Alpha 1.7.0',BUILD='1700';
+const VERSION='Alpha 1.8.1',BUILD='1811';
 document.title='Auto Empire Tycoon — '+VERSION;
 const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.7.0 · ACABAMENTO AUTOMOTIVO';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.8.1 · ESTÚDIO AUTOMOTIVO';
 const style=document.createElement('style');
 style.textContent=`
 /* Art direction v1.6: unified cinematic automotive management UI */
@@ -1797,7 +1797,7 @@ if(typeof render==='function')render();
 (function(){
 'use strict';
 // Asset-ready presentation: new artwork takes priority, existing illustrations remain fallback.
-// Binary files are supplied separately in the downloadable production package.
+// Artwork is loaded from the published preview/assets directory.
 const artRoot='./assets/';
 const names={Hatch:'vehicle_hatch',SUV:'vehicle_suv','Sedã':'vehicle_sedan',Picape:'vehicle_pickup',Compacto:'vehicle_compact',Esportivo:'vehicle_sports'};
 const ready={};
@@ -1846,6 +1846,7 @@ if(garage&&!document.getElementById('ae-studio-inspector')){
  };
  (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshStudio);
  document.getElementById('ae-garage-buttons')?.addEventListener('click',()=>requestAnimationFrame(refreshStudio));
+ document.getElementById('scene')?.addEventListener('click',()=>requestAnimationFrame(refreshStudio));
  refreshStudio();
 }
 
