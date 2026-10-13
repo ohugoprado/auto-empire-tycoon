@@ -57,7 +57,7 @@ tickDay=function(){
   if(payroll){s.cash-=payroll;e.totalWages+=payroll;entry('Folha de pagamento',-payroll);note('Salários pagos: '+cash(payroll))}
  }
  // Rival dealerships can acquire a listing; stock owned by the player is never taken.
- if(s.day%5===0&&s.market.length>3){const removed=s.market.shift();if(removed)note('Concorrente adquiriu '+removed.name+' antes de você.')}
+ if(s.day%5===0&&s.market.length>3){const index=Math.floor(Math.random()*s.market.length);const removed=s.market.splice(index,1)[0];if(removed)note('Concorrente adquiriu '+removed.name+' antes de você.')}
  checkMilestones();save();
 };
 function checkMilestones(){
@@ -68,22 +68,27 @@ repair=function(id){
  ensure();const c=s.stock.find(v=>v.id===id);if(!c)return;
  const rate=Math.min(.3,(s.empire.staff.mechanic||0)*.06);
  if(!rate)return originalRepair(id);
- const original=c.repair,oldCash=s.cash;
- c.repair=Math.max(0,Math.round(original*(1-rate)));
- try{return originalRepair(id)}finally{if(s.cash===oldCash)c.repair=original;else c.repair=Math.round(original*.4)}
+ const original=c.repair;
+ const discounted=Math.max(250,Math.round(Math.max(0,original)*.7*(1-rate)));
+ if(c.condition>=99)return toast('Veículo já está revisado');
+ if(s.cash<discounted)return toast('Caixa insuficiente');
+ if(!confirm('Reparar '+c.name+' por '+cash(discounted)+'?'))return;
+ s.cash-=discounted;c.spent=(Number(c.spent)||0)+discounted;
+ c.condition=Math.min(100,c.condition+rand(13,26));
+ c.repair=Math.round(original*.4);
+ entry('Reparos · '+c.name,-discounted);
+ note('Revisão de '+c.name+' concluída com economia de '+cash(Math.max(0,Math.max(250,Math.round(original*.7))-discounted)));
+ save();render();toast('Reparo realizado');
 };
 const originalRefresh=refreshPaid;
 refreshPaid=function(){
  ensure();const discount=Math.min(60,(s.empire.staff.analyst||0)*12);
  if(!discount)return originalRefresh();
- if(s.cash<100-discount)return toast('Saldo insuficiente');
- s.cash+=discount;
- const before=s.market;
- try{return originalRefresh()}finally{
-  if(s.market===before)s.cash-=discount;
-  else{entry('Desconto de pesquisa',discount);note('Avaliador economizou '+cash(discount)+' na pesquisa')}
-  save();render();
- }
+ const cost=100-discount;
+ if(s.cash<cost)return toast('Caixa insuficiente');
+ s.cash-=cost;entry('Pesquisa de mercado',-cost);
+ populate();note('Mercado atualizado por '+cash(cost)+' com desconto de avaliador');
+ save();render();toast('Novos anúncios disponíveis');
 };
 const originalOffers=offersDialog;
 offersDialog=function(id){
