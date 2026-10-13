@@ -78,4 +78,12 @@
 <path d="M120 160L140 150V155L120 165Z" fill="#9c855d"/>
 <!-- Exterior warm wall sconces -->
 <circle cx="116" cy="146" r="2.5" fill="#ffdf9b"/><circle cx="196" cy="110" r="2" fill="#ffdf9b"/>
+<!-- Alpha 1.4.7: dealership business identity, customer access and lighting -->
+<g opacity=".8"><path d="M215 154L246 139L276 154L244 170Z" fill="#234b57" stroke="#7ca2a8" stroke-width="1"/><path d="M227 154L245 145L263 154L245 163Z" fill="#315d66" stroke="#b4c7bf" stroke-width=".7"/></g>
+<g><path d="M330 162L348 154L364 161L346 170Z" fill="#143d47"/><path d="M334 160L348 155L359 160L345 166Z" fill="#5a967e"/><circle cx="339" cy="159" r="3" fill="#8bc8a1"/><circle cx="350" cy="158" r="3.5" fill="#7bb895"/></g>
+<g><path d="M348 96L348 141" stroke="#bed0c9" stroke-width="3"/><path d="M333 94L362 94L362 106L333 106Z" fill="#173b4c" stroke="#e7c47e" stroke-width="1.4"/><text x="347.5" y="102.5" font-family="Arial,sans-serif" font-weight="900" font-size="7" text-anchor="middle" fill="#ffdf98">AUTO</text></g>
+<g stroke="#e7dfbd" stroke-width="1.2" opacity=".48"><path d="M281 172L292 167M297 165L308 160M313 157L324 152"/><path d="M82 190L91 185M102 181L111 176"/></g>
+<g><path d="M291 119L291 142" stroke="#c2d8d7" stroke-width="2"/><path d="M284 119L299 119" stroke="#ffe2a1" stroke-width="3"/><circle cx="291" cy="119" r="9" fill="#ffe8a0" opacity=".08"/><path d="M16 148L16 166" stroke="#aec7c5" stroke-width="2"/><path d="M10 148L22 148" stroke="#ffe2a1" stroke-width="3"/></g>
+<path d="M17 134L104 174" stroke="#f2d59b" stroke-width="1.1" opacity=".65"/>
+<path d="M114 169L208 124" stroke="#f2d59b" stroke-width="1.1" opacity=".5"/>
 </svg>
