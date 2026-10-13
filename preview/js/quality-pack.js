@@ -66,7 +66,7 @@ function filterStock(){
 function updateReport(){
  if(!s)return;
  const data=math?.summary(s.stock)||{invested:0,asking:0,gross:0};
- const payroll=Object.entries({seller:2200,mechanic:1800,analyst:1500}).reduce((sum,[k,v])=>sum+(Number(s.empire?.staff?.[k])||0)*v,0);
+ const payroll=Object.entries({seller:850,mechanic:700,analyst:550}).reduce((sum,[k,v])=>sum+(Number(s.empire?.staff?.[k])||0)*v,0);
  const rent={casual:700,normal:1200,hard:1900}[s.difficulty]||1200;
  const items=[['Caixa disponível',money(s.cash)],['Capital no estoque',money(data.invested)],['Receita anunciada',money(data.asking)],['Lucro bruto estimado',money(data.gross)],['Despesas fixas / 30 dias',money(payroll+rent)],['Vendas concluídas',s.sales||0]];
  report.innerHTML=items.map(([label,value])=>'<div><small>'+label+'</small><b>'+value+'</b></div>').join('');
