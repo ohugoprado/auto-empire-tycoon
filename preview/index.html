@@ -909,7 +909,7 @@ const box=(c,x,y,w,h,f)=>{c.fillStyle=f;c.fillRect(x,y,w,h)};
 const aeAtlas=new Image();let aeAtlasReady=false;
 aeAtlas.onload=()=>{aeAtlasReady=true;requestAnimationFrame(()=>drawScene())};
 aeAtlas.onerror=()=>{aeAtlasReady=false};
-aeAtlas.src='./assets/car-sprites.svg';
+aeAtlas.src='./assets/car-sprites.svg?v=1310';
 function vehicleSprite(ctx,car,x,y){
  const order=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
  const index=Math.max(0,order.indexOf(car.kind||'Hatch'));
@@ -1368,5 +1368,18 @@ const style=document.createElement('style');
 style.textContent='#garage>.scene-wrap{border:1px solid #8da6a9!important;border-radius:15px!important;overflow:hidden;box-shadow:0 15px 32px #0007}#garage>#ae-garage-buttons button{min-height:48px}#garage>#ae-slot-status{border-radius:11px}#garage>#ae-scene-header strong{letter-spacing:.2px}';
 document.head.appendChild(style);
 const art=document.getElementById('ae-art-check');if(art){const title=art.querySelector('summary');if(title)title.textContent='🎨 Galeria de arte · Alpha 1.3.0'}
+})();
+</script><script id="alpha131-vehicle-art">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.3.1';
+const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.1 · BUILD 1310';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.1 · VEÍCULOS REDESENHADOS';
+const gallery=document.getElementById('ae-art-check');
+if(gallery){
+ const heading=document.createElement('div');heading.className='tiny';heading.textContent='Sprites atualizados: Hatch, SUV, Sedã, Picape, Compacto e Esportivo.';
+ gallery.appendChild(heading);
+ const image=document.createElement('img');image.src='./assets/car-sprites.svg?v=1310';image.alt='Seis novos perfis de veículos isométricos';image.loading='lazy';image.style.cssText='display:block;width:100%;height:auto;margin-top:10px;border-radius:10px;background:#284653';gallery.appendChild(image);
+}
 })();
 </script></body></html>
