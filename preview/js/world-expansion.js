@@ -2,7 +2,6 @@
 (function(){
 'use strict';
 const cities=[
-{id:'solara',name:'Solara',country:'Brasil',flag:'🇧🇷',special:'Mercado inicial equilibrado',kind:'Hatch',demand:1,cost:0,upkeep:0,slots:0,detail:'Cidade de origem: operações acessíveis e clientes variados.'},
 {id:'saopaulo',name:'São Paulo',country:'Brasil',flag:'🇧🇷',special:'Alto volume de negócios',kind:'Sedã',demand:1.09,cost:38000,upkeep:650,slots:2,detail:'Mais compradores, porém concorrência intensa.'},
 {id:'newyork',name:'Nova York',country:'Estados Unidos',flag:'🇺🇸',special:'Mercado premium de alto giro',kind:'SUV',demand:1.14,cost:78000,upkeep:1800,slots:3,detail:'SUVs atraem executivos; custos operacionais elevados.'},
 {id:'losangeles',name:'Los Angeles',country:'Estados Unidos',flag:'🇺🇸',special:'Cultura de esportivos',kind:'Esportivo',demand:1.16,cost:71000,upkeep:1400,slots:2,detail:'Esportivos encontram entusiastas e colecionadores.'},
@@ -28,11 +27,11 @@ function ensureWorld(){
  const e=s.empire;
  if(!e.world||typeof e.world!=='object')e.world={};
  const w=e.world;
- if(!Array.isArray(w.owned)){let start='solara';try{const p=JSON.parse(localStorage.getItem('autoempire_company_profile_v1')||'null');if(byId(p?.headquarters))start=p.headquarters}catch(e){}w.owned=[start];w.hq=start;w.active=start;w.founded=start}
- w.owned=[...new Set(w.owned.filter(id=>!!byId(id)))];
- if(!w.owned.length)w.owned=['solara'];
- if(!byId(w.hq)||!w.owned.includes(w.hq))w.hq=w.owned[0];
- if(!byId(w.active)||!w.owned.includes(w.active))w.active=w.owned[0];
+ if(!Array.isArray(w.owned)){let start='saopaulo';try{const p=JSON.parse(localStorage.getItem('autoempire_company_profile_v1')||'null');if(byId(p?.headquarters))start=p.headquarters}catch(e){}w.owned=[start];w.hq=start;w.active=start;w.founded=start}
+ w.owned=[...new Set(w.owned.map(id=>id==='solara'?'saopaulo':id).filter(id=>!!byId(id)))];
+ if(!w.owned.length)w.owned=['saopaulo'];
+ if(w.hq==='solara')w.hq='saopaulo';if(!byId(w.hq)||!w.owned.includes(w.hq))w.hq=w.owned[0];
+ if(w.active==='solara')w.active='saopaulo';if(!byId(w.active)||!w.owned.includes(w.active))w.active=w.owned[0];
  if(!Number.isFinite(Number(w.totalUpkeep)))w.totalUpkeep=0;
  if(!Number.isFinite(Number(w.acquisitions)))w.acquisitions=0;
  if(!Array.isArray(w.history))w.history=[];
