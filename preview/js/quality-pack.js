@@ -4,6 +4,11 @@
 const id=x=>document.getElementById(x),money=v=>fmt(Math.round(Number(v)||0));
 const safe=v=>esc(String(v??''));
 const math=window.AETradeMath;
+// The legacy isometric scene is hidden in text-first mode: skip its expensive canvas paint.
+if(typeof drawScene==='function')drawScene=function(){};
+const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 2.3.0 · BUILD 2300';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 2.3.0 · GESTÃO APRIMORADA';
+document.title='Auto Empire Tycoon — Alpha 2.3.0';
 const css=document.createElement('style');
 css.textContent=`
 #ae-tools{margin:10px 0;padding:12px;background:#132d3c;border:1px solid #496879;border-radius:13px}
