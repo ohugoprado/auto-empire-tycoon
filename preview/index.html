@@ -184,8 +184,7 @@ if(canvas&&garage){
   for(let i=0;i<Math.min(s.slots,6);i++){const cx=195+(i%3)*56,cy=130+Math.floor(i/3)*37+(i%3)*-16;const d=Math.hypot(x-cx,y-cy);if(d<distance){best=i;distance=d}}
   if(distance<48)selectSlot(best);
  });
- const priorRender=render;
- render=function(){priorRender();refreshGarage()};
+ (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshGarage);
  refreshGarage();drawScene();
 }
 // Stage 2: deterministic daily segment demand; preserve version 2 save format.
@@ -200,17 +199,16 @@ const market=document.getElementById('market');
 if(market){
  const demandPanel=document.createElement('div');demandPanel.className='panel';demandPanel.id='ae-demand';
  const listings=document.getElementById('listings');listings.parentNode.insertBefore(demandPanel,listings);
- const oldRender=render;
- render=function(){
-  oldRender();
+ const refreshDemand=()=>{
   const ranked=SEGMENTS.map(k=>({kind:k,v:demand(k,s.day)})).sort((a,b)=>b.v-a.v);
   demandPanel.innerHTML='<b>📈 Termômetro de demanda · Dia '+s.day+'</b><p class="tiny">Tendência fictícia por segmento. Indicador informativo; não altera as ofertas nesta versão.</p>'+ranked.map(x=>'<div class="kv"><span>'+esc(x.kind)+'</span><b>'+Math.round(x.v*100)+'%</b></div>').join('');
  };
+ (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshDemand);
  render();
 }
 // Stage 3: quality-of-life and explicit release identity.
 const garageTitle=garage&&garage.querySelector('.section-head .title');
-if(garageTitle)garageTitle.textContent='🚗 Meu estoque · Alpha 0.8.0';
+if(garageTitle)garageTitle.textContent='🚗 Meu estoque';
 
 })();
 </script><script id="alpha081-test-controls">
@@ -1273,5 +1271,18 @@ const css=document.createElement('style');css.textContent=`
 .content{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important}
 `;document.head.appendChild(css);
 const debug=document.getElementById('ae-debug');if(debug){const title=debug.querySelector('summary');if(title)title.textContent='🛠 Diagnóstico · Alpha 1.2.4'}
+})();
+</script><script id="alpha125-cleanup">
+(function(){
+'use strict';
+const VERSION='Alpha 1.2.5';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD 1250';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.5 · MOTOR CONSOLIDADO';
+const title=document.querySelector('#garage .section-head .title');
+if(title&&title.textContent.includes('Alpha 0.8.0'))title.textContent='🚗 Meu estoque';
+const css=document.createElement('style');
+css.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
+document.head.appendChild(css);
 })();
 </script></body></html>
