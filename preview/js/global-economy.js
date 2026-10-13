@@ -46,7 +46,7 @@ function updateDay(){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
   if(s.stock.length>=s.slots){job.due=s.day+1;continue}
-  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true};
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true,designQuality:job.quality||null,designId:job.designId||null};
   s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
  }
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
