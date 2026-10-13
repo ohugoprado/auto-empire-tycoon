@@ -1716,10 +1716,10 @@ refresh();
 </script><script id="alpha160-art-direction">
 (function(){
 'use strict';
-const VERSION='Alpha 1.8.2',BUILD='1820';
+const VERSION='Alpha 1.8.3',BUILD='1830';
 document.title='Auto Empire Tycoon — '+VERSION;
 const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.8.2 · INSPEÇÃO VISUAL';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.8.3 · ASSETS OTIMIZADOS';
 const style=document.createElement('style');
 style.textContent=`
 /* Art direction v1.6: unified cinematic automotive management UI */
@@ -1801,10 +1801,20 @@ if(typeof render==='function')render();
 const artRoot='./assets/';
 const names={Hatch:'vehicle_hatch',SUV:'vehicle_suv','Sedã':'vehicle_sedan',Picape:'vehicle_pickup',Compacto:'vehicle_compact',Esportivo:'vehicle_sports'};
 const ready={};
-Object.values(names).forEach(name=>{
- const image=new Image();image.onload=()=>{ready[name]=true;document.querySelectorAll('[data-studio-art="'+name+'"]').forEach(el=>{el.style.backgroundImage='url("'+artRoot+name+'.webp")';el.classList.add('studio-ready')})};
- image.src=artRoot+name+'.webp';
-});
+const artCache=new Map();
+const getArt=(name)=>{
+ if(artCache.has(name))return artCache.get(name);
+ const img=new Image();img.decoding='async';img.src=artRoot+name+'.webp?v=1830';artCache.set(name,img);
+ img.addEventListener('load',()=>{
+  ready[name]=true;
+  document.querySelectorAll('[data-studio-art="'+name+'"]').forEach(el=>{
+   el.style.backgroundImage='url("'+img.src+'")';
+   el.classList.add('studio-ready');
+  });
+ });
+ return img;
+};
+Object.values(names).forEach(getArt);
 const style=document.createElement('style');
 style.textContent='.ae-car-thumb.studio-ready{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;filter:drop-shadow(0 5px 8px #0008)}.studio-hero{width:100%;aspect-ratio:1355/419;object-fit:cover;display:block;border-radius:14px;border:1px solid #76909c;box-shadow:0 12px 28px #0008;margin:10px 0}.studio-brand{max-width:300px;width:65%;height:auto;display:block;margin:0 auto 8px}.studio-art-caption{font-size:10px;color:#a7c1cc;margin:0 0 10px;text-align:center}';
 document.head.appendChild(style);
@@ -1868,10 +1878,11 @@ if(garage&&!document.getElementById('ae-studio-inspector')){
   const existing=stage.querySelector('img');
   if(existing&&existing.dataset.asset===asset)return;
   const img=new Image();img.alt='Arte do veículo '+(car.name||car.kind);img.dataset.asset=asset;
-  img.onload=()=>{if(img.isConnected)stage.classList.add('loaded')};
-  img.onerror=()=>{if(img.isConnected)stage.innerHTML='<div class="studio-fallback">Prévia artística indisponível. A representação vetorial continua no estacionamento.</div>'};
-  img.src=artRoot+asset+'.webp?v=1811';
+  const cached=getArt(asset);
+  const show=()=>{if(!img.isConnected)return;if(cached.naturalWidth){img.src=cached.src;stage.classList.add('loaded')}else{stage.innerHTML='<div class="studio-fallback">Prévia artística indisponível. A representação vetorial continua no estacionamento.</div>'}};
   stage.replaceChildren(img);
+  if(cached.complete)show();
+  else{cached.addEventListener('load',show,{once:true});cached.addEventListener('error',show,{once:true})}
  };
  (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshStudio);
  document.getElementById('ae-garage-buttons')?.addEventListener('click',()=>requestAnimationFrame(refreshStudio));
