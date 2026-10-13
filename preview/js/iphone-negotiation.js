@@ -33,7 +33,7 @@ function insertAnalysis(field,car,mode){
  }
  function update(){
   const amount=number(field.value);
-  const repair=mode==='buy'?Math.max(0,number(car.repair))*(100-number(car.condition))/100:0;
+  const repair=mode==='buy'&&number(car.condition)<99?Math.max(250,Math.round(number(car.repair)*.7)):0;
   const cost=mode==='buy'?amount+repair:basis(car);
   const value=mode==='buy'?number(car.value):amount;
   const gain=value-cost;
