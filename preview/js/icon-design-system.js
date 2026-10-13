@@ -105,15 +105,15 @@ h2,h3,.section-head{letter-spacing:-.025em!important}
 document.head.append(css);
 decorate(document.body);
 let queued=false;
+const roots=new Set();
 const observer=new MutationObserver(records=>{
- const roots=new Set();
  for(const record of records){
   if(record.type==='characterData'&&record.target.parentElement)roots.add(record.target.parentElement);
   for(const node of record.addedNodes||[])if(node.nodeType===1)roots.add(node);else if(node.nodeType===3&&node.parentElement)roots.add(node.parentElement);
  }
  if(!roots.size||queued)return;
  queued=true;
- requestAnimationFrame(()=>{queued=false;roots.forEach(decorate)});
+ requestAnimationFrame(()=>{queued=false;const pending=[...roots];roots.clear();pending.forEach(decorate)});
 });
 observer.observe(document.body,{childList:true,characterData:true,subtree:true});
 })();
