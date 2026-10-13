@@ -74,8 +74,9 @@ render();
         records.sort((a,b)=>key(a.car)-key(b.car)).forEach(x=>listings.appendChild(x.el));
       }
       select.onchange=filter;controls.querySelector('#ae-sort').onchange=filter;
-      const observer=new MutationObserver(()=>{observer.disconnect();filter();observer.observe(listings,{childList:true})});
-      observer.observe(listings,{childList:true});filter();
+      const originalMarketRender=render;
+      render=function(){originalMarketRender();filter()};
+      filter();
     }
   }
   const reports=document.getElementById('reports');
