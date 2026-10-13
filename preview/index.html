@@ -617,4 +617,54 @@ function update(){
 }
 update();drawScene();
 })();
+</script><script id="alpha101-polish">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.1';
+const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.1 · BUILD 1010';
+const css=document.createElement('style');
+css.textContent=`
+*,*::before,*::after{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+main,.app,.panel,.scene-wrap{min-width:0;max-width:100%}
+.panel{overflow-wrap:anywhere}
+.flex{min-width:0;gap:8px;flex-wrap:wrap}
+.flex>*{min-width:0}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+.actions button{max-width:100%;white-space:normal}
+#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+#ae-visual-stats b{overflow-wrap:anywhere;line-height:1.2}
+#ae-garage-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#ae-garage-buttons button{min-width:0;min-height:43px;white-space:normal}
+#scene{width:100%;height:auto;aspect-ratio:384/250;object-fit:contain;image-rendering:pixelated}
+.scene-wrap{position:relative;isolation:isolate}
+.scene-label{position:relative;z-index:1;white-space:normal}
+#ae-staff .flex button,#ae-management .flex button{max-width:100%}
+#ae-test-bar .actions button{flex:1 1 135px}
+#ae-rivals,#ae-auction,#ae-staff,#ae-management,#ae-specialization{max-width:100%}
+@media(max-width:420px){
+ #ae-visual-stats{gap:5px}
+ #ae-visual-stats>div{padding:8px 3px}
+ #ae-visual-stats b{font-size:clamp(10px,3vw,15px)}
+ .panel{padding:11px}
+ #ae-garage-buttons button{font-size:12px;padding:8px 4px}
+}
+`;document.head.appendChild(css);
+// Reconcile the selected slot across all drawing layers.
+const buttons=document.getElementById('ae-garage-buttons');
+const canvas=document.getElementById('scene');
+if(buttons&&canvas){
+ const detail=document.createElement('div');detail.id='ae-polish-selection';detail.className='tiny';detail.setAttribute('aria-live','polite');
+ buttons.insertAdjacentElement('afterend',detail);
+ function updateSelection(){
+  const selected=buttons.querySelector('button[data-ae-slot]:not(.ghost)');
+  const index=selected?Number(selected.dataset.aeSlot):0;
+  detail.textContent='Vaga selecionada: '+(index+1)+(s.stock[index]?' · '+s.stock[index].name:' · livre');
+ }
+ buttons.addEventListener('click',updateSelection);
+ const oldRender=render;
+ render=function(){oldRender();updateSelection()};
+ updateSelection();
+}
+})();
 </script></body></html>
