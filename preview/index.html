@@ -436,4 +436,86 @@ const previousRender=render;
 render=function(){previousRender();update()};
 update();
 })();
+</script><script id="alpha092-staff">
+(function(){
+'use strict';
+const VERSION='Alpha 0.9.2';
+document.title='Auto Empire Tycoon — '+VERSION;
+const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD 0920';
+const ROLES=[
+ {id:'mechanic',name:'Mecânico',hire:4000,wage:220,detail:'Reduz em 20% o custo de reparos.'},
+ {id:'sales',name:'Vendedor',hire:5000,wage:280,detail:'Aumenta em 8% as ofertas aceitas.'},
+ {id:'marketing',name:'Marketing',hire:3500,wage:200,detail:'Ganha reputação adicional a cada venda.'}
+];
+function staff(){if(!s.staff||typeof s.staff!=='object')s.staff={};return s.staff}
+function wage(){return ROLES.reduce((sum,r)=>sum+(staff()[r.id]?r.wage:0),0)}
+const garage=document.getElementById('garage'),reports=document.getElementById('reports');
+const staffPanel=document.createElement('section');staffPanel.id='ae-staff';staffPanel.className='panel';
+if(garage)garage.appendChild(staffPanel);
+const specialization=document.createElement('section');specialization.id='ae-specialization';specialization.className='panel';
+if(reports)reports.appendChild(specialization);
+const css=document.createElement('style');css.textContent='#ae-staff .staff-row{padding:10px 0;border-top:1px solid #40596a}#ae-staff .staff-row:first-of-type{border-top:0}#ae-staff button{padding:8px}#ae-specialization .kv{padding:6px 0}';document.head.appendChild(css);
+// Step 1: staff hiring and recurring payroll.
+staffPanel.addEventListener('click',event=>{
+ const button=event.target.closest('button[data-ae-hire]');if(!button)return;
+ const role=ROLES.find(r=>r.id===button.dataset.aeHire);
+ if(!role||staff()[role.id])return;
+ if(s.cash<role.hire)return toast('Caixa insuficiente para contratação');
+ s.cash-=role.hire;staff()[role.id]=true;
+ entry('Contratação · '+role.name,-role.hire);
+ note('Contratado: '+role.name);
+ save();render();toast(role.name+' contratado!');
+});
+const oldTick=tickDay;
+tickDay=function(){
+ oldTick();
+ if(s.day>1&&s.day%7===0&&wage()>0){
+  const cost=wage();s.cash-=cost;
+  entry('Folha de pagamento semanal',-cost);
+  note('Salários pagos: '+fmt(cost));save();
+ }
+};
+// Step 2: employee bonuses applied only when actions are executed.
+const oldRepair=repair;
+repair=function(id){
+ const c=s.stock.find(v=>v.id===id);
+ if(!c||!staff().mechanic)return oldRepair(id);
+ const original=c.repair;
+ const originalCost=Math.max(250,Math.round(original*.7));
+ const reducedCost=Math.max(250,Math.round(originalCost*.8));
+ // Keep original repair flow and reimburse the verified difference only after a successful repair.
+ const previousCondition=c.condition,previousSpent=c.spent,previousCash=s.cash;
+ if(previousCash<originalCost)return toast('Para reparar, mantenha em caixa '+fmt(originalCost));
+ oldRepair(id);
+ if(c.condition!==previousCondition&&c.spent>previousSpent){
+  const refund=originalCost-reducedCost;
+  if(refund>0){s.cash+=refund;c.spent-=refund;entry('Desconto mecânico · '+c.name,refund);save();render()}
+ }
+};
+const oldAccept=acceptOffer;
+acceptOffer=function(index){
+ const car=s.stock.find(c=>c.id===modalCar);
+ if(!car||!car.offers||!car.offers[index])return oldAccept(index);
+ const before=car.offers[index].amount,bonus=staff().sales?Math.round(before*.08/100)*100:0;
+ if(bonus)car.offers[index].amount=before+bonus;
+ const priorSales=s.sales;
+ oldAccept(index);
+ if(s.sales>priorSales){
+  if(staff().marketing){s.rep=Math.min(100,s.rep+2);note('Marketing: reputação fortalecida');}
+  if(bonus)note('Vendedor negociou bônus de '+fmt(bonus));
+  save();render();
+ }else if(bonus){car.offers[index].amount=before}
+};
+// Step 3: specialization and reputation feedback.
+const oldRender=render;
+render=function(){oldRender();update()};
+function update(){
+ staffPanel.innerHTML='<b>👥 Equipe da concessionária · '+VERSION+'</b><p class="tiny">Contrate especialistas para melhorar resultados. Salários são pagos a cada sete dias.</p>'+
+ ROLES.map(r=>'<div class="staff-row"><div class="flex"><b>'+r.name+'</b><button type="button" data-ae-hire="'+r.id+'" '+(staff()[r.id]?'disabled':'')+'>'+(staff()[r.id]?'Contratado':'Contratar · '+fmt(r.hire))+'</button></div><div class="tiny">'+r.detail+' Salário: '+fmt(r.wage)+'/semana.</div></div>').join('')+
+ '<div class="kv"><span>Folha semanal</span><b>'+fmt(wage())+'</b></div>';
+ const focus=ROLES.filter(r=>staff()[r.id]).map(r=>r.name).join(' + ')||'Sem especialização';
+ specialization.innerHTML='<b>⭐ Identidade comercial</b><div class="kv"><span>Especialização atual</span><b>'+focus+'</b></div><div class="kv"><span>Reputação</span><b>'+s.rep+'/100</b></div><div class="kv"><span>Vendas realizadas</span><b>'+s.sales+'</b></div><p class="tiny">Sua equipe determina as vantagens comerciais da concessionária. As contratações ficam no salvamento desta prévia.</p>';
+}
+update();
+})();
 </script></body></html>
