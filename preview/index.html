@@ -298,4 +298,66 @@ newButton.addEventListener('click',()=>{
 const css=document.createElement('style');css.textContent='#ae-slot-status{border:1px solid #ffca57;margin-top:7px}#ae-garage-buttons button:not(.ghost){outline:2px solid #ffca57;outline-offset:1px}#ae-test-bar .actions{flex-wrap:wrap}';document.head.appendChild(css);
 refresh();
 })();
+</script><script id="alpha09-visual">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 0.9.0';
+const badge=document.getElementById('ae-version');
+if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 0.9.0 · BUILD 0900';
+const style=document.createElement('style');
+style.textContent=`
+:root{--bg:#0b1219;--panel:#192833;--panel2:#243847;--line:#40596a;--gold:#ffce64}
+body{background:radial-gradient(circle at 50% 0,#294354,#0b1219 62%)}
+.panel{border-color:#40596a;box-shadow:0 5px 18px #0002}
+button{transition:filter .15s,transform .1s}button:active{transform:scale(.97)}
+#ae-visual-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+#ae-visual-stats>div{background:#223745;border:1px solid #426074;border-radius:9px;padding:10px 5px;text-align:center}
+#ae-visual-stats b{display:block;color:#ffce64;font-size:16px}
+#ae-visual-stats span{font-size:10px;color:#b7cbd3}
+#ae-economy-tip{border-left:3px solid #ffce64;padding-left:9px}
+@media(max-width:380px){#ae-visual-stats b{font-size:13px}}
+`;document.head.appendChild(style);
+// Step 1: distinct silhouettes in the scene for all six body styles.
+const canvas=document.getElementById('scene');
+if(canvas){
+ const priorDraw=drawScene;
+ drawScene=function(){
+  priorDraw();
+  const ctx=canvas.getContext('2d');
+  for(let i=0;i<Math.min(s.stock.length,6);i++){
+   const car=s.stock[i],x=165+(i%3)*56+8,y=130+Math.floor(i/3)*37+(i%3)*-16-5;
+   const type=car.kind||'Hatch',color=car.color||'#7da5ba';
+   ctx.fillStyle='#14232c';ctx.fillRect(x+7,y+4,10,5);ctx.fillRect(x+34,y-1,10,5);
+   ctx.fillStyle=color;
+   if(type==='SUV'){ctx.fillRect(x+7,y-14,34,12);ctx.fillRect(x+1,y-8,44,8)}
+   else if(type==='Picape'){ctx.fillRect(x+5,y-12,21,10);ctx.fillRect(x+27,y-5,21,7);ctx.fillStyle='#283844';ctx.fillRect(x+30,y-7,15,4)}
+   else if(type==='Esportivo'){ctx.fillRect(x+3,y-5,46,6);ctx.fillRect(x+14,y-10,24,5);ctx.fillStyle='#ffdf80';ctx.fillRect(x+42,y-9,9,2)}
+   else if(type==='Compacto'){ctx.fillRect(x+9,y-12,27,12);ctx.fillRect(x+3,y-5,39,6)}
+   else if(type==='Sedã'){ctx.fillRect(x+10,y-12,29,9);ctx.fillRect(x+2,y-5,46,7)}
+   else {ctx.fillRect(x+9,y-11,28,9);ctx.fillRect(x+3,y-5,41,7)}
+   ctx.fillStyle='#b4e2e9';ctx.fillRect(x+15,y-10,type==='Picape'?10:17,3);
+  }
+ };
+}
+// Step 2: finance dashboard with risk and capital availability.
+const garage=document.getElementById('garage');
+const market=document.getElementById('market');
+const stats=document.createElement('div');stats.id='ae-visual-stats';
+if(garage)garage.insertBefore(stats,garage.firstChild);
+const tip=document.createElement('div');tip.id='ae-economy-tip';tip.className='panel';
+if(market)market.insertBefore(tip,market.querySelector('#ae-demand')||market.querySelector('#listings'));
+function refresh(){
+ const invested=s.stock.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
+ const listed=s.stock.filter(c=>c.listed).length;
+ const exposure=s.stock.length?Math.round(invested/Math.max(1,s.cash+invested)*100):0;
+ stats.innerHTML='<div><b>'+fmt(s.cash)+'</b><span>Caixa disponível</span></div><div><b>'+listed+'/'+s.stock.length+'</b><span>Anúncios ativos</span></div><div><b>'+exposure+'%</b><span>Capital no estoque</span></div>';
+ const candidates=(s.market||[]).map(c=>({c,margin:c.value-c.ask-c.repair})).sort((a,b)=>b.margin-a.margin);
+ const best=candidates[0];
+ if(best){tip.innerHTML='<b>💡 Análise de compra</b><p class="tiny">Maior margem bruta potencial após reparo estimado: <b>'+esc(best.c.name)+'</b> · '+fmt(best.margin)+'. Não inclui impostos, tempo de estoque ou descontos na revenda.</p>'}
+ else tip.innerHTML='<b>💡 Análise de compra</b><p class="tiny">Atualize os anúncios para descobrir oportunidades.</p>';
+}
+const oldRender=render;
+render=function(){oldRender();refresh()};
+refresh();drawScene();
+})();
 </script></body></html>
