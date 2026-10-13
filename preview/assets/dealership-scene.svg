@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="500" viewBox="0 0 384 250">
+<defs>
+<linearGradient id="sky" x2="0" y2="1"><stop stop-color="#24475c"/><stop offset="1" stop-color="#78a9b1"/></linearGradient>
+<linearGradient id="glass" x2="0" y2="1"><stop stop-color="#bce9ed"/><stop offset=".5" stop-color="#6aafc0"/><stop offset="1" stop-color="#286378"/></linearGradient>
+<linearGradient id="road" x2="0" y2="1"><stop stop-color="#718c90"/><stop offset="1" stop-color="#324f5c"/></linearGradient>
+<pattern id="tiles" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0H12M0 0V12" stroke="#e0e5d8" stroke-width=".6" opacity=".13"/></pattern>
+</defs>
+<rect width="384" height="250" fill="url(#sky)"/>
+<path d="M0 94L15 94V72H37V88H52V55H78V83H97V68H119V92H140V73H166V98H188V64H215V91H238V71H267V95H291V76H318V89H339V63H362V89H384V126H0Z" fill="#315968"/>
+<path d="M0 112L35 106V85H53V110H77V95H91V113H122V91H143V117H175V94H197V115H223V100H247V119H282V90H306V111H341V96H365V114H384V154H0Z" fill="#456c73"/>
+<g fill="#b2d0c9" opacity=".45"><path d="M14 89h5v5h-5zM28 89h5v5h-5zM60 70h6v7h-6zM102 77h6v6h-6zM153 84h5v6h-5zM197 76h7v7h-7zM252 82h7v7h-7zM348 74h7v7h-7z"/></g>
+<path d="M0 126L190 32L384 127L190 237Z" fill="#193c4b"/>
+<path d="M0 119L190 39L384 121L190 226Z" fill="#b0b9aa"/>
+<path d="M7 119L190 45L377 122L190 218Z" fill="url(#road)"/>
+<path d="M7 119L190 45L377 122L190 218Z" fill="url(#tiles)"/>
+<path d="M0 118L191 40L383 121" stroke="#c7d3c4" stroke-width="3" fill="none"/>
+<path d="M191 40L191 46" stroke="#f2d892" stroke-width="3"/>
+<g stroke="#e4d8b1" stroke-width="1.6" opacity=".5"><path d="M16 122L190 50M40 133L212 60M67 146L236 73M93 160L262 85"/></g>
+<!-- glass showroom, visible foundation and service bay -->
+<path d="M12 87L108 41L211 84L108 133Z" fill="#152f3f" stroke="#0e2736" stroke-width="3"/>
+<path d="M12 88L108 133V174L12 129Z" fill="#285365" stroke="#163747" stroke-width="2"/>
+<path d="M108 133L211 84V126L108 174Z" fill="#326a7b" stroke="#163747" stroke-width="2"/>
+<path d="M19 96L101 135V160L19 122Z" fill="url(#glass)" stroke="#1d5266" stroke-width="3"/>
+<g stroke="#24566b" stroke-width="2"><path d="M40 106v25M61 116v25M82 126v25M19 109l82 39"/></g>
+<path d="M117 137L203 96V120L117 162Z" fill="url(#glass)" stroke="#174b5d" stroke-width="2"/>
+<g stroke="#2b6272" stroke-width="2"><path d="M145 124v27M173 110v27M117 150l86-42"/></g>
+<path d="M7 86L108 36L216 82L109 131Z" fill="#102d3d" stroke="#102734" stroke-width="3"/>
+<path d="M14 85L108 40L209 82L108 126Z" fill="#2c5161" stroke="#678999" stroke-width="1.5"/>
+<path d="M31 86L108 50L190 84L108 118Z" fill="#365d6d"/>
+<path d="M22 92L101 130V138L22 101Z" fill="#142e3d"/>
+<path d="M32 97L96 127" stroke="#f1cf82" stroke-width="4"/>
+<text x="43" y="91" font-family="Arial,sans-serif" font-weight="900" font-size="12" fill="#ffe0a1" letter-spacing="1">SOLARA</text>
+<path d="M109 132L211 84V92L109 141Z" fill="#e2bd76"/>
+<path d="M18 126L107 168L107 175L18 134Z" fill="#173747"/>
+<path d="M110 174L213 125" stroke="#e5bb77" stroke-width="2"/>
+<!-- service building -->
+<path d="M226 83L272 61L325 85L278 109Z" fill="#213f4f" stroke="#15303f" stroke-width="2"/>
+<path d="M226 83L278 109V139L226 113Z" fill="#335e6e"/>
+<path d="M278 109L325 85V116L278 139Z" fill="#4c7b84"/>
+<path d="M234 93L269 110V129L234 111Z" fill="#9ac2c9" stroke="#254f5e" stroke-width="2"/>
+<path d="M284 112L317 96V115L284 131Z" fill="#243f4c" stroke="#a1c7c7" stroke-width="2"/>
+<path d="M239 99L265 111" stroke="#e8d28f" stroke-width="2"/>
+<text x="233" y="87" font-family="Arial,sans-serif" font-size="6" font-weight="bold" fill="#f6d892">SERVICE</text>
+<!-- planting, signage and light poles -->
+<g><path d="M337 115v25" stroke="#d7e4d8" stroke-width="3"/><path d="M330 114h15" stroke="#ffe3a0" stroke-width="4"/><circle cx="337" cy="114" r="8" fill="#f7db8c" opacity=".15"/></g>
+<g><path d="M353 130v22" stroke="#a3b8a9" stroke-width="3"/><path d="M343 128l10-20 11 20-11 7Z" fill="#316d61"/><path d="M347 125l6-13 7 13-7 5Z" fill="#57a58a"/></g>
+<g><path d="M25 162v15" stroke="#7c9178" stroke-width="3"/><path d="M14 160l11-19 11 19-11 7Z" fill="#276a5d"/><path d="M20 159l5-13 6 13-6 4Z" fill="#54a18a"/></g>
+<path d="M1 213L190 245L384 172" fill="none" stroke="#152e3d" stroke-width="7"/>
+<rect x="0" y="234" width="384" height="16" fill="#102b3a"/>
+</svg>
