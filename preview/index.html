@@ -141,7 +141,7 @@ render();
       '<div class="kv"><span>Melhor diferença estimada</span><b>'+esc(leader.best.name)+' · '+fmt(leader.spread)+'</b></div>'+
       summaries.map(g=>'<div class="kv"><span>'+esc(g.kind)+' · '+g.count+' anúncio(s)</span><b>Preço médio '+fmt(g.avg)+'</b></div>').join('');
   }
-  render=function(){previousRender();refreshIntel()};
+  (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshIntel);
   refreshIntel();
 })();
 </script><script id="alpha08-release">
@@ -401,7 +401,7 @@ function update(){
  '<p class="tiny">*Estimativa considerando somente a despesa operacional semanal, sem aluguel, compras ou receitas.</p>';
 }
 const previousRender=render;
-render=function(){previousRender();update()};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(update);
 update();
 })();
 </script><script id="alpha092-staff">
@@ -476,7 +476,7 @@ acceptOffer=function(index){
 };
 // Step 3: specialization and reputation feedback.
 const oldRender=render;
-render=function(){oldRender();update()};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(update);
 function update(){
  staffPanel.innerHTML='<b>👥 Equipe da concessionária · '+VERSION+'</b><p class="tiny">Contrate especialistas para melhorar resultados. Salários são pagos a cada sete dias.</p>'+
  ROLES.map(r=>'<div class="staff-row"><div class="flex"><b>'+r.name+'</b><button type="button" data-ae-hire="'+r.id+'" '+(staff()[r.id]?'disabled':'')+'>'+(staff()[r.id]?'Contratado':'Contratar · '+fmt(r.hire))+'</button></div><div class="tiny">'+r.detail+' Salário: '+fmt(r.wage)+'/semana.</div></div>').join('')+
@@ -547,7 +547,7 @@ auction.addEventListener('click',e=>{
 const rivals=document.createElement('section');rivals.id='ae-rivals';rivals.className='panel';
 if(reports)reports.appendChild(rivals);
 const oldRender=render;
-render=function(){oldRender();update()};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(update);
 function update(){
  const o=auctionOffer();
  auction.innerHTML='<b>🔨 Leilão regional</b><p class="tiny">Oportunidade de aquisição com desconto, sujeita ao estoque disponível. A oferta gira a cada dois dias.</p>'+
@@ -952,6 +952,7 @@ let scheduled=false;
 render=function(){
  oldRender();
  if(typeof window.aeRefreshVisualStats==='function')window.aeRefreshVisualStats();
+ for(const refresh of (window.aeUiRefreshers||[])){try{refresh()}catch(error){console.error('AE panel refresh failed',error)}}
  if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;drawScene()})}
 };
 scene();
@@ -1236,5 +1237,25 @@ if(art){
 }
 const garage=document.getElementById('garage');
 if(garage){for(const node of garage.querySelectorAll('.panel')){if(node.textContent.includes('Novidades da Alpha 0.8.0'))node.remove()}}
+})();
+</script><script id="alpha123-refactor">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.3';
+const version=document.getElementById('ae-version');
+if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.3 · BUILD 1230';
+const tag=document.querySelector('.top .tag');
+if(tag)tag.textContent='ALPHA 1.2.3 · MOTOR DE INTERFACE';
+const style=document.createElement('style');
+style.textContent=`
+#garage>#ae-test-bar{order:12!important}
+#garage>.scene-wrap{border:1px solid #698e9d!important}
+#garage>#ae-garage-buttons button{min-height:46px}
+#garage>#ae-garage-detail:not(.ae-open){display:none!important}
+.content{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important}
+`;
+document.head.appendChild(style);
+const art=document.getElementById('ae-art-check');
+if(art){const heading=art.querySelector('summary');if(heading)heading.textContent='🎨 Biblioteca de sprites · Alpha 1.2.3'}
 })();
 </script></body></html>
