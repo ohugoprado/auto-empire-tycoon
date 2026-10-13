@@ -37,11 +37,12 @@ const report=document.createElement('section');report.id='ae-quick-report';repor
 if(id('reports'))id('reports').prepend(report);
 const hint=document.createElement('div');hint.id='ae-context-tip';hint.className='ae-tip';
 if(garage)garage.insertAdjacentElement('afterbegin',hint);
-let search='',sort='default',kind='all',filterLock=false;
+let search='',sort='default',kind='all',filterLock=false,lastKinds='';
 function updateFilters(){
  const all=Array.isArray(s?.stock)?s.stock:[];
  const kinds=[...new Set(all.map(c=>c.kind).filter(Boolean))].sort();
  const select=id('ae-stock-kind');
+ const signature=kinds.join('|');if(signature===lastKinds)return;lastKinds=signature;
  if(select){const current=kind;select.innerHTML='<option value="all">Todas categorias</option>'+kinds.map(k=>'<option value="'+safe(k)+'">'+safe(k)+'</option>').join('');kind=kinds.includes(current)?current:'all';select.value=kind}
 }
 function filterStock(){
@@ -84,7 +85,8 @@ function updateTip(){
  hint.textContent=msg;
 }
 const oldRender=render;
-render=function(){oldRender();updateFilters();filterStock();updateReport();updateTip()};
+let lastReportSignature='';
+render=function(){oldRender();updateFilters();filterStock();const signature=[s.cash,s.sales,s.difficulty,s.stock.length,s.empire?.staff?.seller,s.empire?.staff?.mechanic,s.empire?.staff?.analyst,s.stock.reduce((n,c)=>n+(c.price||0)+(c.spent||0)+(c.bought||0),0)].join('|');if(signature!==lastReportSignature){lastReportSignature=signature;updateReport()}updateTip()};
 const oldPublish=publish;
 publish=function(){const car=s.stock.find(c=>c.id===modalCar);const input=id('asking');const amount=Number(input?.value);if(car&&Number.isFinite(amount)&&amount>0){const cost=math?.basis(car)??(car.bought+car.spent);if(amount<cost&&!confirm('Anunciar abaixo do custo investido? Prejuízo potencial: '+money(cost-amount)))return}return oldPublish()};
 const oldSubmit=submitBid;
