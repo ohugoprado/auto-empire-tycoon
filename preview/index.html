@@ -85,7 +85,7 @@ render();
       select.onchange=()=>render();
       controls.querySelector('#ae-sort').onchange=()=>render();
       const originalMarketRender=render;
-      render=function(){originalMarketRender();applyMarketView()};
+      (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(applyMarketView);
       applyMarketView();
     }
   }
@@ -93,16 +93,15 @@ render();
   if(reports){
     const p=document.createElement('div');p.className='panel';p.id='ae-extra-finances';
     reports.appendChild(p);
-    const oldRender=render;
-    render=function(){
-      oldRender();
+    const refreshExtraFinances=function(){
       const el=document.getElementById('ae-extra-finances');if(!el)return;
       const stock=s.stock||[],invested=stock.reduce((sum,c)=>sum+(Number(c.bought)||0)+(Number(c.spent)||0),0);
       const estimated=stock.reduce((sum,c)=>sum+(Number(c.value)||0)*(.7+(Number(c.condition)||0)/300),0);
       const occupancy=s.slots?Math.round(stock.length/s.slots*100):0;
       el.innerHTML='<b>📈 Indicadores adicionais</b><div class="divider"></div><div class="flex"><span>Capital investido no estoque</span><b>'+fmt(invested)+'</b></div><div class="flex"><span>Valor estimado do estoque</span><b>'+fmt(estimated)+'</b></div><div class="flex"><span>Ocupação da garagem</span><b>'+occupancy+'%</b></div><div class="flex"><span>Lucro acumulado por venda (média)</span><b>'+fmt(s.sales?s.profit/s.sales:0)+'</b></div>';
     };
-    render();
+    (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshExtraFinances);
+    refreshExtraFinances();
   }
 })();
 </script><script id="alpha07-market-intel">
@@ -1284,5 +1283,16 @@ if(title&&title.textContent.includes('Alpha 0.8.0'))title.textContent='🚗 Meu 
 const css=document.createElement('style');
 css.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
 document.head.appendChild(css);
+})();
+</script><script id="alpha126-consolidation">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.6';
+const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.6 · BUILD 1260';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.6 · MERCADO E FINANÇAS';
+const title=document.querySelector('#garage .section-head .title');if(title)title.textContent='🚗 Meu estoque';
+const style=document.createElement('style');
+style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
+document.head.appendChild(style);
 })();
 </script></body></html>
