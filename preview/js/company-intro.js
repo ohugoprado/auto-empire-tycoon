@@ -1,15 +1,16 @@
 /* Auto Empire Tycoon — campaign identity and onboarding. */
 (function(){
 'use strict';
-const VERSION='Alpha 2.1.0',BUILD='2100';
+const VERSION='Alpha 2.4.0',BUILD='2400';
 const profileKey='autoempire_company_profile_v1';
+const foundingCities=[["solara","Brasil · Solara"],["saopaulo","Brasil · São Paulo"],["newyork","Estados Unidos · Nova York"],["losangeles","Estados Unidos · Los Angeles"],["london","Reino Unido · Londres"],["paris","França · Paris"],["berlin","Alemanha · Berlim"],["tokyo","Japão · Tóquio"],["seoul","Coreia do Sul · Seul"],["dubai","Emirados Árabes Unidos · Dubai"],["singapore","Singapura · Singapura"],["sydney","Austrália · Sydney"],["toronto","Canadá · Toronto"],["mexicocity","México · Cidade do México"],["buenosaires","Argentina · Buenos Aires"],["rome","Itália · Roma"],["mumbai","Índia · Mumbai"]];
 const difficulties=Object.freeze({casual:{name:'Casual',cash:55000,rent:700,offers:1.25,description:'Mais capital, custos menores e compradores mais ativos.'},normal:{name:'Empreendedor',cash:35000,rent:1200,offers:1,description:'Equilíbrio entre oportunidade e risco.'},hard:{name:'Magnata',cash:22000,rent:1900,offers:.8,description:'Caixa apertado, despesas maiores e vendas mais difíceis.'}});
 const difficultyOf=v=>Object.hasOwn(difficulties,v)?v:'normal';
 const text=(v,max)=>String(v||'').trim().replace(/\s+/g,' ').slice(0,max);
 const valid=(v)=>v.length>=2&&/[\p{L}\p{N}]/u.test(v);
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const readProfile=()=>{
- try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty)}:null}catch(e){return null}
+ try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty),headquarters:foundingCities.some(c=>c[0]===v.headquarters)?v.headquarters:'solara'}:null}catch(e){return null}
 };
 let profile=readProfile();
 const style=document.createElement('style');
@@ -35,10 +36,10 @@ document.head.appendChild(style);
 style.textContent+=`#ae-company-screen select{display:block;width:100%;min-height:47px;padding:12px;border-radius:10px;border:1px solid #6b8a99;background:#091a25;color:#fff;font:inherit;font-size:16px}#ae-company-screen .ae-difficulty-help{font-size:11px;color:#b9ced7;min-height:32px;margin-top:7px}#ae-company-screen .ae-difficulty-note{font-size:11px;color:#f1d28f}`;
 const screen=document.createElement('section');
 screen.id='ae-company-screen';screen.setAttribute('role','dialog');screen.setAttribute('aria-modal','true');screen.setAttribute('aria-labelledby','ae-company-title');
-screen.innerHTML='<div class="ae-onboard-card"><div class="ae-eyebrow">AUTO EMPIRE · SUA HISTÓRIA COMEÇA AQUI</div><h1 id="ae-company-title">Construa seu império automotivo</h1><p>Escolha o nome da sua concessionária e apresente quem está no comando. Sua identidade aparecerá durante a campanha.</p><form id="ae-company-form"><label for="ae-company-name">Nome da empresa</label><input id="ae-company-name" name="company" maxlength="42" autocomplete="organization" placeholder="Ex.: Aurora Motors" required><label for="ae-owner-name">Nome do proprietário</label><input id="ae-owner-name" name="owner" maxlength="42" autocomplete="name" placeholder="Ex.: Alex Silva" required><label for="ae-difficulty">Dificuldade</label><select id="ae-difficulty" name="difficulty"><option value="casual">Casual — comece com vantagem</option><option value="normal" selected>Empreendedor — equilibrado</option><option value="hard">Magnata — desafio maior</option></select><div class="ae-difficulty-help" id="ae-difficulty-help"></div><div class="ae-error" id="ae-company-error" aria-live="polite"></div><div class="ae-onboard-actions"><button type="button" class="ghost" id="ae-company-cancel">Voltar</button><button type="submit" id="ae-company-submit">Começar minha história →</button></div></form><p id="ae-company-footnote">Sua campanha atual e seus veículos serão preservados.</p></div>';
+screen.innerHTML='<div class="ae-onboard-card"><div class="ae-eyebrow">AUTO EMPIRE · SUA HISTÓRIA COMEÇA AQUI</div><h1 id="ae-company-title">Construa seu império automotivo</h1><p>Escolha o nome da sua concessionária e apresente quem está no comando. Sua identidade aparecerá durante a campanha.</p><form id="ae-company-form"><label for="ae-company-name">Nome da empresa</label><input id="ae-company-name" name="company" maxlength="42" autocomplete="organization" placeholder="Ex.: Aurora Motors" required><label for="ae-owner-name">Nome do proprietário</label><input id="ae-owner-name" name="owner" maxlength="42" autocomplete="name" placeholder="Ex.: Alex Silva" required><label for="ae-difficulty">Dificuldade</label><select id="ae-difficulty" name="difficulty"><option value="casual">Casual — comece com vantagem</option><option value="normal" selected>Empreendedor — equilibrado</option><option value="hard">Magnata — desafio maior</option></select><div class="ae-difficulty-help" id="ae-difficulty-help"></div><label for="ae-founding-hq">País e cidade da sede inicial</label><select id="ae-founding-hq" name="headquarters"><option value="solara">Brasil · Solara</option><option value="saopaulo">Brasil · São Paulo</option><option value="newyork">Estados Unidos · Nova York</option><option value="losangeles">Estados Unidos · Los Angeles</option><option value="london">Reino Unido · Londres</option><option value="paris">França · Paris</option><option value="berlin">Alemanha · Berlim</option><option value="tokyo">Japão · Tóquio</option><option value="seoul">Coreia do Sul · Seul</option><option value="dubai">Emirados Árabes Unidos · Dubai</option><option value="singapore">Singapura · Singapura</option><option value="sydney">Austrália · Sydney</option><option value="toronto">Canadá · Toronto</option><option value="mexicocity">México · Cidade do México</option><option value="buenosaires">Argentina · Buenos Aires</option><option value="rome">Itália · Roma</option><option value="mumbai">Índia · Mumbai</option></select><p class="ae-difficulty-note">A primeira sede é gratuita. Novas subsidiárias exigem investimento.</p><div class="ae-error" id="ae-company-error" aria-live="polite"></div><div class="ae-onboard-actions"><button type="button" class="ghost" id="ae-company-cancel">Voltar</button><button type="submit" id="ae-company-submit">Começar minha história →</button></div></form><p id="ae-company-footnote">Sua campanha atual e seus veículos serão preservados.</p></div>';
 document.body.appendChild(screen);
 let creatingNew=false;
-const form=screen.querySelector('form'),company=screen.querySelector('#ae-company-name'),owner=screen.querySelector('#ae-owner-name'),cancel=screen.querySelector('#ae-company-cancel'),difficulty=screen.querySelector('#ae-difficulty');
+const form=screen.querySelector('form'),company=screen.querySelector('#ae-company-name'),owner=screen.querySelector('#ae-owner-name'),cancel=screen.querySelector('#ae-company-cancel'),difficulty=screen.querySelector('#ae-difficulty'),headquarters=screen.querySelector('#ae-founding-hq');
 const explain=()=>{screen.querySelector('#ae-difficulty-help').textContent=difficulties[difficultyOf(difficulty.value)].description};difficulty.addEventListener('change',explain);
 const main=document.querySelector('main.content')||document.querySelector('.content');
 const identity=document.createElement('div');identity.id='ae-company-identity';
@@ -62,7 +63,7 @@ const hide=()=>{screen.classList.remove('is-open');document.body.style.overflow=
 cancel.addEventListener('click',hide);
 form.addEventListener('submit',e=>{
  e.preventDefault();
- const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty)};
+ const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty),headquarters:creatingNew||!profile?headquarters.value:profile.headquarters};
  if(!valid(next.company)||!valid(next.owner)){screen.querySelector('#ae-company-error').textContent='Informe nomes com pelo menos dois caracteres válidos.';return}
  try{localStorage.setItem(profileKey,JSON.stringify(next))}catch(err){screen.querySelector('#ae-company-error').textContent='Não foi possível salvar. Verifique o armazenamento do navegador.';return}
  profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else if(s&&!s.difficulty){s.difficulty=next.difficulty;save()}renderIdentity();hide();
@@ -76,7 +77,7 @@ const previousTickDay=tickDay;
 tickDay=function(){const day=s.day;previousTickDay();if(s.day!==day&&s.day%30===0){const mode=difficulties[difficultyOf(s.difficulty)];s.cash+=1200-mode.rent;save()}};
 newGame=function(){
  if(!confirm('Iniciar uma nova campanha? O estoque e o dinheiro atuais serão substituídos.'))return;
- creatingNew=true;show(false);difficulty.disabled=false;
+ creatingNew=true;show(false);difficulty.disabled=false;headquarters.disabled=false;
  screen.querySelector('#ae-company-submit').textContent='Criar nova campanha →';
  screen.querySelector('#ae-company-footnote').textContent='A nova campanha substitui o progresso atual ao confirmar. Escolha a dificuldade.';
 };
@@ -84,5 +85,5 @@ cancel.addEventListener('click',()=>{creatingNew=false});
 function showTab(){if(typeof window.show==='function')window.show('garage');else if(typeof render==='function')render()}
 document.title='Auto Empire Tycoon — '+VERSION;
 const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 2.1.0 · ESCOLHA SEU DESAFIO';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 2.4.0 · IMPÉRIO GLOBAL';
 })();
