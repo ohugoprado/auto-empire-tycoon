@@ -35,11 +35,14 @@ const clean=()=>{
  });
 };
 clean();
+// Legacy modules may insert artwork after rendering; clean only those new nodes.
 const observer=new MutationObserver(records=>{
+ let needsCleanup=false;
  for(const rec of records){
-  if(rec.type==='childList'&&rec.addedNodes.length){for(const node of rec.addedNodes){if(node.nodeType===1&&(node.matches?.('img,picture,video,canvas')||node.querySelector?.('img,picture,video,canvas'))){clean();return}}}
-  if(rec.type==='attributes'&&rec.target?.matches?.('img,video')){const el=rec.target;if(el.hasAttribute('src')||el.hasAttribute('srcset')||el.hasAttribute('poster')){clean();return}}
+  if(rec.type==='childList')for(const node of rec.addedNodes){if(node.nodeType===1&&(node.matches?.('img,picture,video,canvas')||node.querySelector?.('img,picture,video,canvas'))){needsCleanup=true;break}}
+  if(needsCleanup)break;
  }
+ if(needsCleanup)clean();
 });
-observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['src','srcset','poster']});
+observer.observe(document.body,{childList:true,subtree:true});
 })();
