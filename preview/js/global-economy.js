@@ -13,6 +13,7 @@ const crisisTypes=[
  {id:'energy',name:'Crise energética',duration:14,demand:.72,cost:1.22,description:'Combustível e logística encarecem.'},
  {id:'supply',name:'Ruptura de suprimentos',duration:17,demand:.84,cost:1.3,description:'Fábricas enfrentam falta de peças.'}
 ];
+const currencyByCountry={'Brasil':'BRL','Estados Unidos':'USD','Reino Unido':'GBP','França':'EUR','Alemanha':'EUR','Japão':'JPY','Coreia do Sul':'KRW','Emirados Árabes Unidos':'AED','Singapura':'SGD','Austrália':'AUD','Canadá':'CAD','México':'MXN','Argentina':'ARS','Itália':'EUR','Índia':'INR'};
 const current=()=>s.empire?.economy;
 function init(){
  if(!s.empire)s.empire={};if(!s.empire.economy)s.empire.economy={};
@@ -43,6 +44,7 @@ function updateDay(){
  // Manufacturing uses real in-game days; never completes while the app is closed.
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
+  const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
   if(s.stock.length>=s.slots){job.due=s.day+1;continue}
   const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true};
   s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
@@ -62,7 +64,7 @@ const style=document.createElement('style');style.textContent=`
 .ae-econ-danger{color:#ffb5aa;font-weight:700;font-size:12px;margin:8px 0}
 .ae-econ-hint{font-size:11px;color:#c3d5dd;line-height:1.55;margin:9px 0}
 `;document.head.append(style);
-const panel=document.createElement('section');panel.id='ae-economy';panel.innerHTML='<h3>🌐 Economia, riscos e indústria</h3><div id="ae-econ-status" class="ae-econ-grid"></div><div id="ae-econ-crisis"></div><div id="ae-econ-factory"></div><div class="ae-econ-actions"><button data-econ="open">Abrir fabricante</button><button data-econ="produce">Produzir veículo</button><button data-econ="upgrade">Ampliar fábrica</button><button data-econ="transfer">Transferir veículo</button></div><p class="ae-econ-hint">Economia fictícia, não representa acontecimentos ou taxas reais. Crises e inflação evoluem somente nos dias simulados. A falência exige insolvência persistente.</p>';
+const panel=document.createElement('section');panel.id='ae-economy';panel.innerHTML='<h3>🌐 Economia, riscos e indústria</h3><div id="ae-econ-status" class="ae-econ-grid"></div><div id="ae-econ-crisis"></div><div id="ae-econ-factory"></div><div class="ae-econ-actions"><button data-econ="open">Abrir fabricante</button><button data-econ="produce">Produzir veículo</button><button data-econ="upgrade">Ampliar fábrica</button><button data-econ="transfer">Transferir veículo</button></div><p class="ae-econ-hint">Economia, impostos e câmbio de referência fictícios; CR é a unidade contábil, e a moeda local aparece como contexto. Não representa acontecimentos ou taxas reais. Crises e inflação evoluem somente nos dias simulados. A falência exige insolvência persistente.</p>';
 document.getElementById('garage')?.append(panel);
 function factoryCost(){return Math.round(110000*init().inflation)}
 function produceCost(){const f=init().factory;return Math.round((14500+f.level*1400)*init().inflation*crisisFor(s.empire.world?.active).cost)}
@@ -91,6 +93,7 @@ panel.addEventListener('click',ev=>{
   const model=prompt('Modelo a fabricar:',f.model||'Empire One');if(model===null)return;
   const cleaned=model.trim().replace(/[<>]/g,'').slice(0,28);if(cleaned.length<2)return toast('Modelo inválido');
   const kindOptions=['Hatch','Sedã','SUV','Compacto','Esportivo','Picape'];const kind=prompt('Categoria: '+kindOptions.join(', '),'Hatch');if(kind===null)return;const chosen=kindOptions.find(x=>x.toLowerCase()===kind.trim().toLowerCase());if(!chosen)return toast('Categoria inválida');
+  const productionCrisis=crisisFor(s.empire.world?.active);if(productionCrisis.id==='war'||productionCrisis.id==='supply')return toast('Produção suspensa: '+productionCrisis.name);
   if(!confirm('Produzir '+cleaned+' por '+money(cost)+' CR?'))return;
   if(!transact(cost,'Produção · '+cleaned))return;
   f.model=cleaned;f.queue.push({model:cleaned,kind:chosen,cost,due:s.day+Math.max(2,8-f.level),value:Math.round(cost*(1.2+f.level*.07)/100)*100});note('Ordem de produção: '+cleaned+'. Entrega prevista no dia '+f.queue[f.queue.length-1].due);
