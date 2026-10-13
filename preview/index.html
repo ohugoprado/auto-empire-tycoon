@@ -926,11 +926,11 @@ function vehicleSprite(ctx,car,x,y){
 const aeDealership=new Image();let aeDealershipReady=false;
 aeDealership.onload=()=>{aeDealershipReady=true;requestAnimationFrame(()=>drawScene())};
 aeDealership.onerror=()=>{aeDealershipReady=false};
-aeDealership.src='./assets/dealership-scene.svg';
+aeDealership.src='./assets/dealership-scene.svg?v=1370';
 function scene(){
  const c=canvas.getContext('2d');if(!c)return;
  c.imageSmoothingEnabled=false;
- if(aeDealershipReady)c.drawImage(aeDealership,0,0,384,250);
+ if(aeDealershipReady){c.save();c.imageSmoothingEnabled=true;c.drawImage(aeDealership,0,0,384,250);c.restore();}
  else{
   box(c,0,0,384,250,'#365a6c');
   poly(c,[[0,120],[190,40],[384,122],[190,225]],'#607e83');
@@ -1481,9 +1481,9 @@ document.head.appendChild(css);
 </script><script id="alpha135-vehicle-spotlight">
 (function(){
 'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.3.6';
-const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.6 · BUILD 1360';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.6 · FICHA VISUAL';
+document.title='Auto Empire Tycoon — Alpha 1.3.7';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.7 · BUILD 1370';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.7 · SHOWROOM REFINADO';
 const garage=document.getElementById('garage'),heading=document.getElementById('ae-scene-header');
 if(!garage||!heading||document.getElementById('ae-vehicle-spotlight'))return;
 const panel=document.createElement('section');
