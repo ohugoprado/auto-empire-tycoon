@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="130" viewBox="0 0 1080 130"><title>Auto Empire Tycoon — carrocerias redesenhadas Alpha 1.4.6</title><defs><linearGradient id="paintSheen" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#fff" stop-opacity=".35"/><stop offset=".43" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#092535" stop-opacity=".23"/></linearGradient><linearGradient id="windowTint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4faff" stop-opacity=".63"/><stop offset=".45" stop-color="#78c5df" stop-opacity=".18"/><stop offset="1" stop-color="#10394e" stop-opacity=".4"/></linearGradient></defs><g transform="translate(0 0)"><title>Hatch</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="130" viewBox="0 0 1080 130"><title>Auto Empire Tycoon — carrocerias redesenhadas Alpha 1.7.0</title><defs><linearGradient id="paintSheen" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#fff" stop-opacity=".35"/><stop offset=".43" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#092535" stop-opacity=".23"/></linearGradient><linearGradient id="windowTint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4faff" stop-opacity=".63"/><stop offset=".45" stop-color="#78c5df" stop-opacity=".18"/><stop offset="1" stop-color="#10394e" stop-opacity=".4"/></linearGradient><linearGradient id="clearcoat" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#fff" stop-opacity=".38"/><stop offset=".3" stop-color="#fff" stop-opacity=".04"/><stop offset=".8" stop-color="#062b3b" stop-opacity=".10"/><stop offset="1" stop-color="#071b2a" stop-opacity=".30"/></linearGradient><linearGradient id="tireRubber" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#33444e"/><stop offset=".5" stop-color="#0b1620"/><stop offset="1" stop-color="#01080d"/></linearGradient><radialGradient id="wheelMetal"><stop stop-color="#e9f5f4"/><stop offset=".35" stop-color="#a9c3c9"/><stop offset=".72" stop-color="#526e79"/><stop offset="1" stop-color="#1b3541"/></radialGradient><linearGradient id="lampLens"><stop stop-color="#fffef1"/><stop offset="1" stop-color="#ffd39b"/></linearGradient></defs><g transform="translate(0 0)"><title>Hatch</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M19 75L66 48L155 72L108 101Z" fill="#3b9cde" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
 <path d="M15 81L112 109L112 116L15 89Z" fill="#1e639d" opacity=".85"/>
@@ -15,6 +15,28 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M123 59L139 64' stroke='#d6efff' stroke-width='3'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="36" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="36" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="36" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M33 94l6 6M39 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="128" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="128" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="128" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M125 96l6 6M131 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g><g transform="translate(180 0)"><title>SUV</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M15 78L62 45L163 73L112 109Z" fill="#e7ebea" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
@@ -32,6 +54,28 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M57 21L100 17M40 26L105 23' stroke='#647784' stroke-width='3'/><path d='M21 85L35 93M137 99L154 88' stroke='#3b515d' stroke-width='5'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="36" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="36" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="36" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M33 94l6 6M39 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="128" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="128" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="128" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M125 96l6 6M131 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g><g transform="translate(360 0)"><title>Sedã</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M11 78L66 47L169 75L114 108Z" fill="#e75350" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
@@ -49,6 +93,28 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M16 77L32 68M137 70L161 75' stroke='#ffd4ca' stroke-width='3'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="36" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="36" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="36" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M33 94l6 6M39 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="128" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="128" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="128" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M125 96l6 6M131 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g><g transform="translate(540 0)"><title>Picape</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M15 81L65 50L166 77L116 110Z" fill="#edb84b" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
@@ -66,6 +132,28 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M111 57L164 74L119 99L83 84Z' fill='#283b47' stroke='#f3d17b' stroke-width='3'/><path d='M115 62L151 74L120 91M103 75L119 82' stroke='#9aaeb3' stroke-width='2'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="38" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="38" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="38" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M35 94l6 6M41 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="132" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="132" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="132" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M129 96l6 6M135 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g><g transform="translate(720 0)"><title>Compacto</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M26 79L69 54L147 77L103 102Z" fill="#65c985" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
@@ -83,6 +171,28 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M33 73L44 66M118 68L133 72' stroke='#e6ffdc' stroke-width='3'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="36" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="36" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="36" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M33 94l6 6M39 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="128" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="128" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="128" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M125 96l6 6M131 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g><g transform="translate(900 0)"><title>Esportivo</title>
 <ellipse cx="91" cy="108" rx="72" ry="13" fill="#092536" opacity=".24"/>
 <path d="M7 83L65 58L174 82L113 106Z" fill="#e65c9b" stroke="#1b3444" stroke-width="2.8" stroke-linejoin="round"/>
@@ -100,4 +210,26 @@
 <path d="M150 78L163 74" stroke="#ffb5a3" stroke-width="4" stroke-linecap="round"/>
 <path d="M60 57L67 55L72 58L64 62Z M124 61L133 60L139 65L130 68Z" fill="#274453" stroke="#c3e9ee" stroke-width="1.5"/>
 <path d='M132 52L169 60' stroke='#22303d' stroke-width='8'/><path d='M133 48L168 56' stroke='#ffb6d4' stroke-width='3'/><path d='M15 82L38 72' stroke='#fff0f7' stroke-width='3'/>
+
+<!-- Studio finish: layered undercarriage, wheel hardware, glass glints and paint reflections -->
+<path d="M22 88L109 113L153 84" fill="none" stroke="#071a26" stroke-width="2" opacity=".65"/>
+<path d="M27 79L108 101L148 77" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".24"/>
+<path d="M25 84L105 106" fill="none" stroke="#071b2a" stroke-width="1.2" opacity=".35"/>
+<path d="M52 56L70 43" stroke="#efffff" stroke-width="1.6" opacity=".42" stroke-linecap="round"/>
+<path d="M99 41L114 56" stroke="#efffff" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+<path d="M25 73L55 57L92 44" fill="none" stroke="#ffffff" stroke-width="1.1" opacity=".24"/>
+<path d="M105 100L150 75" stroke="#d6eff9" stroke-width="1.5" opacity=".22"/>
+<path d="M18 79L29 84" stroke="url(#lampLens)" stroke-width="3" stroke-linecap="round"/>
+<path d="M150 79L162 74" stroke="#ff8d76" stroke-width="2.8" stroke-linecap="round"/>
+<g opacity=".92">
+ <ellipse cx="38" cy="97" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="38" cy="97" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="38" cy="97" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M35 94l6 6M41 94l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+ <ellipse cx="137" cy="99" rx="8.4" ry="10.4" fill="url(#tireRubber)" stroke="#0c1a24" stroke-width="1.2"/>
+ <ellipse cx="137" cy="99" rx="4.8" ry="6.5" fill="url(#wheelMetal)" stroke="#152c3a" stroke-width="1"/>
+ <ellipse cx="137" cy="99" rx="1.4" ry="2.1" fill="#dbe9e9"/>
+ <path d="M134 96l6 6M140 96l-6 6" stroke="#d9e8e8" stroke-width=".7" opacity=".7"/>
+</g>
+<path d="M18 90L109 116L161 84" fill="none" stroke="#102635" stroke-width="1.3" opacity=".6"/>
 </g></svg>
