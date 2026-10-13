@@ -1094,4 +1094,111 @@ const oldRender=render;
 render=function(){oldRender();drawScene()};
 drawScene();
 })();
+</script><script id="alpha107-art-systems">
+(function(){
+'use strict';
+const VERSION='Alpha 1.0.7',BUILD='1070';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.0.7 · GARAGEM REFINADA';
+const style=document.createElement('style');
+style.textContent=`
+/* Stage 1: declutter mobile screen */
+#garage>#ae-visual-stats{order:4!important}
+#garage>#ae-test-bar{order:12!important}
+#garage>#ae-garage-detail{display:none!important}
+#garage>#ae-garage-detail.ae-open{display:block!important}
+#garage>#ae-slot-status{padding:9px 12px}
+#garage>#ae-slot-status .tiny{margin-top:3px}
+#garage>.scene-wrap{border:1px solid #698d9d!important;background:#132b38!important}
+#garage>#ae-garage-buttons button{min-height:43px}
+#garage>#ae-garage-buttons button:not(.ghost){background:#efc66e!important}
+#garage>#ae-scene-header{order:-1!important}
+#garage>#ae-scene-header strong{font-size:16px}
+#garage>#ae-test-bar:not(.ae-expanded){padding:8px 12px}
+#garage>#ae-test-bar:not(.ae-expanded) .actions{display:none}
+#garage>#ae-test-bar:not(.ae-expanded)>p{display:none}
+#garage>#ae-polish-selection{display:none!important}
+#garage>#ae-polish-notes{display:none!important}
+#garage>.scene-wrap .scene-label{display:none!important}
+@media(max-width:420px){#garage>#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr))}#garage>#ae-visual-stats b{font-size:clamp(10px,3.2vw,16px)}}
+`;document.head.appendChild(style);
+const canvas=document.getElementById('scene');
+if(!canvas)return;
+const spots=[[171,142],[224,121],[278,143],[139,181],[192,161],[246,181]];
+const poly=(c,p,f)=>{c.beginPath();c.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)c.lineTo(p[i][0],p[i][1]);c.closePath();c.fillStyle=f;c.fill()};
+const box=(c,x,y,w,h,f)=>{c.fillStyle=f;c.fillRect(x,y,w,h)};
+function vehicleSprite(ctx,car,x,y){
+ const color=/^#[0-9a-f]{6}$/i.test(car.color||'')?car.color:'#a5c7d0';
+ const kind=car.kind||'Hatch',large=kind==='SUV'||kind==='Picape',sport=kind==='Esportivo',compact=kind==='Compacto';
+ ctx.save();ctx.translate(x,y);
+ // ground shadow, tyres, lower body and reflective roof as independent pixel-art layers
+ poly(ctx,[[-26,5],[0,-9],[28,5],[2,19]],'#2a3f46');
+ box(ctx,-19,4,7,6,'#13232b');box(ctx,13,3,7,6,'#13232b');
+ poly(ctx,[[-24,-1],[0,-14],[24,-1],[0,12]],color);
+ poly(ctx,[[-24,-1],[0,12],[0,16],[-24,3]],'#526a78');
+ poly(ctx,[[0,12],[24,-1],[24,3],[0,16]],'#345262');
+ const roofH=large?13:sport?5:compact?7:9;
+ const roofW=compact?10:large?15:13;
+ poly(ctx,[[-roofW,-10],[0,-14-roofH],[roofW,-10],[0,-5-roofH]],'#e0e9e8');
+ poly(ctx,[[-roofW,-10],[0,-14-roofH],[0,-8],[-roofW,-3]],'#75a5b8');
+ poly(ctx,[[0,-14-roofH],[roofW,-10],[roofW,-3],[0,-8]],'#9fc9d5');
+ if(kind==='Picape'){poly(ctx,[[12,-7],[23,-1],[12,5],[1,-1]],'#284452');box(ctx,12,-4,8,2,'#64818c')}
+ if(kind==='Esportivo'){box(ctx,18,-4,8,2,'#ffdc82');box(ctx,-21,-5,6,2,'#ffd9aa')}
+ if(kind==='Sedã'){box(ctx,-18,-7,5,2,'#c8e2e5')}
+ box(ctx,19,-1,5,2,'#ffe7a3');box(ctx,-24,-1,4,2,'#f2a090');
+ ctx.restore();
+}
+function scene(){
+ const c=canvas.getContext('2d');if(!c)return;
+ c.imageSmoothingEnabled=false;
+ box(c,0,0,384,250,'#739fae');
+ box(c,0,0,384,67,'#5e8fa3');
+ // background skyline
+ for(let i=0;i<12;i++){const x=i*36-5,h=20+(i*17)%32;box(c,x,111-h,30,h,'#3b6d7b');box(c,x+7,117-h,5,5,'#82b1ba')}
+ // landscaped isometric parcel with rim and asphalt
+ poly(c,[[0,126],[191,32],[384,127],[190,236]],'#1c3946');
+ poly(c,[[0,120],[191,38],[384,121],[190,227]],'#658b92');
+ poly(c,[[7,117],[191,43],[377,122],[190,217]],'#98b0b0');
+ // paving details
+ for(let i=0;i<8;i++){c.strokeStyle=i%2?'#8ca9a9':'#acc2bd';c.lineWidth=1;c.beginPath();c.moveTo(20+i*15,117+i*3);c.lineTo(180+i*14,46+i*3);c.stroke()}
+ // dealership, roof, showroom glazing and fascia
+ poly(c,[[11,84],[111,37],[210,81],[106,131]],'#122d3c');
+ poly(c,[[11,85],[106,131],[106,172],[11,124]],'#294e60');
+ poly(c,[[106,131],[210,81],[210,123],[106,172]],'#3c6978');
+ poly(c,[[14,84],[111,40],[206,81],[106,128]],'#203f50');
+ for(let i=0;i<3;i++)poly(c,[[115+i*28,130-i*13],[136+i*28,120-i*13],[136+i*28,145-i*13],[115+i*28,155-i*13]],'#a4d3df');
+ poly(c,[[26,94],[99,129],[99,151],[26,116]],'#346b80');
+ for(let i=0;i<4;i++)poly(c,[[32+i*16,98+i*8],[43+i*16,104+i*8],[43+i*16,125+i*8],[32+i*16,119+i*8]],'#9ed0df');
+ box(c,42,100,58,3,'#e8c375');c.fillStyle='#ffdf98';c.font='bold 12px monospace';c.fillText('SOLARA',46,96);
+ // forecourt stripes, trees and lamp posts
+ for(let i=0;i<4;i++)poly(c,[[11+i*7,166+i*11],[57+i*7,146+i*11],[59+i*7,148+i*11],[13+i*7,169+i*11]],'#e0e5d9');
+ for(const [x,y] of [[344,105],[360,118],[325,118]]){box(c,x-2,y,4,13,'#596858');poly(c,[[x-9,y],[x,y-18],[x+9,y],[x,y+5]],'#36766c');poly(c,[[x-5,y-2],[x,y-15],[x+6,y-2],[x,y+2]],'#56a08a')}
+ box(c,311,113,2,21,'#cbd9d2');box(c,306,111,12,3,'#f9e2a0');
+ const active=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
+ const chosen=active?Number(active.dataset.aeSlot):0;
+ for(let i=0;i<Math.min(6,s.slots);i++){
+  const [x,y]=spots[i],sel=i===chosen;
+  poly(c,[[x-30,y],[x,y-14],[x+30,y],[x,y+14]],sel?'#e0bc67':'#597780');
+  c.strokeStyle=sel?'#fff0aa':'#cbdcd9';c.lineWidth=sel?2:1;c.beginPath();c.moveTo(x-29,y);c.lineTo(x,y-13);c.lineTo(x+29,y);c.lineTo(x,y+13);c.closePath();c.stroke();
+  if(s.stock[i])vehicleSprite(c,s.stock[i],x,y-5);
+  box(c,x-7,y+14,14,12,sel?'#ffda83':'#dbe9e7');
+  c.fillStyle='#243843';c.font='bold 10px monospace';c.fillText(String(i+1),x-3,y+23);
+ }
+ box(c,0,234,384,16,'#183440');c.fillStyle='#d4e8e9';c.font='bold 10px monospace';c.fillText('SOLARA · SHOWROOM',10,245);c.fillStyle='#f7d791';c.fillText(s.stock.length+'/'+s.slots+' VAGAS',305,245);
+}
+// Stage 2: only the final scene renderer is used for painting after initialization.
+drawScene=scene;
+const buttons=document.getElementById('ae-garage-buttons');
+if(buttons)buttons.addEventListener('click',()=>requestAnimationFrame(scene));
+canvas.addEventListener('click',()=>requestAnimationFrame(scene));
+// Stage 3: prevent repeated scene paints on every DOM refresh; paint once per animation frame.
+const oldRender=render;
+let scheduled=false;
+render=function(){
+ oldRender();
+ if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;scene()})}
+};
+scene();
+})();
 </script></body></html>
