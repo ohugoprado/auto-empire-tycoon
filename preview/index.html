@@ -1808,6 +1808,47 @@ Object.values(names).forEach(name=>{
 const style=document.createElement('style');
 style.textContent='.ae-car-thumb.studio-ready{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;filter:drop-shadow(0 5px 8px #0008)}.studio-hero{width:100%;aspect-ratio:1355/419;object-fit:cover;display:block;border-radius:14px;border:1px solid #76909c;box-shadow:0 12px 28px #0008;margin:10px 0}.studio-brand{max-width:300px;width:65%;height:auto;display:block;margin:0 auto 8px}.studio-art-caption{font-size:10px;color:#a7c1cc;margin:0 0 10px;text-align:center}';
 document.head.appendChild(style);
+const extra=document.createElement('style');
+extra.textContent=`
+#ae-studio-inspector{margin:12px 0;padding:12px;border-radius:16px;border:1px solid #6e8790;background:linear-gradient(145deg,#1f3949,#0c202c);box-shadow:0 12px 28px #0007}
+#ae-studio-inspector .studio-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:900;color:#f7d89c;font-size:13px}
+#ae-studio-inspector .studio-label{color:#b9d3dc;font-size:10px;letter-spacing:.9px}
+#ae-studio-inspector .studio-stage{position:relative;min-height:135px;aspect-ratio:16/9;display:grid;place-items:center;margin-top:9px;overflow:hidden;border-radius:12px;background:radial-gradient(ellipse at 50% 30%,#527080,#132c3a 75%);border:1px solid #527485}
+#ae-studio-inspector .studio-stage img{display:block;width:100%;height:100%;max-height:290px;object-fit:contain}
+#ae-studio-inspector .studio-stage .studio-fallback{color:#b4cad5;font-size:12px;padding:15px;text-align:center}
+#ae-studio-inspector .studio-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#bdd2d8;font-size:11px;margin-top:9px}
+#ae-studio-inspector .studio-foot strong{color:#f4d188}
+@media(min-width:650px){#ae-studio-inspector .studio-stage{aspect-ratio:21/9}}
+`;
+document.head.appendChild(extra);
+const garage=document.getElementById('garage');
+if(garage&&!document.getElementById('ae-studio-inspector')){
+ const inspector=document.createElement('section');inspector.id='ae-studio-inspector';inspector.setAttribute('aria-label','Inspeção artística do veículo');
+ inspector.innerHTML='<div class="studio-head"><span>✦ ESTÚDIO AUTOMOTIVO</span><span class="studio-label">VISUALIZAÇÃO AMPLIADA</span></div><div class="studio-stage"><div class="studio-fallback">Selecione um veículo da garagem</div></div><div class="studio-foot"><span id="studio-selected-name">Garagem</span><strong id="studio-selected-meta">Selecione um veículo</strong></div>';
+ const scene=document.querySelector('#garage .scene-wrap');if(scene)scene.insertAdjacentElement('afterend',inspector);else garage.appendChild(inspector);
+ const refreshStudio=()=>{
+  const selected=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
+  const slot=selected?Number(selected.dataset.aeSlot):0;
+  const car=s.stock[slot]||null;
+  const stage=inspector.querySelector('.studio-stage');
+  const label=inspector.querySelector('#studio-selected-name'),meta=inspector.querySelector('#studio-selected-meta');
+  if(!car){stage.innerHTML='<div class="studio-fallback">Esta vaga está livre. Compre um veículo para visualizá-lo aqui.</div>';label.textContent='Vaga '+(slot+1);meta.textContent='LIVRE';return}
+  const asset=names[car.kind]||names.Hatch;
+  label.textContent=car.name||car.kind;
+  meta.textContent=(car.year||'')+' · '+(car.condition||0)+'% conservação';
+  const existing=stage.querySelector('img');
+  if(existing&&existing.dataset.asset===asset)return;
+  const img=new Image();img.alt='Arte do veículo '+(car.name||car.kind);img.dataset.asset=asset;
+  img.onload=()=>{if(img.isConnected)stage.classList.add('loaded')};
+  img.onerror=()=>{if(img.isConnected)stage.innerHTML='<div class="studio-fallback">Prévia artística indisponível. A representação vetorial continua no estacionamento.</div>'};
+  img.src=artRoot+asset+'.webp?v=1811';
+  stage.replaceChildren(img);
+ };
+ (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshStudio);
+ document.getElementById('ae-garage-buttons')?.addEventListener('click',()=>requestAnimationFrame(refreshStudio));
+ refreshStudio();
+}
+
 const oldCarSvg=carSvg;
 carSvg=function(car){
  const name=names[car.kind]||names.Hatch;
