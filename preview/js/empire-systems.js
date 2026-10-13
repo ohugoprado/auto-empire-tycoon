@@ -45,8 +45,10 @@ const previousSeed=seed;
 seed=function(){previousSeed();ensure();save()};
 const originalTick=tickDay;
 tickDay=function(){
- ensure();const before=s.day;originalTick();if(s.day===before)return;
+ ensure();const before=s.day;const counts=new Map(s.stock.map(c=>[c.id,(c.offers||[]).length]));originalTick();if(s.day===before)return;
  const e=s.empire;
+ // Difficulty, staff and market trends influence newly generated buyer offers.
+ for(const car of s.stock){const offers=car.offers||[],start=counts.get(car.id)||0;for(let j=start;j<offers.length;j++){const offer=offers[j];if(!offer||!Number.isFinite(Number(offer.amount)))continue;const trend=car.kind===e.trend.kind?e.trend.impact:0;const boost=1+trend+(e.staff.seller||0)*.018+(getMode().demand-1)*.13;offer.amount=Math.max(100,Math.round(offer.amount*boost/100)*100)}}
  // Economic cycles are deterministic within a campaign day; changes are announced in the event log.
  if(s.day%7===0){const ix=Math.floor(s.day/7)%scenarios.length;e.trend=scenarios[ix];e.marketIndex=clamp(e.marketIndex+((ix%3)-1)*.035,.82,1.18);note('Mercado: '+e.trend.title+'. '+e.trend.description)}
  if(s.day%15===0){e.competitors=1+(Math.floor(s.day/15)%4);note('Concorrência regional: '+e.competitors+' empresas disputando anúncios.')}
@@ -63,12 +65,12 @@ function checkMilestones(){
 }
 const originalRepair=repair;
 repair=function(id){
- ensure();const c=s.stock.find(v=>v.id===id);
- if(!c)return;
+ ensure();const c=s.stock.find(v=>v.id===id);if(!c)return;
  const rate=Math.min(.3,(s.empire.staff.mechanic||0)*.06);
  if(!rate)return originalRepair(id);
- const original=c.repair;c.repair=Math.max(0,Math.round(original*(1-rate)));
- try{return originalRepair(id)}finally{c.repair=Math.round(original*.4/Math.max(.01,1-rate))}
+ const original=c.repair,oldCash=s.cash;
+ c.repair=Math.max(0,Math.round(original*(1-rate)));
+ try{return originalRepair(id)}finally{if(s.cash===oldCash)c.repair=original;else c.repair=Math.round(original*.4)}
 };
 const originalRefresh=refreshPaid;
 refreshPaid=function(){
@@ -76,7 +78,12 @@ refreshPaid=function(){
  if(!discount)return originalRefresh();
  if(s.cash<100-discount)return toast('Saldo insuficiente');
  s.cash+=discount;
- try{return originalRefresh()}finally{s.cash-=discount;entry('Desconto de pesquisa',-discount);save();render()}
+ const before=s.market;
+ try{return originalRefresh()}finally{
+  if(s.market===before)s.cash-=discount;
+  else{entry('Desconto de pesquisa',discount);note('Avaliador economizou '+cash(discount)+' na pesquisa')}
+  save();render();
+ }
 };
 const originalOffers=offersDialog;
 offersDialog=function(id){
