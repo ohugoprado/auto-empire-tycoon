@@ -987,4 +987,111 @@ const notes=document.getElementById('ae-polish-notes');if(notes)notes.remove();
 const debug=document.getElementById('ae-debug');if(debug){const summary=debug.querySelector('summary');if(summary)summary.textContent='🛠 Diagnóstico · '+VERSION}
 render();
 })();
+</script><script id="alpha106-art-direction">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.6';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.6 · BUILD 1060';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.0.6 · NOVA DIREÇÃO DE ARTE';
+const css=document.createElement('style');css.textContent=`
+#garage{gap:9px}
+#garage>.scene-wrap{order:0!important;border:0!important;box-shadow:0 14px 32px #0007;border-radius:14px;overflow:hidden;background:#152e39}
+#garage>#ae-garage-buttons{order:1!important}
+#garage>#ae-slot-status{order:2!important}
+#garage>#ae-garage-detail{order:3!important}
+#garage>#ae-visual-stats{order:4!important}
+#garage>#ae-test-bar{order:12!important}
+#garage>#ae-management{order:9!important}
+#garage>#ae-staff{order:10!important}
+#garage>.section-head{order:5!important}
+#garage>#stock{order:6!important}
+#garage>.tiny{display:none!important}
+#garage>#ae-slot-status{padding:9px 12px;border-radius:10px}
+#garage>#ae-garage-detail{display:none}
+#garage>#ae-garage-detail.ae-open{display:block}
+#garage>#ae-garage-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}
+#garage>#ae-garage-buttons button{min-height:43px}
+#ae-scene-header{order:-1!important;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 2px 0}
+#ae-scene-header strong{font-size:17px;color:#f7d38b}
+#ae-scene-header small{color:#a9c3ce}
+#ae-details-toggle{background:#294552;border:1px solid #547687;color:#f7d38b;font-size:12px;min-height:36px;padding:6px 10px}
+#garage>.scene-wrap canvas{image-rendering:pixelated}
+`;document.head.appendChild(css);
+const garage=document.getElementById('garage'),canvas=document.getElementById('scene');
+if(!garage||!canvas)return;
+const heading=document.createElement('div');heading.id='ae-scene-header';heading.innerHTML='<div><strong>🏢 Concessionária Solara</strong><div><small>Seu primeiro showroom</small></div></div><button id="ae-details-toggle" type="button">Detalhes ▾</button>';
+garage.prepend(heading);
+heading.querySelector('button').addEventListener('click',()=>{
+ const panel=document.getElementById('ae-garage-detail');if(!panel)return;
+ const opened=panel.classList.toggle('ae-open');heading.querySelector('button').textContent=opened?'Ocultar ▴':'Detalhes ▾';
+});
+const polygon=(ctx,p,fill)=>{ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill()};
+const rect=(ctx,x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h)};
+const spots=[[171,142],[224,121],[278,143],[139,181],[192,161],[246,181]];
+const car=(ctx,c,x,y)=>{
+ const paint=c.color||'#b4a1a0',kind=c.kind||'Hatch',tall=kind==='SUV'||kind==='Picape',sport=kind==='Esportivo';
+ ctx.save();ctx.translate(x,y);
+ polygon(ctx,[[-27,4],[0,-10],[29,4],[2,19]],'#183039');
+ polygon(ctx,[[-24,1],[0,-12],[25,1],[1,14]],'#1e2f36');
+ polygon(ctx,[[-23,-3],[0,-16],[24,-3],[1,10]],paint);
+ polygon(ctx,[[-23,-3],[1,10],[1,15],[-23,2]],'#5b7784');
+ polygon(ctx,[[1,10],[24,-3],[24,3],[1,15]],'#355161');
+ const height=tall?13:sport?4:8;
+ polygon(ctx,[[-12,-11],[0,-17-height],[13,-11],[1,-4-height]],'#d7ebed');
+ polygon(ctx,[[-12,-11],[0,-17-height],[0,-9],[-12,-4]],'#79a7b8');
+ polygon(ctx,[[0,-17-height],[13,-11],[13,-4],[0,-9]],'#9cc9d5');
+ if(kind==='Picape')polygon(ctx,[[13,-9],[23,-3],[13,2],[3,-4]],'#233a43');
+ rect(ctx,-19,3,7,5,'#111d23');rect(ctx,13,3,7,5,'#111d23');
+ rect(ctx,19,-1,5,2,'#ffe9a6');rect(ctx,-24,-1,4,2,'#ff9886');
+ ctx.restore();
+};
+drawScene=function(){
+ const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+ rect(ctx,0,0,384,250,'#78a6b6');
+ rect(ctx,0,0,384,58,'#6e9dad');
+ for(let i=0;i<11;i++){const x=i*39-11;rect(ctx,x,57+(i%3)*7,28,63,'#3c6c75');rect(ctx,x+5,65+(i%3)*7,4,5,'#91bbc3')}
+ polygon(ctx,[[0,130],[192,34],[384,128],[190,231]],'#244b56');
+ polygon(ctx,[[0,124],[192,40],[384,126],[190,223]],'#668e92');
+ polygon(ctx,[[9,123],[192,44],[376,126],[190,214]],'#9cb7b6');
+ // Forecourt tiles and diagonal parking lanes
+ for(let i=0;i<9;i++){
+  ctx.strokeStyle=i%2?'#a9c3c0':'#86a6a8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(15+i*16,120+i*2);ctx.lineTo(190+i*14,46+i*2);ctx.stroke();
+ }
+ polygon(ctx,[[8,83],[110,36],[207,80],[106,129]],'#122e3b');
+ polygon(ctx,[[9,84],[106,129],[106,174],[9,125]],'#284e60');
+ polygon(ctx,[[106,129],[207,80],[207,123],[106,174]],'#3b6877');
+ polygon(ctx,[[11,83],[109,39],[202,81],[106,126]],'#203e4c');
+ polygon(ctx,[[21,88],[104,128],[104,163],[21,124]],'#325c6d');
+ for(let i=0;i<3;i++)polygon(ctx,[[113+i*27,128-i*12],[134+i*27,118-i*12],[134+i*27,145-i*12],[113+i*27,155-i*12]],'#a7d6e1');
+ rect(ctx,46,103,53,4,'#f0c875');
+ ctx.fillStyle='#ffdc91';ctx.font='bold 12px monospace';ctx.fillText('SOLARA',48,100);
+ // Showroom banners, trees and road markings
+ polygon(ctx,[[11,170],[57,150],[59,153],[13,174]],'#e7e4c7');
+ polygon(ctx,[[17,183],[63,163],[65,166],[19,187]],'#e7e4c7');
+ polygon(ctx,[[23,196],[69,176],[71,179],[25,200]],'#e7e4c7');
+ for(const [x,y] of [[349,92],[365,108],[330,103]]){
+  rect(ctx,x-2,y,5,16,'#4d5743');
+  polygon(ctx,[[x-10,y+1],[x,y-20],[x+11,y+1],[x,y+8]],'#2e6862');
+  polygon(ctx,[[x-7,y-3],[x,y-18],[x+8,y-3],[x,y+4]],'#4d9481');
+ }
+ const active=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
+ const selected=active?Number(active.dataset.aeSlot):0;
+ for(let i=0;i<Math.min(s.slots,6);i++){
+  const [x,y]=spots[i],chosen=i===selected;
+  polygon(ctx,[[x-30,y],[x,y-14],[x+30,y],[x,y+14]],chosen?'#e6c677':'#5e7f84');
+  ctx.strokeStyle=chosen?'#fff1ae':'#d0e0dc';ctx.lineWidth=chosen?2:1;
+  ctx.beginPath();ctx.moveTo(x-29,y);ctx.lineTo(x,y-13);ctx.lineTo(x+29,y);ctx.lineTo(x,y+13);ctx.closePath();ctx.stroke();
+  if(s.stock[i])car(ctx,s.stock[i],x,y-6);
+  rect(ctx,x-7,y+14,14,12,chosen?'#ffce66':'#e7f1ed');
+  ctx.fillStyle='#20323b';ctx.font='bold 10px monospace';ctx.fillText(String(i+1),x-3,y+23);
+ }
+ rect(ctx,0,233,384,17,'#152d38');
+ ctx.fillStyle='#d5e7e9';ctx.font='bold 10px monospace';ctx.fillText('SOLARA AUTO GROUP',11,245);
+ ctx.fillStyle='#f4d28b';ctx.fillText(s.stock.length+'/'+s.slots+' VAGAS',300,245);
+};
+const oldRender=render;
+render=function(){oldRender();drawScene()};
+drawScene();
+})();
 </script></body></html>
