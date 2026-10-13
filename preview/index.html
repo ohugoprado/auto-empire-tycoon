@@ -832,4 +832,95 @@ if(detail)detail.style.display='none';
 const status=document.getElementById('ae-slot-status');
 if(status)status.style.border='1px solid #647e88';
 })();
+</script><script id="alpha104-stability">
+(function(){
+'use strict';
+const VERSION='Alpha 1.0.4',BUILD='1040';
+document.title='Auto Empire Tycoon — '+VERSION;
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='TYCOON · '+VERSION+' · ESTABILIDADE';
+const style=document.createElement('style');
+style.textContent=`
+/* Three-stage stabilization: predictable layout, unified scene selection, mobile QA */
+.content{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+.bottom{padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:30}
+#garage>.scene-wrap{margin-top:8px}
+#ae-slot-status{background:#1b303d;border:1px solid #587481!important;border-radius:10px;padding:10px 12px}
+#ae-garage-detail{background:#1b303d;border-color:#587481}
+#ae-test-bar{border:1px solid #415e6e}
+#ae-garage-buttons button{min-height:47px}
+#ae-garage-buttons button:focus-visible{outline:2px solid #ffe29b;outline-offset:2px}
+#ae-debug{margin:12px 0;padding:12px;border:1px solid #567080;border-radius:10px;background:#182b38}
+#ae-debug summary{cursor:pointer;font-weight:800;color:#f5d28b}
+#ae-debug pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.5 monospace;color:#c3d9e3}
+#ae-debug button{width:100%;margin-top:9px}
+#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:390px){#ae-visual-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#ae-visual-stats>div:last-child{grid-column:1/-1}}
+`;document.head.appendChild(style);
+// Stage 1: single authoritative selected-slot state for controls and scene.
+const canvas=document.getElementById('scene'),buttons=document.getElementById('ae-garage-buttons');
+let selectedSlot=0;
+function syncSlot(){
+ if(!buttons)return;
+ const max=Math.max(1,Math.min(6,s.slots));
+ selectedSlot=Math.max(0,Math.min(max-1,selectedSlot));
+ const all=[...buttons.querySelectorAll('button[data-ae-slot]')];
+ for(const b of all){
+  const active=Number(b.dataset.aeSlot)===selectedSlot;
+  b.classList.toggle('ghost',!active);
+  b.setAttribute('aria-pressed',String(active));
+  b.setAttribute('aria-label','Selecionar vaga '+(Number(b.dataset.aeSlot)+1)+(s.stock[Number(b.dataset.aeSlot)]?' ocupada':' livre'));
+ }
+ const selection=document.getElementById('ae-polish-selection');if(selection)selection.style.display='none';
+ const summary=document.getElementById('ae-slot-status');
+ if(summary){
+  const c=s.stock[selectedSlot];
+  summary.innerHTML='<b>Vaga '+(selectedSlot+1)+'</b><div class="tiny">'+(c?esc(c.name)+' · '+esc(c.kind)+' · condição '+c.condition+'%':'Livre · pronta para receber um veículo')+'</div>';
+ }
+ const detail=document.getElementById('ae-garage-detail');
+ if(detail){
+  const c=s.stock[selectedSlot];
+  detail.innerHTML=c?'<b>🚗 '+esc(c.name)+'</b><div class="kv"><span>Categoria</span><b>'+esc(c.kind)+'</b></div><div class="kv"><span>Condição</span><b>'+c.condition+'%</b></div><div class="kv"><span>Investimento</span><b>'+fmt((Number(c.bought)||0)+(Number(c.spent)||0))+'</b></div>':'<b>Vaga '+(selectedSlot+1)+' livre</b><p class="tiny">Compre um veículo no Mercado para ocupar esta vaga.</p>';
+ }
+}
+if(buttons){
+ buttons.addEventListener('click',e=>{const b=e.target.closest('button[data-ae-slot]');if(!b)return;selectedSlot=Number(b.dataset.aeSlot);queueMicrotask(()=>{syncSlot();if(canvas)drawScene()})});
+}
+if(canvas&&buttons){
+ const spots=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
+ canvas.addEventListener('click',e=>{
+  e.stopImmediatePropagation();
+  const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
+  const x=(e.clientX-r.left)*384/r.width,y=(e.clientY-r.top)*250/r.height;
+  let best=-1,distance=1e9;
+  spots.slice(0,Math.min(s.slots,6)).forEach(([px,py],i)=>{const d=Math.hypot((x-px)*.75,y-py);if(d<distance){best=i;distance=d}});
+  if(best>=0&&distance<26){selectedSlot=best;syncSlot();drawScene()}
+ },true);
+ const previousDraw=drawScene;
+ drawScene=function(){
+  syncSlot();
+  previousDraw();
+ };
+}
+// Stage 2: clean up duplicate garage headings and old testing labels without removing mechanics.
+const test=document.getElementById('ae-test-bar');
+if(test){const heading=test.querySelector('b');if(heading)heading.textContent='Ferramentas de teste';}
+const notes=document.getElementById('ae-polish-notes');if(notes)notes.remove();
+// Stage 3: a compact diagnostics panel to reproduce visual issues on iPhone.
+const events=document.getElementById('events');
+if(events){
+ const diagnostic=document.createElement('details');diagnostic.id='ae-debug';
+ diagnostic.innerHTML='<summary>🛠 Diagnóstico da versão</summary><pre id="ae-debug-data"></pre><button type="button" id="ae-debug-copy">Copiar diagnóstico</button>';
+ events.appendChild(diagnostic);
+ function data(){
+  const rect=canvas?canvas.getBoundingClientRect():{width:0,height:0};
+  return ['Versão: '+VERSION+' / '+BUILD,'Tela: '+Math.round(document.documentElement.clientWidth)+' × '+Math.round(document.documentElement.clientHeight),'Cena: '+Math.round(rect.width)+' × '+Math.round(rect.height),'Vaga: '+(selectedSlot+1),'Garagem: '+s.stock.length+'/'+s.slots,'Dia: '+s.day,'Veículos anunciados: '+s.stock.filter(c=>c.listed).length].join('\n');
+ }
+ diagnostic.addEventListener('toggle',()=>{const pre=document.getElementById('ae-debug-data');if(pre)pre.textContent=data()});
+ diagnostic.querySelector('#ae-debug-copy').addEventListener('click',()=>{const report=data();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(report).then(()=>toast('Diagnóstico copiado')).catch(()=>toast('Selecione o texto do diagnóstico para copiar'))}else toast('Selecione o texto do diagnóstico para copiar')});
+}
+const oldRender=render;
+render=function(){oldRender();syncSlot()};
+syncSlot();
+})();
 </script></body></html>
