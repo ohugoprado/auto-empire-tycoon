@@ -228,4 +228,30 @@ if(garageTitle)garageTitle.textContent='🚗 Meu estoque · Alpha 0.8.0';
 const notes=document.createElement('div');notes.className='panel';notes.innerHTML='<b>✨ Novidades da Alpha 0.8.0</b><p class="tiny">Vagas selecionáveis · silhuetas por tipo de carro · termômetro de demanda por categoria · boletim semanal · identificação da versão.</p>';
 if(garage)garage.appendChild(notes);
 })();
+</script><script id="alpha081-test-controls">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 0.8.1 TESTE';
+const badge=document.getElementById('ae-version');
+if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 0.8.1 · BUILD 0801';
+const garage=document.getElementById('garage');
+if(!garage)return;
+const bar=document.createElement('div');bar.className='panel';bar.id='ae-test-bar';
+bar.innerHTML='<b>🧪 Ferramentas de teste · 0.8.1</b><p class="tiny">Créditos e vagas extras somente neste salvamento de testes. Não altera a versão pública.</p><div class="actions"><button id="ae-fund-test" type="button">＋ 1.000.000 CR</button><button id="ae-slots-test" type="button" class="ghost">Liberar 6 vagas</button></div><p id="ae-test-feedback" class="tiny"></p>';
+garage.insertBefore(bar,garage.firstChild);
+const feedback=document.getElementById('ae-test-feedback');
+document.getElementById('ae-fund-test').addEventListener('click',()=>{
+ s.cash+=1000000;entry('Crédito de testes Alpha 0.8.1',1000000);note('Crédito de testes recebido: 1.000.000 CR');save();render();
+ feedback.textContent='Crédito adicionado! Caixa atualizado.';
+});
+document.getElementById('ae-slots-test').addEventListener('click',()=>{
+ s.slots=Math.max(6,s.slots);note('Garagem de testes ampliada para 6 vagas');save();render();
+ feedback.textContent='Seis vagas liberadas. Toque nos botões Vaga 1–6 abaixo do cenário.';
+});
+const detail=document.getElementById('ae-garage-detail');
+if(detail){
+ const hint=document.createElement('p');hint.className='tiny';hint.textContent='Dica: no início há apenas uma vaga. Libere 6 vagas acima e use os botões Vaga 1–6 para alternar.';
+ detail.parentElement.insertBefore(hint,detail);
+}
+})();
 </script></body></html>
