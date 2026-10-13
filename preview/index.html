@@ -722,4 +722,114 @@ if(garage){
  garage.appendChild(notes);
 }
 })();
+</script><script id="alpha103-mobile-overhaul">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.3';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.3 · BUILD 1030';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='TYCOON · ALPHA 1.0.3 · POLIMENTO';
+const css=document.createElement('style');
+css.textContent=`
+/* Stage 1: mobile layout, usable fixed navigation and visual hierarchy */
+:root{--ae-pad:14px}
+body{background:#101c27}
+.content{padding-bottom:calc(132px + env(safe-area-inset-bottom))!important}
+.bottom{z-index:30;background:#101923;border-top:1px solid #547080;box-shadow:0 -12px 35px #07131cdd}
+.navinner button{min-height:58px}
+.scene-wrap{margin-top:8px;border:1px solid #6b8a98;border-radius:14px}
+.scene-label{display:none!important}
+#ae-test-bar{margin:0 0 14px;padding:11px 13px}
+#ae-test-bar .tiny{display:none}
+#ae-test-bar .actions{display:none}
+#ae-test-bar.ae-expanded .actions{display:flex}
+#ae-test-bar.ae-expanded .tiny{display:block}
+#ae-test-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent!important;color:#f2d58e!important;border:0!important;padding:3px 0;min-height:32px;text-align:left}
+#ae-test-bar .actions button{flex:1 1 140px}
+#ae-polish-notes{display:none}
+#ae-garage-detail{margin-bottom:15px}
+#ae-slot-status{margin-bottom:14px}
+#ae-visual-stats{margin:9px 0 13px}
+#ae-visual-stats>div{min-width:0}
+@media(max-width:430px){
+ .content{padding-left:12px!important;padding-right:12px!important}
+ .scene-wrap{border-radius:11px}
+ .scene-wrap canvas{border-radius:10px}
+ .bottom{padding-top:7px}
+ .navinner{gap:3px}
+ .navinner button{font-size:10px}
+}
+`;document.head.appendChild(css);
+const test=document.getElementById('ae-test-bar');
+if(test){
+ const heading=test.querySelector('b');
+ if(heading)heading.textContent='🧪 Ferramentas de teste';
+ const toggle=document.createElement('button');toggle.type='button';toggle.id='ae-test-toggle';toggle.setAttribute('aria-expanded','false');toggle.textContent='🧪 Ferramentas de teste ▾';
+ test.prepend(toggle);if(heading)heading.style.display='none';
+ toggle.addEventListener('click',()=>{const open=test.classList.toggle('ae-expanded');toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'🧪 Ocultar ferramentas ▴':'🧪 Ferramentas de teste ▾'});
+}
+// Stage 2: replace visually inconsistent scene with a cohesive isometric layout.
+const canvas=document.getElementById('scene');
+if(canvas){
+ const spots=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
+ const polygon=(ctx,pts,fill)=>{ctx.beginPath();ctx.moveTo(...pts[0]);pts.slice(1).forEach(p=>ctx.lineTo(...p));ctx.closePath();ctx.fillStyle=fill;ctx.fill()};
+ const shade=(hex,amount)=>{let m=/^#([0-9a-f]{6})$/i.exec(hex||'');if(!m)return '#7195a6';const n=parseInt(m[1],16),c=i=>Math.min(255,Math.max(0,((n>>i)&255)+amount));return '#'+[c(16),c(8),c(0)].map(v=>v.toString(16).padStart(2,'0')).join('')};
+ const car=(ctx,c,x,y)=>{
+  const color=c.color||'#6197b8',kind=c.kind||'Hatch',high=kind==='SUV'||kind==='Picape',sport=kind==='Esportivo';
+  ctx.save();ctx.translate(x,y);
+  polygon(ctx,[[-25,1],[0,-12],[26,1],[0,14]],'#2e454e');
+  polygon(ctx,[[-23,-2],[0,-15],[24,-2],[1,11]],shade(color,-38));
+  polygon(ctx,[[-23,-2],[0,-15],[0,-7],[-23,6]],shade(color,-20));
+  polygon(ctx,[[0,-15],[24,-2],[24,5],[0,-7]],color);
+  const h=high?12:sport?5:8;
+  polygon(ctx,[[-12,-11],[0,-17-h],[13,-11],[1,-5-h]],shade(color,22));
+  polygon(ctx,[[-11,-11],[0,-17-h],[0,-10],[ -11,-4]],'#84b9cb');
+  polygon(ctx,[[0,-17-h],[13,-11],[13,-4],[0,-10]],'#acd5df');
+  if(kind==='Picape')polygon(ctx,[[12,-7],[24,-2],[13,4],[2,-2]],'#344d58');
+  if(kind==='Esportivo'){ctx.fillStyle='#f8d781';ctx.fillRect(17,-4,7,2)}
+  ctx.fillStyle='#16232b';ctx.fillRect(-20,3,7,5);ctx.fillRect(11,1,7,5);
+  ctx.restore();
+ };
+ drawScene=function(){
+  const ctx=canvas.getContext('2d'),W=384,H=250;ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle='#375f72';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#234b58';for(let i=0;i<10;i++)ctx.fillRect(i*44-9,59+(i%3)*11,30,70);
+  polygon(ctx,[[0,125],[193,34],[384,122],[190,217]],'#203d49');
+  polygon(ctx,[[7,122],[191,42],[377,124],[190,208]],'#849ea3');
+  for(let i=0;i<7;i++){ctx.strokeStyle='#94adb1';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(7,120+i*10);ctx.lineTo(191,42+i*10);ctx.stroke()}
+  polygon(ctx,[[17,76],[111,34],[201,75],[104,118]],'#1c3543');
+  polygon(ctx,[[17,76],[104,118],[104,160],[17,117]],'#244b5c');
+  polygon(ctx,[[104,118],[201,75],[201,116],[104,160]],'#345d6c');
+  for(let i=0;i<3;i++)polygon(ctx,[[113+i*27,113-i*12],[133+i*27,104-i*12],[133+i*27,123-i*12],[113+i*27,132-i*12]],'#9ec8d6');
+  ctx.fillStyle='#f8d68b';ctx.font='bold 12px monospace';ctx.fillText('SOLARA',51,88);
+  const selected=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
+  const active=selected?Number(selected.dataset.aeSlot):0;
+  for(let i=0;i<Math.min(s.slots,6);i++){
+   const [x,y]=spots[i],activeSpot=i===active;
+   polygon(ctx,[[x-29,y],[x,y-13],[x+29,y],[x,y+13]],activeSpot?'#d8b95d':'#4c6b75');
+   ctx.strokeStyle=activeSpot?'#ffe68d':'#bfd3d7';ctx.lineWidth=activeSpot?2:1;
+   ctx.beginPath();ctx.moveTo(x-27,y);ctx.lineTo(x,y-12);ctx.lineTo(x+27,y);ctx.lineTo(x,y+12);ctx.closePath();ctx.stroke();
+   if(s.stock[i])car(ctx,s.stock[i],x,y-4);
+   ctx.fillStyle=activeSpot?'#ffcf69':'#e2eef0';ctx.fillRect(x-6,y+14,12,11);
+   ctx.fillStyle='#1c3038';ctx.font='bold 9px monospace';ctx.fillText(String(i+1),x-3,y+22);
+  }
+  ctx.fillStyle='#142a36';ctx.fillRect(0,230,384,20);
+  ctx.fillStyle='#d5e8eb';ctx.font='bold 10px monospace';ctx.fillText('SOLARA  •  '+s.stock.length+'/'+s.slots+' VAGAS OCUPADAS',11,243);
+ };
+ // Previous hit-testing handlers are intercepted, preserving one canonical touch target.
+ canvas.addEventListener('click',e=>{
+  e.stopImmediatePropagation();
+  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*384/r.width,y=(e.clientY-r.top)*250/r.height;
+  let best=-1,d=1e9;spots.slice(0,Math.min(s.slots,6)).forEach(([px,py],i)=>{const v=Math.hypot((x-px)*.75,y-py);if(v<d){d=v;best=i}});
+  if(best>=0&&d<24){const b=document.querySelector('#ae-garage-buttons [data-ae-slot="'+best+'"]');if(b)b.click()}
+ },true);
+ const buttons=document.getElementById('ae-garage-buttons');
+ if(buttons)buttons.addEventListener('click',()=>requestAnimationFrame(drawScene));
+ drawScene();
+}
+// Stage 3: hide redundant visual labels; retain all operational panels and saves.
+const detail=document.getElementById('ae-polish-selection');
+if(detail)detail.style.display='none';
+const status=document.getElementById('ae-slot-status');
+if(status)status.style.border='1px solid #647e88';
+})();
 </script></body></html>
