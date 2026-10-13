@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101720"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Auto Empire"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/icon-192.png"><title>Auto Empire Tycoon — Alpha 0.7 (prévia)</title><style>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101720"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Auto Empire"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icons/icon-192.png"><title>Auto Empire Tycoon — Alpha 0.8.0</title><style>
 :root{--bg:#0c121a;--panel:#18232e;--panel2:#22313d;--line:#344554;--gold:#ffc348;--green:#68d9a2;--muted:#9caebb;--red:#ff8d8d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -15%,#26394a,#0c121a 62%);color:#edf4f6;font:14px -apple-system,BlinkMacSystemFont,system-ui,sans-serif}button,input{font:inherit}button{cursor:pointer;border:0;border-radius:9px;background:var(--gold);color:#17202a;padding:10px 13px;font-weight:800}button:disabled{opacity:.4;cursor:not-allowed}.ghost{background:#304150;color:#f4f8f9}.smallbtn{padding:7px 9px;font-size:12px}.shell{max-width:650px;margin:auto;min-height:100vh;padding-bottom:96px}.top{padding:16px 14px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}.logo{font-weight:1000;font-size:19px;letter-spacing:-.5px;line-height:1}.logo em{color:var(--gold);font-style:normal}.tag{font-size:9px;color:#d6e0e5;letter-spacing:2px;margin-top:4px}.day{font-weight:800;text-align:right}.tiny{font-size:11px;color:var(--muted)}.content{padding:0 12px}.panel{background:linear-gradient(150deg,#1d2b36,#15202a);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:11px;box-shadow:0 6px 20px #0002}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{padding:11px 9px}.num{font-weight:900;font-size:17px;color:var(--gold);white-space:nowrap}.label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}.green{color:var(--green)}.red{color:var(--red)}.scene-wrap{overflow:hidden;border-radius:13px;border:1px solid #4b6470;position:relative;background:#182a34}.scene-wrap canvas{display:block;width:100%;height:auto;image-rendering:pixelated}.scene-label{position:absolute;left:12px;top:12px;background:#101923dd;padding:8px 10px;border-radius:9px;font-weight:850;pointer-events:none}.scene-label small{display:block;color:#bdd0d7;font-weight:500}.clockbar{display:flex;align-items:center;justify-content:space-between;gap:6px}.speeds{display:flex;gap:5px;align-items:center}.speeds button.active{background:var(--gold);color:#16202a}.title{font-size:16px;font-weight:900;margin:14px 0 10px}.vehicle{display:flex;align-items:center;gap:12px}.carart{width:94px;min-width:94px;height:70px;border-radius:10px;background:linear-gradient(145deg,#344f5d,#1b2a35);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.carart:after{content:'';position:absolute;bottom:10px;width:60px;height:6px;border-radius:50%;background:#0006;filter:blur(3px)}.carart svg{width:88px;position:relative;z-index:1;filter:drop-shadow(2px 4px 0 #0005)}.vinfo{flex:1;min-width:0}.vname{font-size:15px;font-weight:900}.price{font-weight:900;font-size:18px;color:var(--gold)}.pill{display:inline-block;padding:3px 7px;background:#294237;color:#80e2ad;border-radius:5px;font-size:10px;font-weight:700}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.actions button{flex:1}.muted{color:var(--muted)}.section-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0}.empty{text-align:center;padding:24px;color:var(--muted)}.bottom{position:fixed;bottom:0;left:0;right:0;background:#101923f7;border-top:1px solid #344552;display:flex;justify-content:center;padding:9px max(8px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom));z-index:4}.navinner{display:grid;grid-template-columns:repeat(4,1fr);width:min(650px,100%);gap:6px}.navinner button{background:transparent;color:#a4b8c4;padding:7px 4px;font-size:11px;display:flex;flex-direction:column;gap:3px;align-items:center}.navinner button b{font-size:20px}.navinner button.active{background:#34404a;color:var(--gold)}.hide{display:none!important}.modalbg{position:fixed;inset:0;background:#05090dcc;z-index:8;display:flex;align-items:center;justify-content:center;padding:14px}.modal{width:min(430px,100%);max-height:90vh;overflow:auto;background:#1a2833;border:1px solid #567080;border-radius:18px;padding:18px;box-shadow:0 20px 90px #0009}.modal h2{margin:0 0 10px}.modal input{background:#0e1720;color:white;border:1px solid #647985;border-radius:9px;padding:12px;width:100%;margin:7px 0}.flex{display:flex;align-items:center;justify-content:space-between;gap:9px}.divider{border-top:1px solid #344554;margin:12px 0}.log{font-size:12px;color:#bed0d9;padding:8px 0;border-bottom:1px solid #30404a}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:12;background:#e5ad42;color:#18212a;padding:10px 15px;border-radius:9px;font-weight:800;max-width:90%;text-align:center;box-shadow:0 8px 28px #0008}.progress{height:8px;background:#0b151d;border-radius:9px;overflow:hidden;margin:6px 0}.progress i{display:block;height:100%;background:#69d8a1}.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #33434f}body:not(.ready) .shell{visibility:hidden}@media(min-width:700px){.scene-wrap canvas{max-height:400px;object-fit:cover}}
 </style><style>
 :root{--gold:#ffbd39;--panel:#172331}body{background:radial-gradient(ellipse at 50% -20%,#36536a,#0a111a 70%)}.panel{box-shadow:0 8px 28px #0004;border-color:#3b5060}.logo{font-size:21px;text-shadow:0 2px 1px #0008}.num{font-variant-numeric:tabular-nums}.scene-wrap{box-shadow:inset 0 0 0 2px #263b4c,0 10px 28px #0006}.carart{background:radial-gradient(circle at 50% 0%,#557386,#1c2c38)}.carart svg{image-rendering:pixelated}.pill.risk{background:#4b3532;color:#ffb1a0}.pill.good{background:#224c43;color:#90efc5}.extra{font-size:11px;color:#a9c4d0;margin-top:6px}.inspectbox{border:1px solid #52616b;background:#111e29;padding:10px;border-radius:10px;margin:10px 0}.buyer{background:#243744;padding:9px;border-radius:9px;margin:7px 0}.hint{color:#ffcf70;font-size:11px}.scene-label{border:1px solid #ffffff20;backdrop-filter:blur(4px)}button:focus-visible{outline:3px solid #fff;outline-offset:2px}
@@ -213,5 +213,89 @@ render();
   const oldRender=render;
   render=function(){oldRender();if(selected>=Math.min(s.slots,6))selected=0;drawScene()};
   drawScene();
+})();
+</script><script id="alpha08-release">
+(function(){
+'use strict';
+const VERSION='Alpha 0.8.0';
+document.title='Auto Empire Tycoon — '+VERSION;
+const version=document.createElement('div');
+version.id='ae-version';version.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD 0800';
+version.style.cssText='position:sticky;top:0;z-index:50;text-align:center;background:#ffca57;color:#15232e;font:800 11px system-ui;padding:8px;letter-spacing:.8px';
+document.body.prepend(version);
+const style=document.createElement('style');
+style.textContent='#ae-demand .kv{padding:7px 0}#ae-garage-detail{border:1px solid #d1a950}#ae-garage-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}#ae-garage-buttons button{flex:1 1 75px}#ae-econ-status{font-size:12px;color:#ffd37c;margin:8px 0}';
+document.head.appendChild(style);
+// Stage 1: garage controls and distinct silhouettes, with no reliance on touch hit-testing.
+const canvas=document.getElementById('scene');
+const garage=document.getElementById('garage');
+let selected=0;
+if(canvas&&garage){
+ const controls=document.createElement('div');controls.id='ae-garage-buttons';
+ const detail=document.createElement('div');detail.id='ae-garage-detail';detail.className='panel';
+ canvas.parentElement.insertAdjacentElement('afterend',detail);
+ detail.before(controls);
+ function selectSlot(i){selected=i;refreshGarage();drawScene()}
+ function refreshGarage(){
+  const slots=Math.min(6,Math.max(1,s.slots));
+  if(selected>=slots)selected=0;
+  controls.innerHTML=Array.from({length:slots},(_,i)=>'<button type="button" data-ae-slot="'+i+'" class="'+(selected===i?'':'ghost')+'">Vaga '+(i+1)+(s.stock[i]?' 🚗':' ＋')+'</button>').join('');
+  const c=s.stock[selected];
+  if(!c){detail.innerHTML='<b>Vaga '+(selected+1)+' livre</b><p class="tiny">Adquira um veículo no Mercado para ocupar esta vaga.</p>';return}
+  const invested=(Number(c.bought)||0)+(Number(c.spent)||0);
+  detail.innerHTML='<b>Vaga '+(selected+1)+' · '+esc(c.name)+'</b><div class="kv"><span>Tipo</span><b>'+esc(c.kind)+'</b></div><div class="kv"><span>Condição</span><b>'+c.condition+'%</b></div><div class="kv"><span>Investido</span><b>'+fmt(invested)+'</b></div><div class="kv"><span>Anúncio</span><b>'+(c.listed?fmt(c.price):'Não anunciado')+'</b></div>';
+ }
+ controls.addEventListener('click',e=>{const b=e.target.closest('[data-ae-slot]');if(b)selectSlot(Number(b.dataset.aeSlot))});
+ const priorDraw=drawScene;
+ drawScene=function(){
+  priorDraw();
+  const ctx=canvas.getContext('2d');
+  for(let i=0;i<Math.min(s.slots,6);i++){
+   const x=165+(i%3)*56,y=130+Math.floor(i/3)*37+(i%3)*-16;
+   ctx.fillStyle=i===selected?'#ffc348':'#edf7fa';ctx.fillRect(x+3,y-16,16,13);
+   ctx.fillStyle='#14232d';ctx.font='bold 10px monospace';ctx.fillText(String(i+1),x+7,y-6);
+   const car=s.stock[i];
+   if(car){ctx.fillStyle=car.color||'#a0b6c4';const kind=car.kind;
+    if(kind==='SUV'||kind==='Picape'){ctx.fillRect(x+17,y-21,31,7);if(kind==='Picape'){ctx.fillStyle='#20323b';ctx.fillRect(x+37,y-19,10,4)}}
+    else if(kind==='Esportivo'){ctx.fillRect(x+22,y-19,20,3);ctx.fillStyle='#f3d66c';ctx.fillRect(x+43,y-16,9,2)}
+    else if(kind==='Compacto'){ctx.fillRect(x+23,y-16,17,6)}
+   }
+  }
+ };
+ canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*canvas.width/rect.width,y=(e.clientY-rect.top)*canvas.height/rect.height;
+  let best=-1,distance=1e9;
+  for(let i=0;i<Math.min(s.slots,6);i++){const cx=195+(i%3)*56,cy=130+Math.floor(i/3)*37+(i%3)*-16;const d=Math.hypot(x-cx,y-cy);if(d<distance){best=i;distance=d}}
+  if(distance<48)selectSlot(best);
+ });
+ const priorRender=render;
+ render=function(){priorRender();refreshGarage()};
+ refreshGarage();drawScene();
+}
+// Stage 2: deterministic daily segment demand; preserve version 2 save format.
+const SEGMENTS=['Compacto','Hatch','Sedã','SUV','Picape','Esportivo'];
+function demand(kind,day){const index=Math.max(0,SEGMENTS.indexOf(kind));return Math.max(0.78,Math.min(1.24,1+Math.sin(day*.29+index*1.6)*.17+Math.cos(day*.08+index)*.05))}
+const originalTickDay=tickDay;
+tickDay=function(){
+ originalTickDay();
+ if(s.day%7===0){const top=SEGMENTS.map(k=>({k,v:demand(k,s.day)})).sort((a,b)=>b.v-a.v)[0];note('Boletim semanal: procura em alta por '+top.k+' ('+Math.round(top.v*100)+'% do normal)');}
+};
+const market=document.getElementById('market');
+if(market){
+ const demandPanel=document.createElement('div');demandPanel.className='panel';demandPanel.id='ae-demand';
+ const listings=document.getElementById('listings');listings.parentNode.insertBefore(demandPanel,listings);
+ const oldRender=render;
+ render=function(){
+  oldRender();
+  const ranked=SEGMENTS.map(k=>({kind:k,v:demand(k,s.day)})).sort((a,b)=>b.v-a.v);
+  demandPanel.innerHTML='<b>📈 Termômetro de demanda · Dia '+s.day+'</b><p class="tiny">Tendência fictícia por segmento. Indicador informativo; não altera as ofertas nesta versão.</p>'+ranked.map(x=>'<div class="kv"><span>'+esc(x.kind)+'</span><b>'+Math.round(x.v*100)+'%</b></div>').join('');
+ };
+ render();
+}
+// Stage 3: quality-of-life and explicit release identity.
+const garageTitle=garage&&garage.querySelector('.section-head .title');
+if(garageTitle)garageTitle.textContent='🚗 Meu estoque · Alpha 0.8.0';
+const notes=document.createElement('div');notes.className='panel';notes.innerHTML='<b>✨ Novidades da Alpha 0.8.0</b><p class="tiny">Vagas selecionáveis · silhuetas por tipo de carro · termômetro de demanda por categoria · boletim semanal · identificação da versão.</p>';
+if(garage)garage.appendChild(notes);
 })();
 </script></body></html>
