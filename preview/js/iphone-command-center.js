@@ -72,7 +72,7 @@ panel.addEventListener('click',ev=>{
 const prevRender=render;let last='';
 render=function(){
  prevRender();
- const key=[s.day,s.cash,s.stock.length,s.slots,s.sales,s.empire?.world?.active,s.empire?.economy?.crisis?.id,s.empire?.economy?.distressDays,s.empire?.economy?.factory?.queue?.length,s.stock.map(c=>(c.offers||[]).length).join(',')].join('|');
+ const key=[s.day,s.cash,s.stock.length,s.slots,s.sales,s.empire?.world?.active,s.empire?.economy?.crisis?.id,s.empire?.economy?.distressDays,s.empire?.economy?.factory?.queue?.length,s.stock.map(c=>(c.offers||[]).length).join(','),s.stock.map(c=>c.listed?1:0).join('')].join('|');
  if(key!==last){last=key;refresh()}
 };
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
