@@ -1,0 +1,148 @@
+/* Auto Empire Tycoon Alpha 2.5 — fictional economic crises, insolvency, and manufacturing. */
+(function(){
+'use strict';
+const cities=window.AEWorld?.cities||[];
+const byId=id=>cities.find(c=>c.id===id);
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const money=n=>fmt(Math.round(n));
+const crisisTypes=[
+ {id:'stable',name:'Estabilidade',duration:0,demand:1,cost:1,description:'Mercado funcionando normalmente.'},
+ {id:'inflation',name:'Choque inflacionário',duration:15,demand:.79,cost:1.18,description:'Custos e preços sobem; famílias adiam compras.'},
+ {id:'political',name:'Crise política',duration:18,demand:.65,cost:1.12,description:'Incerteza regulatória paralisa investimentos.'},
+ {id:'war',name:'Conflito armado regional',duration:24,demand:.04,cost:1.35,description:'Transporte e demanda ficam quase paralisados na região afetada.'},
+ {id:'energy',name:'Crise energética',duration:14,demand:.72,cost:1.22,description:'Combustível e logística encarecem.'},
+ {id:'supply',name:'Ruptura de suprimentos',duration:17,demand:.84,cost:1.3,description:'Fábricas enfrentam falta de peças.'}
+];
+const current=()=>s.empire?.economy;
+function init(){
+ if(!s.empire)s.empire={};if(!s.empire.economy)s.empire.economy={};
+ const e=s.empire.economy;
+ e.inflation=clamp(Number(e.inflation)||1,1,3);
+ e.lastCrisisDay=Math.max(0,Math.floor(Number(e.lastCrisisDay)||0));
+ if(!e.crisis||!crisisTypes.some(x=>x.id===e.crisis.id))e.crisis={...crisisTypes[0],end:0,region:null};
+ e.distressDays=clamp(Math.floor(Number(e.distressDays)||0),0,999);
+ e.bankrupt=!!e.bankrupt;
+ if(!e.factory)e.factory={opened:false,name:'',level:1,produced:0,queue:[],brand:'',model:'Empire One'};
+ const f=e.factory;f.level=clamp(Math.floor(Number(f.level)||1),1,4);f.produced=Math.max(0,Math.floor(Number(f.produced)||0));if(!Array.isArray(f.queue))f.queue=[];
+ if(!e.trade)e.trade={completed:0,totalFees:0};
+ return e;
+}
+function crisisFor(cityId){const e=init(),c=e.crisis;if(c.id==='stable'||s.day>=c.end)return crisisTypes[0];const city=byId(cityId);if(c.region&&city?.country!==c.region)return crisisTypes[0];return c}
+function factor(cityId){return crisisFor(cityId).demand}
+function updateDay(){
+ const e=init();if(e.bankrupt)return;
+ if(s.day%30===0){const annualized=.018+(Math.floor(s.day/30)%5)*.006;e.inflation=clamp(e.inflation*(1+annualized/12),1,3);note('Índice de preços: '+Math.round((e.inflation-1)*1000)/10+'% acumulado na campanha.')}
+ if(e.crisis.id!=='stable'&&s.day>=e.crisis.end){note('Fim da crise: '+e.crisis.name+'. Mercado volta a funcionar.');e.crisis={...crisisTypes[0],end:0,region:null}}
+ if(s.day>=22&&s.day%37===0&&e.crisis.id==='stable'){
+  const type=crisisTypes[1+Math.floor((s.day/37+Math.floor(s.day/13))%5)];
+  const country=byId(s.empire.world?.active)?.country||'Brasil';
+  e.crisis={...type,end:s.day+type.duration,region:type.id==='war'||type.id==='political'?country:null};
+  e.lastCrisisDay=s.day;note('ALERTA ECONÔMICO: '+type.name+' em '+(e.crisis.region||'diversos mercados')+'. '+type.description);
+ }
+ // Manufacturing uses real in-game days; never completes while the app is closed.
+ for(const job of [...e.factory.queue]){
+  if(job.due>s.day)continue;
+  if(s.stock.length>=s.slots){job.due=s.day+1;continue}
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true};
+  s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
+ }
+ const liabilities=Object.values(s.empire.staff||{}).reduce((a,n)=>a+(Number(n)||0),0);
+ const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
+ if(s.cash<0&&s.cash+liquidation<0)e.distressDays++;else e.distressDays=0;
+ if(e.distressDays>=7){e.bankrupt=true;paused=true;note('FALÊNCIA: insolvência persistente por 7 dias. Campanha encerrada.');toast('Sua empresa entrou em falência.');}
+}
+const style=document.createElement('style');style.textContent=`
+#ae-economy{background:#132c3a;border:1px solid #557181;border-radius:12px;margin:12px 0;padding:13px}
+#ae-economy h3{color:#f3d08a;font-size:14px;margin:0 0 9px}
+.ae-econ-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ae-econ-cell{background:#1c3b4a;border-radius:8px;padding:9px;font-size:12px}
+.ae-econ-cell small{display:block;color:#bfd1d8;margin-bottom:5px}
+.ae-econ-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.ae-econ-actions button{min-height:42px;flex:1 1 auto;font-size:12px}
+.ae-econ-danger{color:#ffb5aa;font-weight:700;font-size:12px;margin:8px 0}
+.ae-econ-hint{font-size:11px;color:#c3d5dd;line-height:1.55;margin:9px 0}
+`;document.head.append(style);
+const panel=document.createElement('section');panel.id='ae-economy';panel.innerHTML='<h3>🌐 Economia, riscos e indústria</h3><div id="ae-econ-status" class="ae-econ-grid"></div><div id="ae-econ-crisis"></div><div id="ae-econ-factory"></div><div class="ae-econ-actions"><button data-econ="open">Abrir fabricante</button><button data-econ="produce">Produzir veículo</button><button data-econ="upgrade">Ampliar fábrica</button><button data-econ="transfer">Transferir veículo</button></div><p class="ae-econ-hint">Economia fictícia, não representa acontecimentos ou taxas reais. Crises e inflação evoluem somente nos dias simulados. A falência exige insolvência persistente.</p>';
+document.getElementById('garage')?.append(panel);
+function factoryCost(){return Math.round(110000*init().inflation)}
+function produceCost(){const f=init().factory;return Math.round((14500+f.level*1400)*init().inflation*crisisFor(s.empire.world?.active).cost)}
+function show(){
+ const e=init(),c=e.crisis,f=e.factory,city=byId(s.empire.world?.active),active=crisisFor(city?.id);
+ const cashForecast=s.cash+s.stock.reduce((a,x)=>a+(Number(x.value)||0)*.5,0);
+ document.getElementById('ae-econ-status').innerHTML='<div class="ae-econ-cell"><small>Inflação acumulada</small><b>'+((e.inflation-1)*100).toFixed(1).replace('.',',')+'%</b></div><div class="ae-econ-cell"><small>Mercado ativo</small><b>'+esc(city?.name||'Solara')+'</b></div><div class="ae-econ-cell"><small>Risco financeiro</small><b>'+(cashForecast<0?'Crítico':s.cash<0?'Atenção':'Controlado')+'</b></div><div class="ae-econ-cell"><small>Indústria</small><b>'+(f.opened?'Nível '+f.level:'Não fundada')+'</b></div>';
+ document.getElementById('ae-econ-crisis').innerHTML='<p class="'+(active.id==='stable'?'ae-econ-hint':'ae-econ-danger')+'">'+esc(active.name)+': '+esc(active.description)+(active.id==='stable'?'':' · até o dia '+c.end)+'</p>'+(e.distressDays?'<p class="ae-econ-danger">Insolvência: '+e.distressDays+'/7 dias. Recupere o patrimônio líquido.</p>':'')+(e.bankrupt?'<p class="ae-econ-danger">FALÊNCIA DECLARADA. Campanha encerrada. Exporte o backup ou inicie uma nova campanha.</p>':'');
+ document.getElementById('ae-econ-factory').innerHTML='<p class="ae-econ-hint">'+(f.opened?'Fabricante: '+esc(f.brand)+' · modelo '+esc(f.model)+' · produzidos '+f.produced+' · na fila '+f.queue.length:'Abra uma fabricante por '+money(factoryCost())+' CR para produzir sua própria marca.')+'</p><p class="ae-econ-hint">Custo estimado por carro: '+money(produceCost())+' CR · produção: '+Math.max(2,8-f.level)+' dias · uma vaga por veículo finalizado.</p>';
+ panel.querySelectorAll('[data-econ]').forEach(b=>b.disabled=e.bankrupt||(b.dataset.econ==='open'?f.opened:b.dataset.econ==='produce'?!f.opened:b.dataset.econ==='upgrade'?!f.opened||f.level>=4:false));
+}
+function transact(cost,label){if(init().bankrupt)return toast('Campanha encerrada por falência');if(!Number.isFinite(cost)||cost<=0||s.cash<cost)return toast('Capital insuficiente');s.cash-=cost;entry(label,-cost);return true}
+panel.addEventListener('click',ev=>{
+ const action=ev.target.closest('[data-econ]')?.dataset.econ;if(!action)return;
+ const e=init(),f=e.factory;if(e.bankrupt)return toast('Empresa falida');
+ if(action==='open'){
+  if(f.opened)return;const cost=factoryCost();if(s.cash<cost)return toast('Capital insuficiente');
+  const brand=prompt('Nome da fabricante (2 a 24 caracteres):',s.empire.world?.hq==='solara'?'Solara Motors':'Empire Motors');
+  if(brand===null)return;const name=brand.trim().replace(/[<>]/g,'').slice(0,24);if(name.length<2)return toast('Nome inválido');
+  if(!confirm('Fundar '+name+' por '+money(cost)+' CR?'))return;
+  if(!transact(cost,'Fundação da fabricante'))return;f.opened=true;f.brand=name;note('Fabricante '+name+' fundada.');
+ }
+ if(action==='produce'){
+  if(!f.opened)return;const cost=produceCost();if(s.stock.length+f.queue.length>=s.slots)return toast('Amplie vagas antes de produzir');
+  if(f.queue.length>=f.level*2)return toast('Linha de montagem ocupada');
+  const model=prompt('Modelo a fabricar:',f.model||'Empire One');if(model===null)return;
+  const cleaned=model.trim().replace(/[<>]/g,'').slice(0,28);if(cleaned.length<2)return toast('Modelo inválido');
+  const kindOptions=['Hatch','Sedã','SUV','Compacto','Esportivo','Picape'];const kind=prompt('Categoria: '+kindOptions.join(', '),'Hatch');if(kind===null)return;const chosen=kindOptions.find(x=>x.toLowerCase()===kind.trim().toLowerCase());if(!chosen)return toast('Categoria inválida');
+  if(!confirm('Produzir '+cleaned+' por '+money(cost)+' CR?'))return;
+  if(!transact(cost,'Produção · '+cleaned))return;
+  f.model=cleaned;f.queue.push({model:cleaned,kind:chosen,cost,due:s.day+Math.max(2,8-f.level),value:Math.round(cost*(1.2+f.level*.07)/100)*100});note('Ordem de produção: '+cleaned+'. Entrega prevista no dia '+f.queue[f.queue.length-1].due);
+ }
+ if(action==='upgrade'){
+  if(!f.opened||f.level>=4)return;const cost=Math.round((45000+f.level*25000)*e.inflation);
+  if(!confirm('Expandir fabricante ao nível '+(f.level+1)+' por '+money(cost)+' CR?'))return;
+  if(!transact(cost,'Ampliação industrial'))return;f.level++;note('Fábrica ampliada ao nível '+f.level);
+ }
+ if(action==='transfer'){
+  const w=s.empire.world;if(!w||w.owned.length<2)return toast('Adquira outra subsidiária primeiro');
+  if(!s.stock.length)return toast('Não há veículos em estoque');
+  const options=s.stock.slice(0,15).map(c=>c.id+' — '+c.name).join('\n');
+  const value=prompt('ID do veículo para transferir:\n'+options);if(value===null)return;
+  const car=s.stock.find(c=>String(c.id)===value.trim());if(!car)return toast('Veículo não encontrado');
+  const targets=w.owned.filter(id=>id!==car.originCity);if(!targets.length)return toast('Nenhuma outra cidade disponível');
+  const target=prompt('Destino (digite o código):\n'+targets.map(id=>id+' — '+(byId(id)?.name||id)).join('\n'));if(target===null)return;
+  if(!targets.includes(target.trim()))return toast('Destino inválido');
+  const city=byId(target.trim()),from=byId(car.originCity),international=from?.country!==city?.country;
+  const crisis=crisisFor(car.originCity),destinationCrisis=crisisFor(city.id);
+  if(crisis.id==='war'||destinationCrisis.id==='war')return toast('Transporte bloqueado pelo conflito regional');
+  const fee=Math.round((international?3000:800)*e.inflation*Math.max(crisis.cost,destinationCrisis.cost));
+  if(!confirm('Transferir '+car.name+' para '+city.name+' por '+money(fee)+' CR?'))return;
+  if(!transact(fee,'Logística · '+car.name))return;
+  car.originCity=city.id;car.spent=(Number(car.spent)||0)+fee;e.trade.completed++;e.trade.totalFees+=fee;note('Transferência concluída para '+city.name);
+ }
+ save();render();
+});
+const previousSeed=seed;
+seed=function(){previousSeed();init();save()};
+const previousTick=tickDay;
+tickDay=function(){
+ if(init().bankrupt){paused=true;return}
+ const previousDay=s.day;
+ const before=new Map(s.stock.map(c=>[c.id,(c.offers||[]).length]));
+ previousTick();
+ if(s.day===previousDay)return;
+ const e=init();
+ // A crisis affects new proposals only, never retroactively changes an accepted offer.
+ for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const demand=factor(car.originCity||s.empire.world?.active);if(demand>=1)continue;for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)/100)*100)}car.interested=offers.length>0}
+ updateDay();save();
+};
+const previousSubmit=submitBid;
+submitBid=function(){if(init().bankrupt)return toast('Campanha encerrada');return previousSubmit()};
+const previousPublish=publish;
+publish=function(){if(init().bankrupt)return toast('Campanha encerrada');return previousPublish()};
+const previousAccept=acceptOffer;
+acceptOffer=function(i){if(init().bankrupt)return toast('Campanha encerrada');return previousAccept(i)};
+const previousRender=render;
+let last='';
+render=function(){previousRender();const e=init(),key=[s.day,s.cash,s.stock.length,e.crisis.id,e.factory.opened,e.factory.queue.length,e.factory.level,e.distressDays,s.empire.world?.active].join('|');if(last!==key){last=key;show()}};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(show);
+init();show();
+window.AEEconomy={crisisFor,init};
+})();
