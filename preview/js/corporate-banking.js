@@ -3,9 +3,9 @@
 'use strict';
 const max=(v,a,b)=>Math.max(a,Math.min(b,v));
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
-function bank(){s.empire=s.empire||{};const b=s.empire.bank||(s.empire.bank={loans:[],history:[],score:60,missed:0,lastDay:0,buffer:5000,nextId:1});b.loans=Array.isArray(b.loans)?b.loans:[];b.history=Array.isArray(b.history)?b.history:[];b.score=max(Math.round(num(b.score)||60),0,100);return b}
+function bank(){s.empire=s.empire||{};const b=s.empire.bank||(s.empire.bank={loans:[],history:[],score:60,missed:0,lastDay:0,buffer:5000,nextId:1});b.loans=Array.isArray(b.loans)?b.loans:[];b.history=Array.isArray(b.history)?b.history:[];b.score=max(Math.round(b.score==null?60:num(b.score)),0,100);return b}
 function debt(){return bank().loans.reduce((n,l)=>n+num(l.balance),0)}
-function rate(){return Math.round((.007+(100-bank().score)*.00012+(num(s.empire?.economy?.inflation)-1)*.004)*10000)/10000}
+function rate(){return Math.round(max(.0001,.007+(100-bank().score)*.00012+(Math.max(1,num(s.empire?.economy?.inflation))-1)*.004)*10000)/10000}
 function limit(){return Math.max(0,Math.round((10000+num(s.sales)*1500+num(s.rep)*220+bank().score*180-debt())/100)*100)}
 function log(type,amount){const b=bank();b.history.unshift({day:s.day,type,amount});b.history=b.history.slice(0,60)}
 function borrow(amount,months){
@@ -21,9 +21,9 @@ function borrow(amount,months){
 }
 function repay(id){
  const b=bank(),l=b.loans.find(x=>x.id===id);if(!l)return;
- const payment=Math.min(num(s.cash),num(l.balance));
- if(payment<=0)return toast('Caixa insuficiente');
- l.balance=Math.max(0,num(l.balance)-payment);l.remaining=Math.max(0,num(l.remaining)-Math.floor(payment/Math.max(1,l.dailyPayment)));
+ const payment=Math.min(Math.max(0,num(s.cash)-Math.max(0,num(b.buffer)||0)),num(l.balance));
+ if(payment<=0)return toast('Caixa insuficiente após a reserva de segurança');
+ l.balance=Math.max(0,num(l.balance)-payment);l.remaining=Math.max(0,Math.ceil(l.balance/Math.max(1,l.dailyPayment)));
  s.cash-=payment;entry('Amortização de empréstimo',-payment);log('Amortização',-payment);
  if(l.balance===0){b.loans=b.loans.filter(x=>x!==l);b.score=max(b.score+3,0,100)}
  save();render();toast('Amortização: '+fmt(payment));
