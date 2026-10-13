@@ -617,111 +617,6 @@ function update(){
 }
 update();drawScene();
 })();
-</script><script id="alpha101-polish">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.0.1';
-const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.1 · BUILD 1010';
-const css=document.createElement('style');
-css.textContent=`
-*,*::before,*::after{box-sizing:border-box}
-html,body{max-width:100%;overflow-x:hidden}
-main,.app,.panel,.scene-wrap{min-width:0;max-width:100%}
-.panel{overflow-wrap:anywhere}
-.flex{min-width:0;gap:8px;flex-wrap:wrap}
-.flex>*{min-width:0}
-.actions{display:flex;flex-wrap:wrap;gap:7px}
-.actions button{max-width:100%;white-space:normal}
-#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
-#ae-visual-stats b{overflow-wrap:anywhere;line-height:1.2}
-#ae-garage-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-#ae-garage-buttons button{min-width:0;min-height:43px;white-space:normal}
-#scene{width:100%;height:auto;aspect-ratio:384/250;object-fit:contain;image-rendering:pixelated}
-.scene-wrap{position:relative;isolation:isolate}
-.scene-label{position:relative;z-index:1;white-space:normal}
-#ae-staff .flex button,#ae-management .flex button{max-width:100%}
-#ae-test-bar .actions button{flex:1 1 135px}
-#ae-rivals,#ae-auction,#ae-staff,#ae-management,#ae-specialization{max-width:100%}
-@media(max-width:420px){
- #ae-visual-stats{gap:5px}
- #ae-visual-stats>div{padding:8px 3px}
- #ae-visual-stats b{font-size:clamp(10px,3vw,15px)}
- .panel{padding:11px}
- #ae-garage-buttons button{font-size:12px;padding:8px 4px}
-}
-`;document.head.appendChild(css);
-// Reconcile the selected slot across all drawing layers.
-const buttons=document.getElementById('ae-garage-buttons');
-const canvas=document.getElementById('scene');
-if(buttons&&canvas){
- const detail=document.createElement('div');detail.id='ae-polish-selection';detail.className='tiny';detail.setAttribute('aria-live','polite');
- buttons.insertAdjacentElement('afterend',detail);
- function updateSelection(){
-  const selected=buttons.querySelector('button[data-ae-slot]:not(.ghost)');
-  const index=selected?Number(selected.dataset.aeSlot):0;
-  detail.textContent='Vaga selecionada: '+(index+1)+(s.stock[index]?' · '+s.stock[index].name:' · livre');
- }
- buttons.addEventListener('click',updateSelection);
- const oldRender=render;
- render=function(){oldRender();updateSelection()};
- updateSelection();
-}
-})();
-</script><script id="alpha102-polish-pass">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.0.2';
-const banner=document.getElementById('ae-version');
-if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.2 · BUILD 1020';
-const style=document.createElement('style');
-style.textContent=`
-:root{--ae-bg:#0d1721;--ae-edge:#496475;--ae-surface:#1a2c38;--ae-highlight:#f6c967}
-body{background:linear-gradient(165deg,#172b39 0%,#0d1721 55%);color:#eaf3f6}
-.panel{background:var(--ae-surface);border:1px solid var(--ae-edge);border-radius:12px;margin-bottom:12px}
-.title{letter-spacing:.15px}
-button{min-height:40px;border-radius:9px;line-height:1.25;touch-action:manipulation}
-button:focus-visible{outline:3px solid var(--ae-highlight);outline-offset:2px}
-.scene-wrap{border:2px solid #7c9aa7;border-radius:14px;overflow:hidden;background:#1b3440}
-#scene{display:block;width:100%;height:auto;max-height:none}
-#ae-garage-buttons button:not(.ghost){background:#f6c967!important;color:#182c36!important;border-color:#f6c967!important;box-shadow:0 0 0 2px #f6c96755}
-#ae-garage-detail{background:#213947;border-color:#9bb5bc}
-#ae-visual-stats>div{background:#1d3442;border-color:#587686}
-#ae-visual-stats span{display:block;line-height:1.3}
-.kv{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.kv span{min-width:0}.kv b{text-align:right;overflow-wrap:anywhere}
-#ae-polish-selection{padding:7px 9px;background:#283e4a;border-radius:8px;margin:5px 0}
-@media(max-width:420px){.scene-label{font-size:11px}.section-head{display:flex;flex-wrap:wrap;gap:8px}.section-head button{max-width:100%}.kv{font-size:12px}}
-`;
-document.head.appendChild(style);
-// Keep canvas rendering and controls aligned through a single slot coordinate table.
-const canvas=document.getElementById('scene'),buttons=document.getElementById('ae-garage-buttons');
-if(canvas&&buttons){
- const positions=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
- const select=e=>{
-  const rect=canvas.getBoundingClientRect();
-  if(!rect.width||!rect.height)return;
-  const x=(e.clientX-rect.left)*canvas.width/rect.width,y=(e.clientY-rect.top)*canvas.height/rect.height;
-  let closest=-1,best=1e9;
-  positions.slice(0,Math.min(6,s.slots)).forEach(([px,py],i)=>{
-   const d=Math.hypot((x-px)*.75,y-py);
-   if(d<best){best=d;closest=i}
-  });
-  if(closest>=0&&best<24){
-   const button=buttons.querySelector('[data-ae-slot="'+closest+'"]');
-   if(button)button.click();
-  }
- };
- // Capture before historical click handlers so only the final calibrated hit-test selects a slot.
- canvas.addEventListener('click',e=>{e.stopImmediatePropagation();select(e)},true);
-}
-// Reserve one place for version notes and avoid duplicated persistent status labels.
-const garage=document.getElementById('garage');
-if(garage){
- const notes=document.createElement('div');notes.className='panel';notes.id='ae-polish-notes';
- notes.innerHTML='<b>🛠️ Alpha 1.0.2 · Polimento visual</b><p class="tiny">Alinhamento dos toques na garagem, contraste das vagas, cartões responsivos e leitura dos indicadores financeiros. As futuras filiais internacionais e o IPO ficam no planejamento; ainda não fazem parte da simulação.</p>';
- garage.appendChild(notes);
-}
-})();
 </script><script id="alpha103-mobile-overhaul">
 (function(){
 'use strict';
@@ -1197,7 +1092,7 @@ const oldRender=render;
 let scheduled=false;
 render=function(){
  oldRender();
- if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;scene()})}
+ if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;drawScene()})}
 };
 scene();
 })();
@@ -1283,5 +1178,42 @@ if(events){
  events.appendChild(panel);
 }
 if(canvas)drawScene();
+})();
+</script><script id="alpha109-refactor">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.9';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.9 · BUILD 1090';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.0.9 · LIMPEZA E ESTABILIDADE';
+const style=document.createElement('style');
+style.textContent=`
+/* Single 1.0.9 visual ruleset replaces obsolete 1.0.1 and 1.0.2 patches. */
+*,*::before,*::after{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+.panel,.scene-wrap{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.flex{min-width:0;flex-wrap:wrap;gap:8px}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+.actions button{max-width:100%;white-space:normal}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.kv span{min-width:0}.kv b{text-align:right;overflow-wrap:anywhere}
+#scene{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:manipulation}
+#ae-garage-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#ae-garage-buttons button{min-width:0;min-height:46px;white-space:normal}
+#ae-garage-buttons button:not(.ghost){background:#f6c967!important;color:#182c36!important;outline:2px solid #ffdf96;outline-offset:1px}
+#ae-visual-stats>div{min-width:0}
+#ae-visual-stats b{overflow-wrap:anywhere;line-height:1.2}
+#garage>.tiny{display:none!important}
+#garage>#ae-test-bar{order:12!important}
+#garage>#ae-test-bar:not(.ae-expanded) .actions{display:none}
+#garage>#ae-test-bar:not(.ae-expanded)>p{display:none}
+#garage>#ae-garage-detail:not(.ae-open){display:none!important}
+.content{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+.bottom{z-index:30}
+@media(max-width:420px){.panel{padding:11px}#ae-visual-stats b{font-size:clamp(10px,3vw,15px)}}
+`;document.head.appendChild(style);
+// Existing save schema and gameplay systems remain unchanged.
+// Render paths now paint via the active drawScene function, including camera mode.
+const scene=document.getElementById('scene');
+if(scene)requestAnimationFrame(()=>drawScene());
 })();
 </script></body></html>
