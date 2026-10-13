@@ -261,7 +261,7 @@ function refresh(){
 }
 if(buttons)buttons.addEventListener('click',()=>refresh());
 const originalRender=render;
-render=function(){originalRender();refresh()};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
 newButton.addEventListener('click',()=>{
  const capacity=6;
  s.slots=Math.max(s.slots,capacity);
@@ -729,7 +729,7 @@ if(events){
  diagnostic.querySelector('#ae-debug-copy').addEventListener('click',()=>{const report=data();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(report).then(()=>toast('Diagnóstico copiado')).catch(()=>toast('Selecione o texto do diagnóstico para copiar'))}else toast('Selecione o texto do diagnóstico para copiar')});
 }
 const oldRender=render;
-render=function(){oldRender();syncSlot()};
+(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(syncSlot);
 syncSlot();
 })();
 </script><script id="alpha105-stability">
@@ -1257,5 +1257,21 @@ style.textContent=`
 document.head.appendChild(style);
 const art=document.getElementById('ae-art-check');
 if(art){const heading=art.querySelector('summary');if(heading)heading.textContent='🎨 Biblioteca de sprites · Alpha 1.2.3'}
+})();
+</script><script id="alpha124-quality">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.4';
+const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.4 · BUILD 1240';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.4 · CONSOLIDAÇÃO';
+const css=document.createElement('style');css.textContent=`
+#garage>.scene-wrap{border-radius:14px;overflow:hidden}
+#garage>#ae-garage-buttons button{min-height:46px}
+#garage>#ae-slot-status{padding:10px 12px}
+#garage>#ae-test-bar{order:12!important}
+#garage>#ae-test-bar:not(.ae-expanded) .actions{display:none!important}
+.content{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important}
+`;document.head.appendChild(css);
+const debug=document.getElementById('ae-debug');if(debug){const title=debug.querySelector('summary');if(title)title.textContent='🛠 Diagnóstico · Alpha 1.2.4'}
 })();
 </script></body></html>
