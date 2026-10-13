@@ -28,9 +28,9 @@ function ensureWorld(){
  const e=s.empire;
  if(!e.world||typeof e.world!=='object')e.world={};
  const w=e.world;
- if(!Array.isArray(w.owned))w.owned=['solara'];
+ if(!Array.isArray(w.owned)){let start='solara';try{const p=JSON.parse(localStorage.getItem('autoempire_company_profile_v1')||'null');if(byId(p?.headquarters))start=p.headquarters}catch(e){}w.owned=[start];w.hq=start;w.active=start;w.founded=start}
  w.owned=[...new Set(w.owned.filter(id=>!!byId(id)))];
- if(!w.owned.includes('solara'))w.owned.unshift('solara');
+ if(!w.owned.length)w.owned=['solara'];
  if(!byId(w.hq))w.hq='solara';
  if(!byId(w.active)||!w.owned.includes(w.active))w.active='solara';
  if(!Number.isFinite(Number(w.totalUpkeep)))w.totalUpkeep=0;
@@ -60,7 +60,7 @@ function renderWorld(){
  if(!s)return;const w=ensureWorld(),hq=byId(w.hq),active=byId(w.active);
  document.getElementById('ae-world-count').textContent=w.owned.length+' mercados · '+new Set(w.owned.map(id=>byId(id).country)).size+' países';
  document.getElementById('ae-world-kpi').textContent='Sede: '+hq.name+', '+hq.country+' · Operando: '+active.name+' · Custo internacional: '+cash(w.owned.reduce((n,id)=>n+byId(id).upkeep,0))+'/30 dias';
- const options=cities.map(c=>'<option value="'+c.id+'">'+c.flag+' '+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
+ const options=cities.map(c=>'<option value="'+c.id+'" '+(!w.owned.includes(c.id)?'disabled':'')+'> '+c.flag+' '+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
  const hqSel=document.getElementById('ae-world-hq');hqSel.innerHTML=options;hqSel.value=w.hq;
  const activeSel=document.getElementById('ae-world-active');activeSel.innerHTML=cities.filter(c=>w.owned.includes(c.id)).map(c=>'<option value="'+c.id+'">'+c.flag+' '+escape(c.name)+'</option>').join('');activeSel.value=w.active;
  document.getElementById('ae-world-cities').innerHTML=cities.map(c=>{
@@ -97,14 +97,20 @@ tickDay=function(){
  // Existing offers are never altered by switching markets.
  save();
 };
+const prevOffers=offersDialog;
+offersDialog=function(id){prevOffers(id);const car=s.stock.find(c=>c.id===id),city=byId(car?.originCity)||byId(ensureWorld().active);if(!car||!city)return;const body=document.getElementById('modalbody');const el=document.createElement('p');el.className='tiny';el.textContent='Mercado de origem: '+city.name+' · especialidade local: '+city.kind+'.';body.append(el)};
 const prevMakeCar=makeCar;
 makeCar=function(){
  const c=prevMakeCar(),w=ensureWorld(),city=byId(w.active)||cities[0];
  c.originCity=city.id;
  return c;
 };
+const prevBuy=buyDialog;
+buyDialog=function(id){prevBuy(id);const car=s.market.find(c=>c.id===id),city=byId(ensureWorld().active);if(!car||!city)return;const body=document.getElementById('modalbody');const el=document.createElement('p');el.className='tiny';el.textContent='Mercado: '+city.name+' · '+city.special+'.';body.append(el)};
 const prevPopulate=populate;
 populate=function(){prevPopulate();const w=ensureWorld(),city=byId(w.active)||cities[0];s.market.forEach(c=>{c.originCity=city.id});save()};
+const prevDayOffers=tickDay;
+tickDay=function(){const counts=new Map(s.stock.map(c=>[c.id,(c.offers||[]).length]));prevDayOffers();for(const car of s.stock){const city=byId(car.originCity)||byId(ensureWorld().active);const arr=car.offers||[];const start=counts.get(car.id)||0;if(city&&car.kind===city.kind){for(let i=start;i<arr.length;i++){arr[i].amount=Math.max(100,Math.round(arr[i].amount*(1+(city.demand-1)*.35)/100)*100)}}}save()};
 const prevSubmit=submitBid;
 submitBid=function(){
  const before=new Set(s.stock.map(c=>c.id)),w=ensureWorld(),city=w.active;
