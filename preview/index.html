@@ -325,8 +325,7 @@ function refresh(){
  if(best){tip.innerHTML='<b>💡 Análise de compra</b><p class="tiny">Maior margem bruta potencial após reparo estimado: <b>'+esc(best.c.name)+'</b> · '+fmt(best.margin)+'. Não inclui impostos, tempo de estoque ou descontos na revenda.</p>'}
  else tip.innerHTML='<b>💡 Análise de compra</b><p class="tiny">Atualize os anúncios para descobrir oportunidades.</p>';
 }
-const oldRender=render;
-render=function(){oldRender();refresh()};
+window.aeRefreshVisualStats=refresh;
 refresh();drawScene();
 })();
 </script><script id="alpha091-management">
@@ -952,6 +951,7 @@ const oldRender=render;
 let scheduled=false;
 render=function(){
  oldRender();
+ if(typeof window.aeRefreshVisualStats==='function')window.aeRefreshVisualStats();
  if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;drawScene()})}
 };
 scene();
@@ -1217,5 +1217,24 @@ if(events){
 }
 const canvas=document.getElementById('scene');
 if(canvas&&typeof drawScene==='function')requestAnimationFrame(()=>drawScene());
+})();
+</script><script id="alpha122-quality">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.2.2';
+const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.2 · BUILD 1220';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.2 · QUALIDADE E SPRITES';
+const css=document.createElement('style');
+css.textContent='#garage>.scene-wrap{border:1px solid #678b9a!important;box-shadow:0 12px 24px #0007}#garage>#ae-garage-buttons{gap:6px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-slot-status{background:#1a303e}#ae-art-status{padding:8px 10px;margin-top:6px;border-radius:8px;background:#1b3542;color:#d1e7eb;font-size:12px}';
+document.head.appendChild(css);
+const art=document.getElementById('ae-art-check');
+if(art){
+ const status=document.createElement('div');status.id='ae-art-status';status.setAttribute('role','status');status.textContent='Verificando biblioteca de sprites…';art.appendChild(status);
+ const image=art.querySelector('img');
+ function check(){const ready=!!(image&&image.complete&&image.naturalWidth>0);status.textContent=ready?'✓ Biblioteca de veículos carregada':'⚠ A biblioteca de veículos não carregou. Atualize a página.';}
+ if(image){image.addEventListener('load',check);image.addEventListener('error',check);if(image.complete)check()}
+}
+const garage=document.getElementById('garage');
+if(garage){for(const node of garage.querySelectorAll('.panel')){if(node.textContent.includes('Novidades da Alpha 0.8.0'))node.remove()}}
 })();
 </script></body></html>
