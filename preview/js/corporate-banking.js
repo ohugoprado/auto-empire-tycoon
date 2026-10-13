@@ -5,6 +5,7 @@ const max=(v,a,b)=>Math.max(a,Math.min(b,v));
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
 function bank(){s.empire=s.empire||{};const b=s.empire.bank||(s.empire.bank={loans:[],history:[],score:60,missed:0,lastDay:0,buffer:5000,nextId:1});b.loans=Array.isArray(b.loans)?b.loans:[];b.history=Array.isArray(b.history)?b.history:[];b.score=max(Math.round(b.score==null?60:num(b.score)),0,100);return b}
 function debt(){return bank().loans.reduce((n,l)=>n+num(l.balance),0)}
+// Interest is quoted per 30-day month; contract terms are measured in days.
 function rate(){return Math.round(max(.0001,.007+(100-bank().score)*.00012+(Math.max(1,num(s.empire?.economy?.inflation))-1)*.004)*10000)/10000}
 function limit(){return Math.max(0,Math.round((10000+num(s.sales)*1500+num(s.rep)*220+bank().score*180-debt())/100)*100)}
 function log(type,amount){const b=bank();b.history.unshift({day:s.day,type,amount});b.history=b.history.slice(0,60)}
@@ -15,7 +16,7 @@ function borrow(amount,months){
  if(!Number.isFinite(amount)||amount<1000||amount>limit())return toast('Valor fora do limite de crédito');
  if(![30,60,90].includes(months))return toast('Prazo inválido');
  if(b.loans.filter(l=>num(l.balance)>0).length>=3)return toast('Máximo de 3 contratos ativos');
- const monthly=rate(),total=Math.round(amount*Math.pow(1+monthly,months));
+ const monthly=rate(),total=Math.round(amount*Math.pow(1+monthly,months/30));
  b.loans.push({id:b.nextId++,principal:amount,balance:total,monthlyRate:monthly,dailyPayment:Math.ceil(total/months),remaining:months,term:months,issued:s.day,grace:0,late:0});
  s.cash+=amount;entry('Empréstimo empresarial',amount);log('Crédito recebido',amount);note('Financiamento contratado: '+fmt(amount));save();render();toast('Crédito liberado');
 }
@@ -80,7 +81,7 @@ function draw(){
  body.innerHTML='<p class="ae-bank-note">Crédito fictício para o jogo. Pagamento automático diário. O saldo devido já inclui os juros do prazo contratado.</p><label for="ae-bank-amount">Valor do empréstimo (CR)</label><input id="ae-bank-amount" type="number" inputmode="numeric" min="1000" step="1000" max="'+available+'" value="'+Math.min(available,10000)+'"><label for="ae-bank-term">Prazo em dias</label><select id="ae-bank-term"><option value="30">30 dias</option><option value="60">60 dias</option><option value="90">90 dias</option></select><p id="ae-bank-forecast" class="ae-bank-note"></p><button id="ae-bank-borrow" '+(available<1000?'disabled':'')+'>Contratar empréstimo</button><h4>Contratos ativos</h4>'+(loans.map(l=>'<div class="ae-bank-contract"><b>Contrato #'+l.id+'</b> · '+fmt(l.balance)+' restantes<br>Parcela diária: '+fmt(Math.min(l.balance,l.dailyPayment))+' · '+l.remaining+' dias · atrasos: '+l.late+(l.grace?' · carência '+l.grace+' dias':'')+'<button data-repay="'+l.id+'" class="ghost smallbtn">Amortizar com caixa disponível</button><button data-defer="'+l.id+'" class="ghost smallbtn" '+(l.grace||b.score<35?'disabled':'')+'>Pedir carência (7 dias)</button></div>').join('')||'<p class="ae-bank-note">Nenhum contrato ativo.</p>')+'<h4>Movimentações recentes</h4>'+(b.history.slice(0,5).map(h=>'<p class="ae-bank-note">Dia '+h.day+' · '+esc(h.type)+' · '+fmt(h.amount)+'</p>').join('')||'<p class="ae-bank-note">Sem movimentações.</p>');
  if(previousAmount!==undefined)body.querySelector('#ae-bank-amount').value=previousAmount;
  if(previousTerm&&['30','60','90'].includes(previousTerm))body.querySelector('#ae-bank-term').value=previousTerm;
- const forecast=()=>{const amount=num(body.querySelector('#ae-bank-amount')?.value),term=num(body.querySelector('#ae-bank-term')?.value);body.querySelector('#ae-bank-forecast').textContent='Custo total previsto: '+fmt(Math.round(amount*Math.pow(1+rate(),term)))+' · parcela aproximada: '+fmt(Math.ceil(amount*Math.pow(1+rate(),term)/term))+'/dia'};
+ const forecast=()=>{const amount=num(body.querySelector('#ae-bank-amount')?.value),term=num(body.querySelector('#ae-bank-term')?.value);body.querySelector('#ae-bank-forecast').textContent='Custo total previsto: '+fmt(Math.round(amount*Math.pow(1+rate(),term/30)))+' · parcela aproximada: '+fmt(Math.ceil(amount*Math.pow(1+rate(),term/30)/term))+'/dia'};
  body.querySelector('#ae-bank-amount').addEventListener('input',forecast);body.querySelector('#ae-bank-term').addEventListener('change',forecast);forecast();
  body.querySelector('#ae-bank-borrow').addEventListener('click',()=>borrow(num(body.querySelector('#ae-bank-amount').value),num(body.querySelector('#ae-bank-term').value)));
  body.querySelectorAll('[data-repay]').forEach(btn=>btn.addEventListener('click',()=>repay(num(btn.dataset.repay))));
