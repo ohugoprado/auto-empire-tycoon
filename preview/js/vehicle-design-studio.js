@@ -58,11 +58,12 @@ function calculate(d){
  const engineering=d.safety+d.reliability+d.tech+d.comfort;
  const pos={budget:.88,standard:1,premium:1.22}[d.position]||1;
  const engine=ENGINE[d.engine]||ENGINE.equilibrado;
- const cost=Math.round(base*engine.factor*pos*(.72+engineering*.034)*(economy.inflation||1)/100)*100;
- const quality=limit(Math.round(46+engineering*2+engine.quality+(d.position==='premium'?7:0)),40,100);
+ const supplier=window.AEOperations?.getSupplier?.()||{factor:1,days:0,quality:0};
+ const cost=Math.round(base*engine.factor*pos*(.72+engineering*.034)*(economy.inflation||1)*supplier.factor/100)*100;
+ const quality=limit(Math.round(46+engineering*2+engine.quality+(d.position==='premium'?7:0)+supplier.quality),40,100);
  const value=Math.round(cost*(1.16+quality*.004)/100)*100;
  const research=Math.max(1,Math.round(engineering/4)+(d.engine==='eletrico'?5:0)+(d.position==='premium'?3:0));
- const days=Math.max(2,Math.round((CATEGORIES[d.kind]?.days||6)-(economy.factory.level-1)*1.4));
+ const days=Math.max(2,Math.round((CATEGORIES[d.kind]?.days||6)-(economy.factory.level-1)*1.4)+supplier.days);
  return {cost,quality,value,research,days};
 }
 function update(){
@@ -108,7 +109,7 @@ function produce(){
  if(!confirm('Produzir '+design.name+' por '+currency(cost)+' CR em '+fresh.days+' dias?'))return;
  s.cash-=cost;entry('Produção de modelo próprio · '+design.name,-cost);
  f.model=design.name;
- f.queue.push({model:design.name,kind:design.kind,cost,value:fresh.value,due:s.day+fresh.days,designId:design.id,quality:fresh.quality});
+ f.queue.push({model:design.name,kind:design.kind,cost,value:fresh.value,due:s.day+fresh.days,designId:design.id,quality:fresh.quality,supplier:window.AEOperations?.getSupplier?.().id||'standard'});
  note('Produção iniciada: '+design.name+' · conclusão prevista para o dia '+(s.day+fresh.days));
  save();render();
 }
