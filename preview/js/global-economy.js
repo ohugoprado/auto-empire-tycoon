@@ -25,6 +25,7 @@ function init(){
  if(!e.factory)e.factory={opened:false,name:'',level:1,produced:0,queue:[],brand:'',model:'Empire One'};
  const f=e.factory;f.level=clamp(Math.floor(Number(f.level)||1),1,4);f.produced=Math.max(0,Math.floor(Number(f.produced)||0));if(!Array.isArray(f.queue))f.queue=[];
  if(!e.trade)e.trade={completed:0,totalFees:0};
+ if(!e.regionalReputation||typeof e.regionalReputation!=='object')e.regionalReputation={};
  return e;
 }
 function crisisFor(cityId){const e=init(),c=e.crisis;if(c.id==='stable'||s.day>=c.end)return crisisTypes[0];const city=byId(cityId);if(c.region&&city?.country!==c.region)return crisisTypes[0];return c}
@@ -46,7 +47,6 @@ function updateDay(){
   const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'solara',manufactured:true};
   s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
  }
- const liabilities=Object.values(s.empire.staff||{}).reduce((a,n)=>a+(Number(n)||0),0);
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
  if(s.cash<0&&s.cash+liquidation<0)e.distressDays++;else e.distressDays=0;
  if(e.distressDays>=7){e.bankrupt=true;paused=true;note('FALÊNCIA: insolvência persistente por 7 dias. Campanha encerrada.');toast('Sua empresa entrou em falência.');}
@@ -112,7 +112,7 @@ panel.addEventListener('click',ev=>{
   const city=byId(target.trim()),from=byId(car.originCity),international=from?.country!==city?.country;
   const crisis=crisisFor(car.originCity),destinationCrisis=crisisFor(city.id);
   if(crisis.id==='war'||destinationCrisis.id==='war')return toast('Transporte bloqueado pelo conflito regional');
-  const fee=Math.round((international?3000:800)*e.inflation*Math.max(crisis.cost,destinationCrisis.cost));
+  const fee=Math.round((international?3000:800)*e.inflation*Math.max(crisis.cost,destinationCrisis.cost)*(international?1.12:1));
   if(!confirm('Transferir '+car.name+' para '+city.name+' por '+money(fee)+' CR?'))return;
   if(!transact(fee,'Logística · '+car.name))return;
   car.originCity=city.id;car.spent=(Number(car.spent)||0)+fee;e.trade.completed++;e.trade.totalFees+=fee;note('Transferência concluída para '+city.name);
@@ -138,8 +138,28 @@ submitBid=function(){if(init().bankrupt)return toast('Campanha encerrada');retur
 const previousPublish=publish;
 publish=function(){if(init().bankrupt)return toast('Campanha encerrada');return previousPublish()};
 const previousAccept=acceptOffer;
-acceptOffer=function(i){if(init().bankrupt)return toast('Campanha encerrada');return previousAccept(i)};
+acceptOffer=function(i){
+ if(init().bankrupt)return toast('Campanha encerrada');
+ const car=s.stock.find(c=>c.id===modalCar);
+ const crisis=crisisFor(car?.originCity||s.empire.world?.active);
+ if(crisis.id==='war')return toast('Vendas suspensas nesta região devido ao conflito. Aguarde a normalização ou transfira o veículo.');
+ const before=s.sales,oldCash=s.cash;
+ const result=previousAccept(i);
+ if(s.sales>before){
+  const city=byId(car?.originCity),country=city?.country||'Brasil';
+  const taxes={'Brasil':.035,'Estados Unidos':.025,'Reino Unido':.03,'França':.035,'Alemanha':.03,'Japão':.025,'Coreia do Sul':.025,'Emirados Árabes Unidos':.02,'Singapura':.02,'Austrália':.03,'Canadá':.03,'México':.025,'Argentina':.035,'Itália':.035,'Índia':.03};
+  const rate=taxes[country]||.03;
+  const received=Math.max(0,s.cash-oldCash);
+  const tax=Math.round(received*rate);
+  if(tax){s.cash-=tax;s.profit-=tax;entry('Tributo comercial · '+country,-tax);note('Tributo de '+country+': '+money(tax)+' CR')}
+  const e=init();e.regionalReputation[country]=Math.min(100,(Number(e.regionalReputation[country])||50)+1);
+  save();render();
+ }
+ return result;
+};
 const previousRender=render;
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 2.5.0 · ECONOMIA GLOBAL';document.title='Auto Empire Tycoon — Alpha 2.5.0';
+const version=document.getElementById('ae-version');if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 2.5.0 · BUILD 2500';
 let last='';
 render=function(){previousRender();const e=init(),key=[s.day,s.cash,s.stock.length,e.crisis.id,e.factory.opened,e.factory.queue.length,e.factory.level,e.distressDays,s.empire.world?.active].join('|');if(last!==key){last=key;show()}};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(show);
