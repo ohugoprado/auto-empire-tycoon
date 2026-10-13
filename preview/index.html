@@ -518,4 +518,103 @@ function update(){
 }
 update();
 })();
+</script><script id="alpha10-visual-and-market">
+(function(){
+'use strict';
+document.title='Auto Empire Tycoon — Alpha 1.0.0';
+const banner=document.getElementById('ae-version');
+if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.0 · BUILD 1000';
+const css=document.createElement('style');
+css.textContent='.scene-wrap{background:#101f2a;border:2px solid #567788;border-radius:13px;overflow:hidden;box-shadow:0 12px 30px #0006}#scene{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:manipulation}#ae-auction,#ae-rivals{margin:12px 0}#ae-auction .kv,#ae-rivals .kv{padding:7px 0}#ae-auction button{width:100%;margin-top:9px}';
+document.head.appendChild(css);
+const canvas=document.getElementById('scene'),market=document.getElementById('market'),reports=document.getElementById('reports');
+function polygon(ctx,pts,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fill()}
+function carShape(ctx,c,x,y){
+ const type=c.kind||'Hatch',color=c.color||'#67a8d8';
+ ctx.save();ctx.translate(x,y);
+ ctx.fillStyle='#26323a';ctx.fillRect(-20,5,40,7);
+ polygon(ctx,[[-25,0],[0,-13],[25,0],[0,13]],'#1e3038');
+ polygon(ctx,[[-23,-5],[0,-17],[23,-5],[0,7]],color);
+ const tall=type==='SUV'||type==='Picape',sport=type==='Esportivo';
+ polygon(ctx,[[-13,-9],[0,-17-(tall?6:0)],[sport?12:15,-10],[1,-2]],type==='Picape'?'#425e68':'#a9d5e3');
+ if(type==='Picape'){polygon(ctx,[[5,-7],[20,-1],[10,4],[-3,-2]],'#30434a')}
+ if(type==='Compacto'){ctx.fillStyle='#d9f4fa';ctx.fillRect(-5,-16,9,3)}
+ if(type==='Esportivo'){ctx.fillStyle='#ffdf7c';ctx.fillRect(15,-3,7,2)}
+ ctx.fillStyle='#10191f';ctx.fillRect(-17,3,7,4);ctx.fillRect(10,1,7,4);
+ ctx.restore();
+}
+// Stage 1: redraw garage from scratch with aligned slots and coherent touch targets.
+let activeSlot=0;
+const buttons=document.getElementById('ae-garage-buttons');
+if(buttons)buttons.addEventListener('click',e=>{const b=e.target.closest('[data-ae-slot]');if(b){activeSlot=Number(b.dataset.aeSlot);setTimeout(drawScene,0)}});
+if(canvas){
+ drawScene=function(){
+  const ctx=canvas.getContext('2d'),W=384,H=250;
+  ctx.imageSmoothingEnabled=false;
+  const sky=ctx.createLinearGradient(0,0,0,250);sky.addColorStop(0,'#294d63');sky.addColorStop(1,'#73959c');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#183d42';for(let i=0;i<11;i++){let x=i*39-8;ctx.fillRect(x,48+(i%3)*9,28,50)}
+  polygon(ctx,[[0,112],[188,28],[384,110],[190,208]],'#7e9c99');
+  polygon(ctx,[[0,122],[190,34],[384,124],[190,219]],'#304d57');
+  polygon(ctx,[[0,119],[190,34],[384,119],[190,210]],'#728f94');
+  polygon(ctx,[[18,114],[189,42],[364,119],[190,196]],'#9aaeb0');
+  for(let j=0;j<7;j++){ctx.strokeStyle='#7b959c';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(22,113+j*11);ctx.lineTo(190,42+j*11);ctx.stroke()}
+  polygon(ctx,[[14,74],[113,32],[203,73],[102,118]],'#172e3d');
+  polygon(ctx,[[16,78],[104,116],[104,160],[16,121]],'#244653');
+  polygon(ctx,[[104,116],[203,73],[203,118],[104,160]],'#385e69');
+  ctx.fillStyle='#80b3c3';for(let i=0;i<3;i++)polygon(ctx,[[115+i*27,111-i*12],[135+i*27,102-i*12],[135+i*27,121-i*12],[115+i*27,130-i*12]],'#83b9c9');
+  ctx.fillStyle='#f5d47e';ctx.font='bold 12px monospace';ctx.fillText('SOLARA',52,89);
+  const positions=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
+  for(let i=0;i<Math.min(s.slots,6);i++){
+   const [x,y]=positions[i];
+   polygon(ctx,[[x-29,y],[x,y-13],[x+29,y],[x,y+13]],i===activeSlot?'#e5c46a':'#516b73');
+   ctx.strokeStyle=i===activeSlot?'#fff3a0':'#b6cbd0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-27,y);ctx.lineTo(x,y-12);ctx.lineTo(x+27,y);ctx.lineTo(x,y+12);ctx.closePath();ctx.stroke();
+   const car=s.stock[i];if(car)carShape(ctx,car,x,y-1);
+   ctx.fillStyle=i===activeSlot?'#ffcf69':'#e2f1f5';ctx.fillRect(x-7,y+13,14,12);
+   ctx.fillStyle='#18323d';ctx.font='bold 10px monospace';ctx.fillText(String(i+1),x-3,y+22);
+  }
+  ctx.fillStyle='#172d39';ctx.fillRect(0,232,W,18);
+  ctx.fillStyle='#f5d47e';ctx.font='bold 10px monospace';ctx.fillText('CONCESSIONÁRIA SOLARA · '+s.stock.length+'/'+s.slots+' VEÍCULOS',10,244);
+ };
+ canvas.addEventListener('click',e=>{
+  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*384/r.width,y=(e.clientY-r.top)*250/r.height;
+  const pos=[[172,133],[225,113],[278,133],[140,173],[193,153],[246,173]];
+  let best=-1,d=1e6;
+  pos.slice(0,Math.min(s.slots,6)).forEach(([px,py],i)=>{const q=Math.hypot(x-px,y-py);if(q<d){d=q;best=i}});
+  if(best>=0&&d<32&&buttons){const b=buttons.querySelector('[data-ae-slot="'+best+'"]');if(b)b.click()}
+ });
+}
+// Stage 2: daily auction opportunity, cash-only, no separate debt mechanics.
+const auction=document.createElement('section');auction.id='ae-auction';auction.className='panel';
+if(market)market.appendChild(auction);
+function auctionOffer(){
+ const day=Math.floor(s.day/2),kind=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'][day%6];
+ const sample=(s.market||[]).find(c=>c.kind===kind)||(s.market||[])[0];
+ if(!sample)return null;
+ return {car:sample,price:Math.round(sample.ask*.83/100)*100,expires:s.day%2===0?'Hoje':'Amanhã'};
+}
+auction.addEventListener('click',e=>{
+ if(!e.target.closest('[data-ae-bid]'))return;
+ const o=auctionOffer();if(!o)return;
+ if(s.stock.length>=s.slots)return toast('Garagem lotada');
+ if(s.cash<o.price)return toast('Caixa insuficiente');
+ const c={...o.car,id:s.nextId++,bought:o.price,spent:0,listed:false,price:0,days:0,interested:false,offers:[]};
+ s.cash-=o.price;s.stock.push(c);
+ entry('Arremate em leilão · '+c.name,-o.price);note('Arrematou '+c.name+' por '+fmt(o.price));save();render();toast('Veículo arrematado!');
+});
+// Stage 3: rival dealerships and market pressure report, without fabricated market transactions.
+const rivals=document.createElement('section');rivals.id='ae-rivals';rivals.className='panel';
+if(reports)reports.appendChild(rivals);
+const oldRender=render;
+render=function(){oldRender();update()};
+function update(){
+ const o=auctionOffer();
+ auction.innerHTML='<b>🔨 Leilão regional</b><p class="tiny">Oportunidade de aquisição com desconto, sujeita ao estoque disponível. A oferta gira a cada dois dias.</p>'+
+ (o?'<div class="kv"><span>'+esc(o.car.name)+' · '+esc(o.car.kind)+'</span><b>'+fmt(o.price)+'</b></div><div class="tiny">Referência de mercado: '+fmt(o.car.ask)+' · Disponível: '+o.expires+'</div><button data-ae-bid type="button">Arrematar por '+fmt(o.price)+'</button>':'<p class="tiny">Nenhuma oportunidade disponível.</p>');
+ const rivalsData=[['Atlas Motors',1.08],['Norte Auto',.95],['Prime Select',1.16]];
+ rivals.innerHTML='<b>🏁 Concorrência regional</b><p class="tiny">Índice fictício de preço pedido em relação ao valor estimado do mercado. Painel informativo nesta versão.</p>'+
+ rivalsData.map(([name,m],i)=>'<div class="kv"><span>'+name+'</span><b>'+Math.round((m+Math.sin(s.day*.12+i)*.04)*100)+'%</b></div>').join('')+
+ '<div class="kv"><span>Reputação Solara</span><b>'+s.rep+'/100</b></div>';
+}
+update();drawScene();
+})();
 </script></body></html>
