@@ -1,0 +1,37 @@
+name: Validate game
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare browser tests outside the checkout
+        run: |
+          npm install --prefix "$RUNNER_TEMP/ae-browser-tests" --no-save --package-lock=false playwright@1.62.1
+          echo "NODE_PATH=$RUNNER_TEMP/ae-browser-tests/node_modules" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Select installed Chromium
+        run: |
+          AE_BROWSER=$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")
+          echo "AE_CHROMIUM_PATH=$AE_BROWSER" >> "$GITHUB_ENV"
+      - name: Check game logic and workflows
+        run: |
+          node tests/economy-smoke.test.js
+          node tests/runtime-performance.test.js
+          node tests/trading-identity.test.js
+          node tests/corporate-banking.test.js
+          node tests/visual-smoke.test.js
+          node tests/publication-smoke.test.js

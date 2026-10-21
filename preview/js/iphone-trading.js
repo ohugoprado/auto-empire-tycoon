@@ -55,37 +55,59 @@ function ordered(items,mode,type){
 function decorate(target,items,type){
  const root=document.getElementById(target);if(!root)return;
  const cards=[...root.children].filter(el=>el.classList?.contains('panel'));
- // The original game renders one card per vehicle in array order.
  if(cards.length!==items.length)return;
  const orderedItems=ordered(items,prefs[type],type);
- const byId=new Map(items.map((item,i)=>[item.id,cards[i]]));
- const frag=document.createDocumentFragment();
+ // Other modules can sort/filter these same nodes before this refresher runs.
+ // Read stable vehicle identity, never infer it from the current DOM position.
+ const byId=new Map();
+ const itemIds=new Set(items.map(car=>String(car.id)));
+ for(const card of cards){
+  const vehicle=card.querySelector('.vehicle[data-car-id]');
+  let carId=vehicle?.dataset.carId||card.dataset.carId||card.dataset.aeCarId;
+  // Legacy cards predate data attributes; their action handler contains the ID.
+  if(!carId){
+   for(const action of card.querySelectorAll('[onclick]')){
+    const match=action.getAttribute('onclick').match(/\b(?:buyDialog|listDialog|offersDialog|repair)\s*\(\s*(\d+)\s*\)/);
+    if(match){carId=match[1];break}
+   }
+  }
+  if(!itemIds.has(String(carId))||byId.has(String(carId)))return;
+  byId.set(String(carId),card);
+ }
+ let anchor=cards[0]||null;
  for(const car of orderedItems){
-  const card=byId.get(car.id);if(!card)continue;
+  const card=byId.get(String(car.id));if(!card)continue;
   let chip=card.querySelector('.ae-trade-chip');
   if(!chip){chip=document.createElement('div');chip.className='ae-trade-chip';card.insertBefore(chip,card.firstChild)}
+  let label,negative;
   if(type==='stock'){
    const offers=car.offers||[],top=bestOffer(car);
    const value=top||amount(car.price)||amount(car.value);
    const margin=value-basis(car);
-   chip.textContent=(offers.length?'Propostas: '+offers.length+' · ':'')+(top?'Lucro da melhor proposta: ':'Margem potencial: ')+fmt(margin);
-   chip.classList.toggle('negative',margin<0);
+   label=(offers.length?'Propostas: '+offers.length+' · ':'')+(top?'Lucro da melhor proposta: ':'Margem potencial: ')+fmt(margin);
+   negative=margin<0;
   }else{
    const difference=estimatedMargin(car);
-   chip.textContent='Diferença para avaliação: '+(difference>=0?'+':'')+fmt(difference);
-   chip.classList.toggle('negative',difference<0);
+   label='Diferença para avaliação: '+(difference>=0?'+':'')+fmt(difference);
+   negative=difference<0;
   }
-  frag.append(card);
+  if(chip.textContent!==label)chip.textContent=label;
+  chip.classList.toggle('negative',negative);
+  // Leave correctly positioned nodes (and their focus/hidden state) untouched.
+  while(anchor&&!anchor.classList.contains('panel'))anchor=anchor.nextElementSibling;
+  if(card===anchor)anchor=anchor.nextElementSibling;
+  else root.insertBefore(card,anchor);
  }
- root.append(frag);
 }
 function refresh(){
  if(!s)return;
  decorate('stock',s.stock,'stock');decorate('listings',s.market,'market');
  const stockSummary=document.getElementById('ae-trade-stock-summary');
- if(stockSummary)stockSummary.textContent=s.stock.length+' veículo(s) · '+s.stock.filter(c=>c.listed).length+' anunciado(s) · '+s.stock.reduce((n,c)=>n+(c.offers?.length||0),0)+' proposta(s)';
+ const stockText=s.stock.length+' veículo(s) · '+s.stock.filter(c=>c.listed).length+' anunciado(s) · '+s.stock.reduce((n,c)=>n+(c.offers?.length||0),0)+' proposta(s)';
+ if(stockSummary&&stockSummary.textContent!==stockText)stockSummary.textContent=stockText;
  const marketSummary=document.getElementById('ae-trade-market-summary');
- if(marketSummary)marketSummary.textContent=s.market.length+' oportunidade(s) · diferença para avaliação não inclui reparos, impostos ou negociação';
+ const marketText=s.market.length+' oportunidade(s) · diferença para avaliação não inclui reparos, impostos ou negociação';
+ if(marketSummary&&marketSummary.textContent!==marketText)marketSummary.textContent=marketText;
 }
 const prevRender=render;
 render=function(){prevRender();refresh()};

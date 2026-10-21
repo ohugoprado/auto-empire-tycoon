@@ -1,12 +1,12 @@
 /* Alpha 3.6 — Corporate banking for iPhone. Fictional credits, not real financial products. */
 (function(){
 'use strict';
-const max=(v,a,b)=>Math.max(a,Math.min(b,v));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
-function bank(){s.empire=s.empire||{};const b=s.empire.bank||(s.empire.bank={loans:[],history:[],score:60,missed:0,lastDay:0,buffer:5000,nextId:1});b.loans=Array.isArray(b.loans)?b.loans:[];b.history=Array.isArray(b.history)?b.history:[];b.score=max(Math.round(b.score==null?60:num(b.score)),0,100);return b}
+function bank(){s.empire=s.empire||{};const b=s.empire.bank||(s.empire.bank={loans:[],history:[],score:60,missed:0,lastDay:0,buffer:5000,nextId:1});b.loans=Array.isArray(b.loans)?b.loans:[];b.history=Array.isArray(b.history)?b.history:[];b.score=clamp(Math.round(b.score==null?60:num(b.score)),0,100);return b}
 function debt(){return bank().loans.reduce((n,l)=>n+num(l.balance),0)}
 // Interest is quoted per 30-day month; contract terms are measured in days.
-function rate(){return Math.round(max(.0001,.007+(100-bank().score)*.00012+(Math.max(1,num(s.empire?.economy?.inflation))-1)*.004)*10000)/10000}
+function rate(){return Math.round(Math.max(.0001,.007+(100-bank().score)*.00012+(Math.max(1,num(s.empire?.economy?.inflation))-1)*.004)*10000)/10000}
 function limit(){return Math.max(0,Math.round((10000+num(s.sales)*1500+num(s.rep)*220+bank().score*180-debt())/100)*100)}
 function log(type,amount){const b=bank();b.history.unshift({day:s.day,type,amount});b.history=b.history.slice(0,60)}
 function borrow(amount,months){
@@ -26,14 +26,14 @@ function repay(id){
  if(payment<=0)return toast('Caixa insuficiente após a reserva de segurança');
  l.balance=Math.max(0,num(l.balance)-payment);l.remaining=Math.max(0,Math.ceil(l.balance/Math.max(1,l.dailyPayment)));
  s.cash-=payment;entry('Amortização de empréstimo',-payment);log('Amortização',-payment);
- if(l.balance===0){b.loans=b.loans.filter(x=>x!==l);b.score=max(b.score+3,0,100)}
+ if(l.balance===0){b.loans=b.loans.filter(x=>x!==l);b.score=clamp(b.score+3,0,100)}
  save();render();toast('Amortização: '+fmt(payment));
 }
 function defer(id){
  const b=bank(),l=b.loans.find(x=>x.id===id);if(!l||l.grace>0)return toast('Carência indisponível');
  if(b.score<35)return toast('Score insuficiente para carência');
  const fee=Math.ceil(num(l.balance)*.015);
- l.balance+=fee;l.grace=7;b.score=max(0,b.score-3);
+ l.balance+=fee;l.grace=7;b.score=clamp(b.score-3,0,100);
  log('Carência contratada',fee);note('Carência de 7 dias: custo adicional '+fmt(fee));save();render();
 }
 function daily(){
@@ -45,9 +45,9 @@ function daily(){
   if(s.cash>=due){
    s.cash-=due;l.balance=Math.max(0,l.balance-due);l.remaining=Math.max(0,l.remaining-1);l.late=0;
    entry('Parcela do financiamento',-due);log('Parcela paga',-due);
-   if(l.balance===0){b.loans=b.loans.filter(x=>x!==l);b.score=max(0,Math.min(100,b.score+2))}
+   if(l.balance===0){b.loans=b.loans.filter(x=>x!==l);b.score=clamp(b.score+2,0,100)}
   }else{
-   l.late++;b.missed++;b.score=max(0,b.score-2);
+   l.late++;b.missed++;b.score=clamp(b.score-2,0,100);
    const penalty=Math.ceil(l.balance*.002);l.balance+=penalty;
    log('Parcela em atraso',penalty);
    if(l.late>=5){note('Banco alerta: financiamento em atraso há '+l.late+' dias.');}
@@ -76,7 +76,7 @@ function draw(){
  if(panel.contains(document.activeElement)&&['INPUT','SELECT'].includes(document.activeElement.tagName))return;
  const b=bank(),loans=b.loans,owed=debt(),available=limit();
  const previousAmount=panel.querySelector('#ae-bank-amount')?.value;const previousTerm=panel.querySelector('#ae-bank-term')?.value;
- panel.innerHTML='<h3>🏦 Banco empresarial</h3><div class="ae-bank-grid"><div><small>Crédito disponível</small><strong>'+fmt(available)+'</strong></div><div><small>Dívida total</small><strong>'+fmt(owed)+'</strong></div><div><small>Score de crédito</small><strong>'+b.score+'/100</strong></div><div><small>Juros diários estimados</small><strong>'+(rate()*100).toFixed(2).replace('.',',')+'%</strong></div></div><button id="ae-bank-toggle" class="ghost smallbtn" aria-expanded="'+expanded+'">'+(expanded?'Ocultar':'Gerenciar')+' financiamentos</button><div id="ae-bank-body" '+(expanded?'':'hidden')+'></div>';
+ panel.innerHTML='<h3>🏦 Banco empresarial</h3><div class="ae-bank-grid"><div><small>Crédito disponível</small><strong>'+fmt(available)+'</strong></div><div><small>Dívida total</small><strong>'+fmt(owed)+'</strong></div><div><small>Score de crédito</small><strong>'+b.score+'/100</strong></div><div><small>Juros mensais estimados</small><strong>'+(rate()*100).toFixed(2).replace('.',',')+'%</strong></div></div><button id="ae-bank-toggle" class="ghost smallbtn" aria-expanded="'+expanded+'">'+(expanded?'Ocultar':'Gerenciar')+' financiamentos</button><div id="ae-bank-body" '+(expanded?'':'hidden')+'></div>';
  const body=panel.querySelector('#ae-bank-body');
  body.innerHTML='<p class="ae-bank-note">Crédito fictício para o jogo. Pagamento automático diário. O saldo devido já inclui os juros do prazo contratado.</p><label for="ae-bank-amount">Valor do empréstimo (CR)</label><input id="ae-bank-amount" type="number" inputmode="numeric" min="1000" step="1000" max="'+available+'" value="'+Math.min(available,10000)+'"><label for="ae-bank-term">Prazo em dias</label><select id="ae-bank-term"><option value="30">30 dias</option><option value="60">60 dias</option><option value="90">90 dias</option></select><p id="ae-bank-forecast" class="ae-bank-note"></p><button id="ae-bank-borrow" '+(available<1000?'disabled':'')+'>Contratar empréstimo</button><h4>Contratos ativos</h4>'+(loans.map(l=>'<div class="ae-bank-contract"><b>Contrato #'+l.id+'</b> · '+fmt(l.balance)+' restantes<br>Parcela diária: '+fmt(Math.min(l.balance,l.dailyPayment))+' · '+l.remaining+' dias · atrasos: '+l.late+(l.grace?' · carência '+l.grace+' dias':'')+'<button data-repay="'+l.id+'" class="ghost smallbtn">Amortizar com caixa disponível</button><button data-defer="'+l.id+'" class="ghost smallbtn" '+(l.grace||b.score<35?'disabled':'')+'>Pedir carência (7 dias)</button></div>').join('')||'<p class="ae-bank-note">Nenhum contrato ativo.</p>')+'<h4>Movimentações recentes</h4>'+(b.history.slice(0,5).map(h=>'<p class="ae-bank-note">Dia '+h.day+' · '+esc(h.type)+' · '+fmt(h.amount)+'</p>').join('')||'<p class="ae-bank-note">Sem movimentações.</p>');
  if(previousAmount!==undefined)body.querySelector('#ae-bank-amount').value=previousAmount;
