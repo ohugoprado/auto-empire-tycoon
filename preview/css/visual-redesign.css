@@ -171,6 +171,7 @@ body.ae-redesign #ae-studio .ae-studio-grid input,body.ae-redesign #ae-studio .a
 body.ae-redesign #ae-studio .ae-studio-grid input[type=range]{accent-color:#55715a!important;min-height:36px!important;border:0!important;padding:0!important;background:transparent!important}
 body.ae-redesign .ae-management-extra{margin-top:15px;padding:0 17px;border:1px solid #d0d8c5;border-radius:11px;background:#fbfcf3;overflow:hidden}
 body.ae-redesign .ae-management-extra>summary{min-height:56px;padding:17px 0;cursor:pointer;font-size:13px;font-weight:650;color:#3a5b3e}
+body.ae-redesign #ae-business-section #ae-empire-level,body.ae-redesign #ae-business-section #ae-test-toggle{color:#35574d!important}
 body.ae-redesign .ae-management-extra>section{margin:0 0 16px!important}
 body.ae-redesign #ae-trade-intelligence,body.ae-redesign #ae-tools{background:#f0f3e7!important;border-color:#ccd8c0!important}
 body.ae-redesign #ae-trade-intelligence .ae-intel-metric{background:#fffdf7!important;border-color:#d3ddca!important}
