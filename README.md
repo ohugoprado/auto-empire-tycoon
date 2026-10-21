@@ -35,7 +35,7 @@ Os sprites compartilham um atlas WebP sem perda em `preview/assets/fleet-atlas.w
 
 O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. A economia e o formato dos salvamentos foram preservados.
 
-O service worker registra a versão `motor-district-5100`, atualiza arquivos pela rede e mantém a interface completa em cache para uso offline. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O service worker registra a versão `motor-district-5101`, atualiza arquivos pela rede e mantém a interface completa em cache para uso offline. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Limitações
 

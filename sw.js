@@ -1,7 +1,7 @@
 /* Motor District: network-first updates with a complete offline application shell. */
 'use strict';
 const PREFIX = 'auto-empire-';
-const CACHE = PREFIX + 'motor-district-5100';
+const CACHE = PREFIX + 'motor-district-5101';
 const ASSETS = [
   "./",
   "./index.html",
@@ -42,7 +42,7 @@ const ASSETS = [
   "./preview/js/visual-redesign.js?v=5100",
   "./preview/js/runtime-performance.js?v=5100",
   "./preview/js/pwa-updates.js?v=5100",
-  "./preview/css/visual-redesign.css?v=5100"
+  "./preview/css/visual-redesign.css?v=5101"
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
