@@ -12,8 +12,8 @@ A próxima entrega deve tornar esse ciclo confiável e agradável no iPhone. O a
 
 | Área | O que existe | O que ainda falta comprovar |
 | --- | --- | --- |
-| Visual | Interface Motor District, seis categorias de sprites, showroom e galeria | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
-| Comércio | Compra, vistoria, reparos, anúncios, propostas e contrapropostas | Venda completa, múltiplas rodadas e campanhas longas em iPhone |
+| Visual | Novo visual navy/azul/mint, oito carrocerias e cinco pinturas por modelo, showroom e galeria interativa | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
+| Comércio | Compra até venda, guia opcional, custos comparáveis e regressão integrada com folha/dívida/tributos | Campanhas longas e experiência completa em iPhone físico |
 | Compradores | Arquétipos, compatibilidade, histórico e fidelidade agregados | Clientes individuais persistentes que retornam com memória |
 | Banco | Empréstimos, parcelas, amortização, carência e score; regressão dedicada | Integração econômica de longo prazo e uso pelo Safari |
 | Equipe | Quadro único, migração dos dois sistemas antigos e folha mensal única | Balanceamento de campanhas longas e conferência no Safari real |
@@ -35,7 +35,8 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 - [x] Unificar `s.staff` e `s.empire.staff`, com migração idempotente, benefícios antigos preservados e uma única folha a cada 30 dias simulados. Funcionários pagos acima do limite novo são mantidos; não há nova taxa de contratação na migração.
 - [x] Automatizar WebKit com toque e o perfil oficial do iPhone 17 Pro Max, registrando separadamente o limite de navegação offline do ambiente.
 - [ ] Validar Safari e tela inicial em aparelhos reais, seguindo [o roteiro de teste do iPhone](docs/TESTE-IPHONE.md), começando pelo iPhone 17 Pro Max informado.
-- [ ] Testar uma campanha completa de revenda e uma de produção, incluindo custo, entrega, venda, folha, dívida e retorno após fechar o app.
+- [x] Testar um ciclo completo de revenda, incluindo vistorias, reparo, anúncio, propostas da simulação, venda, tributos, folha, dívida e recarga, em Chromium e WebKit.
+- [ ] Testar uma campanha industrial completa, incluindo projeto, insumos, produção, entrega, venda e custos por período.
 - [ ] Reduzir os estilos e as sobrescritas de funções antigos por partes, preservando o comportamento com testes de regressão.
 
 **Critérios de conclusão:** importar/exportar não troca nem sobrescreve a campanha errada; compras e vendas sobrevivem à reabertura; os fluxos essenciais passam em Safari e tela inicial em iPhone pequeno e em modelo com recorte superior; não há controles encobertos pelo teclado, barra inferior ou indicador Home. Registrar modelo, versão do iOS e resultado. Sem esses registros, a compatibilidade permanece pendente.
@@ -44,12 +45,13 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 **Resultado esperado:** o jogador entender seu primeiro negócio e conseguir escolher o próximo.
 
-- Tutorial curto, opcional e retomável: escolher um carro, avaliar custos, comprar, preparar, anunciar e responder à proposta. Reutilizar os sistemas atuais.
-- Um próximo passo claro por tela e indicação explícita de simulação pausada ou em andamento.
-- Mostrar custo de aquisição, reparos, preço anunciado e lucro bruto esperado juntos. Separar estimativas, resultado realizado e despesas operacionais.
-- Trocar os `prompt()` de ações frequentes por formulários adequados ao toque, com teclado numérico, validação e confirmação do custo.
-- Alertas de propostas e tarefas úteis, agrupados e sem interromper a negociação.
-- Feedback curto de compra, reparo e venda, com opção de reduzir animações e som.
+- [x] Guia opcional e retomável: comparar, comprar, avaliar preparação, anunciar, aguardar e analisar propostas. Usa ações reais e salva por campanha.
+- [x] Próximo passo contextual e indicação de simulação pausada/em andamento. Avançar um dia é explícito e mantém despesas e riscos normais.
+- [x] Compra, despesas no veículo, investimento, preço e lucro bruto estimado juntos. Tributos e despesas operacionais são indicados à parte.
+- [x] Painel de oito marcos reais, com progresso visível e acesso à ação correspondente. Não há sequência diária nem penalidade por ausência.
+- [ ] Trocar os `prompt()` restantes de ações frequentes por formulários adequados ao toque, com teclado numérico, validação e confirmação do custo.
+- [ ] Consolidar alertas de propostas e tarefas úteis, agrupados e sem interromper a negociação.
+- [ ] Ampliar o feedback de compra, reparo e venda, com opções de animação e som. A redução de movimento já é respeitada pelo novo visual.
 
 **Meta proposta:** observar cinco novos jogadores e buscar que pelo menos quatro concluam uma primeira venda sem ajuda externa em até 15 minutos. Este é um objetivo a medir, não um resultado alcançado. Ajustar a progressão se o tempo de espera dominar a sessão.
 
@@ -71,7 +73,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 **Resultado esperado:** reconhecer a evolução da empresa ao voltar ao jogo.
 
 - Estágios visuais da garagem: espaço inicial, loja de bairro, showroom e rede. Vincular cada mudança a um marco e a uma capacidade útil.
-- Mais variações dos sprites existentes, começando por cores e estados de conservação. Preservar a identidade do carro entre mercado, estoque e ficha.
+- Base entregue: oito modelos exclusivos, cinco pinturas por modelo e identidade preservada entre mercado, estoque e ficha. Próximo aprofundamento: estados visuais de conservação e acabamentos, com custos e efeitos claros.
 - Especializações com vantagens e custos: usados econômicos, utilitários, esportivos ou restauração. Evitar uma escolha claramente superior em todas as campanhas.
 - Treinamento e funções de equipe após a consolidação da etapa 1; mostrar o custo e o efeito de cada contratação.
 - Objetivos alternativos: reputação, eficiência, coleção ou expansão. As conquistas atuais devem ser ampliadas e balanceadas.
@@ -111,9 +113,9 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 ## Próxima entrega recomendada
 
-As correções de backup e dos diálogos, a equipe unificada e a passagem automatizada por WebKit fazem parte da versão `motor-district-5201`. A próxima validação é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar os cenários econômicos de revenda e produção.
+Na versão `motor-district-6000`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 40 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
 
-Depois disso, preparar o tutorial da primeira venda. Cada entrega deve declarar o que foi implementado, o que foi testado e quais aparelhos foram usados.
+A próxima validação externa é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar o cenário industrial e observar novos jogadores antes de ajustar o ritmo ou criar mais mecânicas. A meta de quatro entre cinco jogadores concluindo uma primeira venda ainda não foi medida.
 
 ## Relação com o backlog antigo
 

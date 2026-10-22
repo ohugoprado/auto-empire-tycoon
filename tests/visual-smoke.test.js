@@ -111,10 +111,10 @@ async function assertSprites(page) {
   }, classes);
   check(atlas.decoded, 'Sprite atlas decodes successfully in Chromium');
   for (const sprite of atlas.sprites) {
-    check(sprite.source?.includes('fleet-atlas.webp'), sprite.kind + ': uses the new sprite atlas');
+    check(/fleet-models-[ab]\.webp/.test(sprite.source || ''), sprite.kind + ': uses the new sprite atlas');
     check(sprite.crop && sprite.crop.split(/[ ,]+/).map(Number).every(Number.isFinite), sprite.kind + ': has a valid crop');
   }
-  check(new Set(atlas.sprites.map(sprite => sprite.crop)).size === classes.length,
+  check(new Set(atlas.sprites.map(sprite => sprite.source + ':' + sprite.crop)).size === classes.length,
     'All six vehicle categories have different sprite crops');
 }
 

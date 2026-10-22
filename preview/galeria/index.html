@@ -3,60 +3,103 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#163538">
-<title>Coleção de veículos · Auto Empire Tycoon</title>
-<style>
-:root{color-scheme:light;--bg:#f4f1e9;--surface:#fffdf7;--line:#d7ded3;--mint:#55715a;--coral:#bb5039;--ink:#163538;--muted:#63736a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-*{box-sizing:border-box}body{margin:0;min-width:0;min-height:100dvh;background:radial-gradient(ellipse at 85% 0,#dbe4cf66,transparent 45%),var(--bg);-webkit-text-size-adjust:100%}button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid var(--coral);outline-offset:5px}
-main{max-width:1120px;margin:auto;padding:calc(22px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(32px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
-.top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px;border-radius:16px;background:#163538;color:#f4f1e9;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;min-width:0}.monogram{display:grid;place-items:center;flex:none;width:38px;height:38px;border:1px solid #5f8573;border-radius:12px;color:#d0dbc9;font-size:14px;font-weight:900;letter-spacing:-1px}.brand strong{display:block;font-size:11px;letter-spacing:.1em;line-height:1.5}.brand small{display:block;font-size:11px;color:#d0dbc9}.back{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;min-height:44px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--ink);font-size:12px;font-weight:750;text-decoration:none}.back:hover{border-color:var(--mint)}
-.intro{padding:35px 0 28px;max-width:650px}.eyebrow{display:flex;align-items:center;gap:9px;color:var(--mint);font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.eyebrow::before{content:'';width:6px;height:6px;flex:none;border-radius:50%;background:var(--mint)}h1{font-size:clamp(32px,6.5vw,58px);line-height:1.05;letter-spacing:-.055em;margin:16px 0}h1 em{font-style:normal;color:var(--mint)}.intro p{max-width:470px;margin:0;color:var(--muted);font-size:14px;line-height:1.7}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:13px}.section-head h2{margin:0;font-size:13px;font-weight:750}.collection-count{font-size:10px;letter-spacing:.1em;color:var(--muted)}
-.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:13px}.car{min-width:0;display:flex}.car-button{display:flex;flex-direction:column;width:100%;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--ink);text-align:left;transition:border-color .16s,transform .16s}.car-button:hover{border-color:#83ae98;transform:translateY(-2px)}.car-button:active{transform:scale(.985)}
-.art{width:100%;display:grid;place-items:center;position:relative;aspect-ratio:1.18;overflow:hidden;padding:14px;background:radial-gradient(ellipse at 50% 62%,#d5ddcc99,transparent 65%),linear-gradient(145deg,#e9edde,#f6f2e8);border-bottom:1px solid var(--line)}.art::before{content:'';position:absolute;inset:0;background-image:linear-gradient(#9fc0af08 1px,transparent 1px),linear-gradient(90deg,#9fc0af08 1px,transparent 1px);background-size:28px 28px;pointer-events:none}svg.ae-sprite{position:relative;display:block;width:100%;height:auto;aspect-ratio:auto;overflow:hidden}
-.info{display:flex;flex:1;flex-direction:column;width:100%;padding:15px}.info-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.category{font-size:17px;font-weight:800;letter-spacing:-.025em}.number{font:11px ui-monospace,SFMono-Regular,Consolas,monospace;color:#586c68}.model{display:block;color:var(--mint);font-size:11px;margin:5px 0 10px;font-weight:650}.description{display:block;flex:1;color:var(--muted);font-size:11px;line-height:1.55;min-height:34px}.inspect{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #30413f99;color:var(--coral);font-size:11px;font-weight:750}.inspect span:last-child{font-size:17px;line-height:1}.arrow-icon{display:block;width:14px;height:14px;flex:none}
-.note{display:flex;gap:12px;align-items:flex-start;margin:25px 0 0;padding:16px;border:1px solid var(--line);border-radius:13px;color:var(--muted);font-size:12px;line-height:1.65}.note-mark{color:var(--mint);font-weight:800;font-size:16px;line-height:1.35}footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:27px;padding-top:17px;border-top:1px solid var(--line);font-size:10px;color:#586c68;line-height:1.6}
-dialog{width:calc(100% - 32px);max-width:680px;max-height:calc(100dvh - 32px);overflow:auto;margin:auto;padding:0;border:1px solid #617e6d;border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 24px 100px #0008;overscroll-behavior:contain}dialog::backdrop{background:#050c11e8;backdrop-filter:blur(5px)}.zoom-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 18px 0}.zoom-top p{margin:0;color:var(--mint);font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.close{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#e9edde;color:var(--ink);font-size:12px;font-weight:700}#zoom-art{margin:15px 18px 0;border:1px solid var(--line);border-radius:13px;aspect-ratio:1.18}.zoom-copy{padding:20px}.zoom-copy h2{margin:0;font-size:27px;letter-spacing:-.04em}#zoom-model{margin:6px 0 12px;color:var(--mint);font-size:12px;font-weight:650}#zoom-desc{margin:0;font-size:13px;line-height:1.7;color:var(--muted)}body:has(dialog[open]){overflow:hidden}
-@media(min-width:370px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.art{padding:8px}.category{font-size:15px}.info{padding:13px}.top .back{font-size:11px;padding:10px}.brand strong{font-size:10px}}
-@media(min-width:800px){main{padding-left:36px;padding-right:36px}.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.art{padding:18px}.info{padding:20px}.category{font-size:19px}.description{font-size:12px}.intro{padding-top:50px;padding-bottom:38px}}
-@media(max-width:360px){.top{align-items:flex-start}.brand strong{max-width:90px;font-size:10px}.brand small{font-size:10px}.back{padding:9px 10px;font-size:11px}.monogram{width:32px;height:36px}.brand{gap:8px}.intro{padding-top:28px}.collection-count{font-size:9px}}
-@media(prefers-reduced-motion:reduce){.car-button{transition:none}.car-button:hover{transform:none}}
-</style>
+<meta name="theme-color" content="#15263b">
+<title>Oito modelos, quarenta variações · Auto Empire Tycoon</title>
+<link rel="stylesheet" href="../css/vehicle-collection.css?v=6000">
 </head>
-<body>
+<body class="ae-collection-page">
 <main>
-<header class="top"><div class="brand"><span class="monogram" aria-hidden="true">AE</span><div><strong>AUTO EMPIRE</strong><small>Tycoon · coleção</small></div></div><a class="back" href="../"><span aria-hidden="true">←</span> Voltar à garagem</a></header>
-<div class="intro"><div class="eyebrow">O próximo capítulo da sua frota</div><h1>Seis silhuetas.<br><em>Um novo império.</em></h1><p>Do primeiro compacto ao esportivo dos sonhos. Conheça cada categoria e encontre a próxima oportunidade da sua garagem.</p></div>
-<div class="section-head"><h2>Coleção de veículos</h2><span class="collection-count">06 CATEGORIAS</span></div>
-<section class="grid" id="collection" aria-label="Seis categorias de veículos"></section>
-<p class="note"><span class="note-mark" aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12 12 4M4 4h8v8" stroke="currentColor" stroke-width="1.5"/></svg></span><span>Toque em um veículo para ver de perto. A mesma coleção acompanha suas negociações e seu estoque durante o jogo.</span></p>
-<footer><span>Auto Empire Tycoon · coleção original</span><span>Seu progresso permanece salvo.</span></footer>
+<header class="vc-top"><div class="vc-brand"><span class="vc-monogram" aria-hidden="true">AE</span><div><strong>AUTO EMPIRE</strong><small>Catálogo da concessionária</small></div></div><a class="back vc-back" href="../"><span aria-hidden="true">←</span> Voltar ao jogo</a></header>
+<section class="vc-intro" aria-labelledby="collection-title"><div class="vc-eyebrow">Escolha sua próxima conquista</div><h1 id="collection-title">Um modelo.<br><em>Cinco personalidades.</em></h1><p>Oito carrocerias com identidade própria. Explore as cinco pinturas de cada modelo e veja os detalhes antes de voltar ao mercado.</p><div class="vc-totals"><span><b>8</b> modelos</span><span><b>40</b> imagens</span><span><b>5</b> cores por modelo</span></div></section>
+<div class="vc-section-head"><h2>Encontre o seu estilo</h2><span>COLEÇÃO ORIGINAL</span></div>
+<section class="grid vc-grid" id="collection" aria-label="Oito modelos com cinco cores cada"></section>
+<p class="vc-note">As cores desta página servem para explorar o catálogo. No jogo, cada veículo mantém sua própria pintura ao passar pelo mercado, estoque e negociação.</p>
+<footer><span>Auto Empire Tycoon · modelos fictícios</span><span>Seu progresso permanece salvo.</span></footer>
 </main>
-<dialog id="zoom" aria-labelledby="zoom-name" aria-describedby="zoom-desc"><div class="zoom-top"><p>Detalhe da coleção</p><button class="close" type="button" id="close">Fechar <span aria-hidden="true">×</span></button></div><div class="art" id="zoom-art"></div><div class="zoom-copy"><h2 id="zoom-name"></h2><p id="zoom-model"></p><p id="zoom-desc"></p></div></dialog>
-<script src="../js/vehicle-sprites.js?v=5100"></script>
+<dialog id="zoom" aria-labelledby="zoom-name" aria-describedby="zoom-desc"><div class="vc-zoom-top"><p>Detalhe do modelo</p><button class="vc-close" type="button" id="close">Fechar <span aria-hidden="true">×</span></button></div><div class="art vc-art" id="zoom-art"></div><div class="vc-zoom-copy"><h2 id="zoom-name"></h2><p id="zoom-model"></p><p id="zoom-desc"></p><div id="zoom-paints"></div><p class="vc-paint-label" id="zoom-paint-label" aria-live="polite"></p></div></dialog>
+<script src="../js/vehicle-sprites.js?v=6000"></script>
 <script>
-(()=>{
-'use strict';
-const campaign=new URLSearchParams(location.search).get('campaign');
-if(campaign==='main')document.querySelector('a.back').href='../?campaign=main';
-const vehicles=[
-{kind:'Hatch',name:'Velox City',description:'Ágil nas ruas, versátil nos planos. Cabine alta e carroceria urbana.'},
-{kind:'SUV',name:'Montara Cross',description:'Presença robusta e espaço para ir além. Uma nova perspectiva da cidade.'},
-{kind:'Sedã',name:'Aureon Sedan',description:'Linhas alongadas, perfil elegante. Conforto para cada novo destino.'},
-{kind:'Picape',name:'Ravik Utility',description:'Força para os grandes projetos. Caçamba aberta e espírito de trabalho.'},
-{kind:'Compacto',name:'Nexo Compact',description:'Pequeno no tamanho, grande nas possibilidades. Sua primeira conquista.'},
-{kind:'Esportivo',name:'Altis Sport',description:'Perfil baixo e atitude marcante. O desejo que faz a garagem crescer.'}
-];
-const collection=document.getElementById('collection'),dialog=document.getElementById('zoom'),title=document.getElementById('zoom-name'),model=document.getElementById('zoom-model'),description=document.getElementById('zoom-desc'),art=document.getElementById('zoom-art');
-for(const [index,vehicle] of vehicles.entries()){
- const card=document.createElement('article');card.className='car';
- const button=document.createElement('button');button.className='car-button';button.type='button';
- button.setAttribute('aria-label','Ampliar '+vehicle.kind+' — '+vehicle.name);button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','zoom');
- button.innerHTML='<span class="art">'+window.AESprites.render(vehicle,true)+'</span><span class="info"><span class="info-top"><span class="category">'+vehicle.kind+'</span><span class="number">0'+(index+1)+'</span></span><span class="model">'+vehicle.name+'</span><span class="description">'+vehicle.description+'</span><span class="inspect"><span>Ver de perto</span><span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12 12 4M4 4h8v8" stroke="currentColor" stroke-width="1.5"/></svg></span></span></span>';
- button.addEventListener('click',()=>{title.textContent=vehicle.kind;model.textContent=vehicle.name;description.textContent=vehicle.description;art.innerHTML=window.AESprites.render(vehicle);dialog.showModal()});
- card.append(button);collection.append(card);
-}
-document.getElementById('close').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const bounds=dialog.getBoundingClientRect();if(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom)dialog.close()});
+(() => {
+  'use strict';
+  if (new URLSearchParams(location.search).get('campaign') === 'main') document.querySelector('a.back').href = '../?campaign=main';
+  const artwork = window.AESprites;
+  const collection = document.getElementById('collection'), dialog = document.getElementById('zoom');
+  const selected = new Map(artwork.models.map(model => [model.id, model.defaultPaint]));
+  const cards = new Map();
+  let openedModel = null;
+  function vehicle(model) { return { name: model.name, kind: model.kind, modelId: model.id, paintId: selected.get(model.id) }; }
+  function palette(model, context) {
+    const group = document.createElement('div');
+    group.className = 'vc-paints';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Cores de ' + model.name);
+    for (const paint of artwork.paints) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'vc-paint';
+      button.dataset.paint = paint.id;
+      button.setAttribute('aria-label', 'Escolher ' + paint.name + ' para ' + model.name);
+      button.setAttribute('aria-pressed', String(selected.get(model.id) === paint.id));
+      button.title = paint.name;
+      const swatch = document.createElement('span');
+      swatch.className = 'vc-swatch'; swatch.style.setProperty('--paint', paint.hex); swatch.setAttribute('aria-hidden', 'true');
+      button.append(swatch);
+      button.addEventListener('click', () => { selected.set(model.id, paint.id); updateCard(model); if (openedModel?.id === model.id) updateZoom(); });
+      group.append(button);
+    }
+    group.dataset.context = context;
+    return group;
+  }
+  function updatePalette(group, paintId) {
+    group.querySelectorAll('[data-paint]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.paint === paintId)));
+  }
+  function updateCard(model) {
+    const card = cards.get(model.id), car = vehicle(model), paint = artwork.paintFor(car);
+    card.dataset.paint = paint.id;
+    card.querySelector('.vc-art').innerHTML = artwork.render(car, true);
+    card.querySelector('.vc-paint-label').textContent = paint.name;
+    card.querySelector('.car-button').setAttribute('aria-label', 'Ampliar ' + model.name + ' em ' + paint.name);
+    updatePalette(card.querySelector('.vc-paints'), paint.id);
+  }
+  function updateZoom() {
+    if (!openedModel) return;
+    const car = vehicle(openedModel), paint = artwork.paintFor(car);
+    document.getElementById('zoom-name').textContent = openedModel.name;
+    document.getElementById('zoom-model').textContent = openedModel.kind + ' · ' + paint.name;
+    document.getElementById('zoom-desc').textContent = openedModel.description;
+    document.getElementById('zoom-art').innerHTML = artwork.render(car);
+    document.getElementById('zoom-paint-label').textContent = paint.name;
+    updatePalette(document.getElementById('zoom-paints'), paint.id);
+  }
+  for (const [index, model] of artwork.models.entries()) {
+    const card = document.createElement('article');
+    card.className = 'car vc-car'; card.dataset.model = model.id;
+    const open = document.createElement('button');
+    open.className = 'car-button vc-car-open'; open.type = 'button';
+    open.setAttribute('aria-haspopup', 'dialog'); open.setAttribute('aria-controls', 'zoom');
+    const art = document.createElement('span'); art.className = 'art vc-art';
+    const info = document.createElement('span'); info.className = 'vc-info';
+    const type = document.createElement('span'); type.className = 'vc-kind'; type.textContent = model.kind + ' / ' + String(index + 1).padStart(2, '0');
+    const name = document.createElement('strong'); name.className = 'vc-name'; name.textContent = model.name;
+    const detail = document.createElement('span'); detail.className = 'vc-description'; detail.textContent = model.description;
+    const inspect = document.createElement('span'); inspect.className = 'vc-inspect'; inspect.textContent = 'Ver de perto ↗';
+    info.append(type, name, detail, inspect); open.append(art, info);
+    open.addEventListener('click', () => {
+      openedModel = model;
+      document.getElementById('zoom-paints').replaceChildren(palette(model, 'zoom'));
+      updateZoom(); dialog.showModal();
+    });
+    const paintArea = document.createElement('div'); paintArea.className = 'vc-paint-area';
+    const paintLabel = document.createElement('p'); paintLabel.className = 'vc-paint-label'; paintLabel.setAttribute('aria-live', 'polite');
+    paintArea.append(palette(model, 'card'), paintLabel);
+    card.append(open, paintArea); cards.set(model.id, card); collection.append(card); updateCard(model);
+  }
+  document.getElementById('close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('close', () => { openedModel = null; });
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  });
 })();
 </script>
 </body>

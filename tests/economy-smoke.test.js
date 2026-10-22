@@ -12,7 +12,9 @@ const scripts=[
  'preview/js/world-expansion.js','preview/js/global-economy.js',
  'preview/js/operations-finance.js','preview/js/vehicle-design-studio.js',
  'preview/js/iphone-experience.js','preview/js/iphone-dialog-accessibility.js',
- 'preview/js/vehicle-sprites.js','preview/js/visual-redesign.js','preview/js/runtime-performance.js'
+ 'preview/js/vehicle-sprites.js','preview/js/vehicle-appearance.js','preview/js/visual-redesign.js',
+ 'preview/js/trade-summary.js','preview/js/first-sale-guide.js','preview/js/progression-board.js',
+ 'preview/js/runtime-performance.js'
 ];
 let checks=0;
 for(const file of scripts){new vm.Script(fs.readFileSync(path.join(root,file),'utf8'),{filename:file});checks++}

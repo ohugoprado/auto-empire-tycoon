@@ -82,7 +82,7 @@ async function assertOffline(context, page, expectedCar) {
       async function inspect() {
         if (!navigator.serviceWorker.controller) return;
         try {
-          const cache = await caches.open('auto-empire-motor-district-5201');
+          const cache = await caches.open('auto-empire-motor-district-6000');
           const keys = await cache.keys();
           clearTimeout(timeout);
           resolve({
@@ -98,7 +98,7 @@ async function assertOffline(context, page, expectedCar) {
   }));
   check(worker.state === 'activated' && /\/sw\.js$/.test(worker.script), 'The application is controlled by its active service worker');
   check(worker.assets.length > 30, 'The application shell precaches more than 30 resources');
-  check(worker.assets.some(asset => asset.endsWith('/visual-redesign.css')) && worker.assets.some(asset => asset.endsWith('/fleet-atlas.webp')),
+  check(worker.assets.some(asset => asset.endsWith('/visual-redesign.css')) && worker.assets.some(asset => asset.endsWith('/fleet-models-a.webp')) && worker.assets.some(asset => asset.endsWith('/fleet-models-b.webp')),
     'The offline shell contains the new stylesheet and sprite artwork');
   check(worker.assets.some(asset => /\/preview\/galeria\/$/.test(asset)), 'The offline shell includes the vehicle gallery');
   const onlineBackground = await page.locator('body').evaluate(body => getComputedStyle(body).backgroundColor);
@@ -118,7 +118,7 @@ async function assertOffline(context, page, expectedCar) {
     await page.locator('a.ae-gallery-link').click();
     await page.waitForURL(url => /\/preview\/galeria\/$/.test(url.pathname));
     check(new URL(page.url()).searchParams.get('campaign') === 'main', 'Offline gallery navigation retains the public campaign');
-    check(await page.locator('#collection svg.ae-sprite').count() === 6, 'All six gallery sprites are rendered offline');
+    check(await page.locator('#collection svg.ae-sprite').count() === 8, 'All eight model sprites are rendered offline');
     await page.locator('.car-button').first().click();
     check(await page.locator('#zoom').isVisible(), 'Vehicle detail opens while offline');
     await page.keyboard.press('Escape');
@@ -198,7 +198,7 @@ async function run(base) {
     await page.locator('a.ae-gallery-link').click();
     await page.waitForURL(url => /\/preview\/galeria\/$/.test(url.pathname));
     check(new URL(page.url()).searchParams.get('campaign') === 'main', 'The gallery link retains the main campaign context');
-    check(await page.locator('#collection svg.ae-sprite').count() === 6, 'The gallery contains all six shared vehicle sprites');
+    check(await page.locator('#collection svg.ae-sprite').count() === 8, 'The gallery contains all eight model sprites');
     await page.locator('.car-button').first().click();
     check(await page.locator('#zoom').isVisible(), 'A gallery vehicle opens in the native detail dialog');
     await page.keyboard.press('Escape');

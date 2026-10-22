@@ -1,0 +1,13 @@
+body.ae-redesign .ae-trade-summary{margin:12px 0;padding:12px;border:1px solid #ccd8e5;border-radius:12px;background:#f3f6fa;color:#18324c;min-width:0}
+body.ae-redesign .ae-trade-summary dl{display:grid;gap:6px;margin:0}
+body.ae-redesign .ae-trade-summary dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;min-width:0}
+body.ae-redesign .ae-trade-summary dt{font-size:12px;line-height:1.4;color:#536679}
+body.ae-redesign .ae-trade-summary dd{margin:0;text-align:right;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+body.ae-redesign .ae-trade-summary [data-trade-row=invested]{border-top:1px solid #ccd8e5;padding-top:7px;margin-top:2px}
+body.ae-redesign .ae-trade-summary [data-trade-row=gross]{padding-top:4px}
+body.ae-redesign .ae-trade-summary-note{margin:9px 0 0!important;color:#536679!important;font-size:11px!important;line-height:1.5}
+body.ae-redesign .ae-trade-summary .ae-trade-loss{color:#ae343b!important}
+body.ae-redesign .ae-trade-summary .ae-trade-gain{color:#16715f!important}
+body.ae-redesign #stock>.ae-has-trade-summary>.flex,body.ae-redesign #stock>.ae-has-trade-summary>.divider,body.ae-redesign #stock>.ae-has-trade-summary>.ae-trade-chip{display:none!important}
+body.ae-redesign #modalbody .ae-summary-replaces-finance>h3,body.ae-redesign #modalbody .ae-summary-replaces-finance>#ae-neg-values,body.ae-redesign #modalbody .ae-summary-replaces-finance>#ae-neg-comment{display:none!important}
+body.ae-redesign #modalbody .ae-trade-dialog-summary{margin-top:0}

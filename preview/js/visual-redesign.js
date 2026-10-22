@@ -5,9 +5,11 @@
   carSvg = car => sprite(car, false);
   carRow = function (car) {
     const condition = Math.max(0, Math.min(100, Number(car.condition) || 0));
+    const paint = window.AESprites.paintFor(car);
     return '<div class="vehicle" data-car-id="' + Number(car.id) + '">' +
       '<div class="carart">' + sprite(car, false) + '</div><div class="vinfo">' +
       '<div class="ae-car-category">' + esc(car.kind) + '</div><div class="vname">' + esc(car.name) + '</div>' +
+      '<div class="ae-car-paint"><span style="background:' + paint.hex + '" aria-hidden="true"></span>' + esc(paint.name) + '</div>' +
       '<div class="tiny">' + esc(car.year) + ' · ' + Number(car.km).toLocaleString('pt-BR') + ' km</div>' +
       '<div class="ae-condition"><span>Conservação</span><b>' + condition + '%</b><span class="ae-condition-track"><i style="width:' + condition + '%"></i></span></div>' +
       '<div class="tiny">Avaliação de mercado · ' + fmt(car.value) + '</div></div></div>';

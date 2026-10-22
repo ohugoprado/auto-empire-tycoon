@@ -248,7 +248,7 @@ async function assertOffline(context, page, expected, profileName) {
     }, error => { clearTimeout(timer); reject(error); });
   }));
   check(worker.active === 'activated', 'WebKit offline: an active worker controls the page');
-  check(worker.assets.some(asset => asset.endsWith('/fleet-atlas.webp')) && worker.assets.some(asset => asset.endsWith('/visual-redesign.css')),
+  check(worker.assets.some(asset => asset.endsWith('/fleet-models-a.webp')) && worker.assets.some(asset => asset.endsWith('/fleet-models-b.webp')) && worker.assets.some(asset => asset.endsWith('/visual-redesign.css')),
     'WebKit offline: artwork and stylesheet are cached');
   if (!offlineNavigation.supported) {
     skips.push('WebKit offline navigation: ' + offlineNavigation.reason + ' The game worker/cache were checked; game offline reload remains unverified in this engine.');
@@ -430,7 +430,7 @@ async function testProfile(base, profile) {
     await page.locator('a.ae-gallery-link').tap();
     await page.waitForURL(url => /\/preview\/galeria\/$/.test(url.pathname));
     check(new URL(page.url()).searchParams.get('campaign') === 'main', label + ': gallery retains the main campaign context');
-    await assertSprites(page, '#collection', 6, label + ' gallery');
+    await assertSprites(page, '#collection', 8, label + ' gallery');
     const galleryWidth = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
     check(galleryWidth.scroll <= galleryWidth.width + 1, label + ': gallery has no horizontal overflow');
     await page.locator('.car-button').first().tap();

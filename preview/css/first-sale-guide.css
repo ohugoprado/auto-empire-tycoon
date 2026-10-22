@@ -1,0 +1,17 @@
+/* Compact optional guidance, with the same daylight palette as Motor District. */
+body.ae-redesign .ae-guide-card{margin:0 0 20px;padding:20px;border:1px solid #bdcbb0;border-radius:14px;background:#eaf0e1;color:#163538;min-width:0;overflow-wrap:anywhere}
+body.ae-redesign .ae-guide-card[hidden]{display:none!important}
+body.ae-redesign .ae-guide-kicker{font-size:10px;line-height:1.5;letter-spacing:1.5px;font-weight:800;color:#55715a;margin-bottom:8px}
+body.ae-redesign .ae-guide-card h2{margin:0 0 9px;font-size:21px;line-height:1.2;letter-spacing:-.4px;color:#163538}
+body.ae-redesign .ae-guide-card p{margin:0 0 14px;font-size:13px;line-height:1.6;color:#35534a}
+body.ae-redesign .ae-guide-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+body.ae-redesign .ae-guide-actions button{min-height:44px!important;min-width:44px;max-width:100%;padding:11px 14px!important;border:1px solid #a34c37!important;border-radius:9px!important;background:#bb5039!important;color:#fffdf7!important;font-size:13px!important;line-height:1.35;font-weight:750;white-space:normal;flex:1 1 150px}
+body.ae-redesign .ae-guide-actions .ae-guide-secondary,body.ae-redesign #ae-first-sale-dialog .ae-guide-actions .ghost{background:#fffdf7!important;color:#355332!important;border-color:#bdcbb0!important}
+body.ae-redesign .ae-guide-actions button:disabled{opacity:.55;cursor:default}
+body.ae-redesign .ae-guide-card .ae-guide-status{font-size:11px;color:#526d5c;margin:12px 0 0;padding-top:10px;border-top:1px solid #c9d5be}
+body.ae-redesign #ae-first-sale-guide-events{margin-top:16px}
+body.ae-redesign #ae-first-sale-dialog>p{font-size:14px;line-height:1.6}
+body.ae-redesign .ae-guide-facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 14px;padding:14px;margin:14px 0;border:1px solid #bdcbb0;border-radius:10px;background:#eaf0e1;font-size:13px;line-height:1.5}
+body.ae-redesign .ae-guide-facts dt{color:#526d5c;min-width:0}
+body.ae-redesign .ae-guide-facts dd{margin:0;text-align:right;font-weight:750;color:#163538;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;min-width:0}
+@media(max-width:360px){body.ae-redesign .ae-guide-card{padding:16px}body.ae-redesign .ae-guide-card h2{font-size:19px}body.ae-redesign .ae-guide-actions button{flex-basis:110px;min-width:0}body.ae-redesign .ae-guide-facts{grid-template-columns:minmax(0,1fr);gap:4px}body.ae-redesign .ae-guide-facts dd{text-align:left;margin-bottom:8px}}

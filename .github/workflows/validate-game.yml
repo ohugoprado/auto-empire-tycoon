@@ -41,10 +41,16 @@ jobs:
           node tests/trading-identity.test.js
           node tests/corporate-banking.test.js
           node tests/staff-system.test.js
+          node tests/commerce-campaign.test.js
+          AE_BROWSER=webkit node tests/commerce-campaign.test.js
           node tests/backup-restore.test.js
           AE_BROWSER=webkit node tests/backup-restore.test.js
           node tests/visual-smoke.test.js
           node tests/publication-smoke.test.js
+          node tests/vehicle-collection.test.js
+          AE_BROWSER=webkit node tests/vehicle-collection.test.js
+          node tests/first-sale-guide.test.js
+          AE_BROWSER=webkit node tests/first-sale-guide.test.js
           node tests/iphone-webkit.test.js
       - name: Keep browser screenshots and WebKit report
         if: always()
@@ -54,5 +60,7 @@ jobs:
           path: |
             /tmp/auto-empire-review
             /tmp/auto-empire-webkit
+            /tmp/auto-empire-first-sale
+            /tmp/auto-empire-vehicle-collection
           if-no-files-found: ignore
           retention-days: 7

@@ -1,7 +1,7 @@
 /* Motor District: network-first updates with a complete offline application shell. */
 'use strict';
 const PREFIX = 'auto-empire-';
-const CACHE = PREFIX + 'motor-district-5201';
+const CACHE = PREFIX + 'motor-district-6000';
 const ASSETS = [
   "./",
   "./index.html",
@@ -12,7 +12,8 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
-  "./preview/assets/fleet-atlas.webp",
+  "./preview/assets/fleet-models-a.webp",
+  "./preview/assets/fleet-models-b.webp",
   "./preview/js/save-backups.js?v=5200",
   "./preview/js/trade-math.js?v=1930",
   "./preview/js/text-management.js?v=1930",
@@ -40,11 +41,19 @@ const ASSETS = [
   "./preview/js/iphone-dialog-accessibility.js?v=5201",
   "./preview/js/factory-planning.js?v=4600",
   "./preview/js/manufacturer-rivals.js?v=4700",
-  "./preview/js/vehicle-sprites.js?v=5100",
-  "./preview/js/visual-redesign.js?v=5100",
+  "./preview/js/vehicle-sprites.js?v=6000",
+  "./preview/js/vehicle-appearance.js?v=6000",
+  "./preview/js/visual-redesign.js?v=6000",
+  "./preview/js/trade-summary.js?v=6000",
+  "./preview/js/first-sale-guide.js?v=6000",
+  "./preview/js/progression-board.js?v=6000",
   "./preview/js/runtime-performance.js?v=5100",
   "./preview/js/pwa-updates.js?v=5100",
-  "./preview/css/visual-redesign.css?v=5200"
+  "./preview/css/visual-redesign.css?v=5200",
+  "./preview/css/vehicle-collection.css?v=6000",
+  "./preview/css/trade-summary.css?v=6000",
+  "./preview/css/first-sale-guide.css?v=6000",
+  "./preview/css/motor-district-next.css?v=6000"
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
