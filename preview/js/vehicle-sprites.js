@@ -20,6 +20,21 @@
     if (/compact/.test(kind)) return 'compact';
     return 'hatch';
   }
+  function paintFilter(hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(String(hex || ''))) return '';
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max-min;
+    let hue = 0;
+    if (d) {
+      if (max===r) hue=((g-b)/d)%6;
+      else if (max===g) hue=(b-r)/d+2;
+      else hue=(r-g)/d+4;
+      hue=(hue*60+360)%360;
+    }
+    // Tint the shared raster illustration without loading separate images for each color.
+    const sat = d<24 ? 0.35 : 1.1;
+    return ' style="filter:hue-rotate('+Math.round(hue-210)+'deg) saturate('+sat+')"';
+  }
   function render(car, decorative = false) {
     const key = category(car), spec = sprites[key];
     return '<svg class="ae-sprite" data-sprite="' + key + '" viewBox="' + spec.box + '" preserveAspectRatio="xMidYMid slice" ' +
