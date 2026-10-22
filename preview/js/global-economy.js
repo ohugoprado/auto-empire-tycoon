@@ -46,7 +46,7 @@ function updateDay(){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
   if(s.stock.length>=s.slots){job.due=s.day+1;continue}
-  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:'#b6d2e5',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null};
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,plantId:job.plantId??null};
   const supplier=job.supplier||'standard';
   const defectRate=supplier==='economy'?.07:supplier==='premium'?.012:.03;
   if(Math.random()<defectRate){
@@ -101,7 +101,7 @@ panel.addEventListener('click',ev=>{
  }
  if(action==='produce'){
   if(!f.opened)return;const cost=produceCost();if(s.stock.length+f.queue.length>=s.slots)return toast('Amplie vagas antes de produzir');
-  if(f.queue.length>=f.level*2)return toast('Linha de montagem ocupada');
+  if(f.queue.filter(job=>!job.plantId).length>=f.level*2)return toast('Linha de montagem principal ocupada');
   const model=prompt('Modelo a fabricar:',f.model||'Empire One');if(model===null)return;
   const cleaned=model.trim().replace(/[<>]/g,'').slice(0,28);if(cleaned.length<2)return toast('Modelo inválido');
   const kindOptions=['Hatch','Sedã','SUV','Compacto','Esportivo','Picape'];const kind=prompt('Categoria: '+kindOptions.join(', '),'Hatch');if(kind===null)return;const chosen=kindOptions.find(x=>x.toLowerCase()===kind.trim().toLowerCase());if(!chosen)return toast('Categoria inválida');

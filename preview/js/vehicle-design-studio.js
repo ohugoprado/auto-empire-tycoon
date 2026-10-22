@@ -100,7 +100,7 @@ function produce(){
  const st=ensure(),f=s.empire.economy.factory;if(!st||!f.opened)return toast('Abra sua fabricante primeiro');
  const name=read().name;
  const design=st.designs.find(d=>d.name===name);if(!design)return toast('Selecione um projeto homologado para produzir');
- if(f.queue.length>=f.level*2)return toast('Linha de produção ocupada');
+ if(f.queue.filter(job=>!job.plantId).length>=f.level*2)return toast('Linha de produção principal ocupada');
  if(s.stock.length+f.queue.length>=s.slots)return toast('Não há vagas disponíveis no estoque');
  const crisis=window.AEEconomy?.crisisFor(s.empire.world?.active);
  if(crisis?.id==='war'||crisis?.id==='supply')return toast('Produção bloqueada: '+crisis.name);
