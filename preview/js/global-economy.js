@@ -101,7 +101,7 @@ panel.addEventListener('click',ev=>{
  }
  if(action==='produce'){
   if(!f.opened)return;const cost=produceCost();if(s.stock.length+f.queue.length>=s.slots)return toast('Amplie vagas antes de produzir');
-  if(f.queue.length>=f.level*2)return toast('Linha de montagem ocupada');
+  if(f.queue.filter(job=>!job.plantId).length>=f.level*2)return toast('Linha de montagem principal ocupada');
   const model=prompt('Modelo a fabricar:',f.model||'Empire One');if(model===null)return;
   const cleaned=model.trim().replace(/[<>]/g,'').slice(0,28);if(cleaned.length<2)return toast('Modelo inválido');
   const kindOptions=['Hatch','Sedã','SUV','Compacto','Esportivo','Picape'];const kind=prompt('Categoria: '+kindOptions.join(', '),'Hatch');if(kind===null)return;const chosen=kindOptions.find(x=>x.toLowerCase()===kind.trim().toLowerCase());if(!chosen)return toast('Categoria inválida');
