@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 6.3: homologated model production orders. */
+/* Auto Empire Tycoon — Alpha 6.4: paint variants and production batches. */
 (function(){
 'use strict';
 const studio=document.getElementById('ae-studio');if(!studio)return;
@@ -13,6 +13,8 @@ const css=document.createElement('style');css.textContent=`
 #ae-production-dialog .ae-production-summary{font-size:12px;line-height:1.7;margin:10px 0}
 #ae-production-dialog button{min-height:44px;margin-right:8px}
 #ae-production-dialog .ae-production-error{color:#f0a7a7;font-size:12px}
+#ae-production-dialog .ae-paint-preview{display:flex;align-items:center;gap:8px;font-size:12px;margin:9px 0}
+#ae-production-dialog .ae-paint-preview i{width:24px;height:24px;border-radius:50%;border:2px solid #aabcc8;display:inline-block}
 `;document.head.append(css);
 function state(){
  const e=s?.empire?.economy,f=e?.factory,designs=e?.studio?.designs;
@@ -27,6 +29,7 @@ function getCost(d,p){
  return p.id==='main'?Math.max(1000,Math.round(num(d.cost))):Math.round(Math.max(1000,num(d.cost))*inflation*(1-Math.min(.12,(p.level-1)*.04+p.staff*.004)));
 }
 function getDays(d,p){return p.id==='main'?Math.max(2,Math.round(num(d.days)||7)):Math.max(2,Math.round(num(d.days)||7)-p.level+1-Math.floor(p.staff/4));}
+const paints=[['Branco pérola','#e8e9e6'],['Preto ônix','#252a33'],['Prata metálico','#a8b3be'],['Cinza grafite','#5a6874'],['Vermelho rubi','#c94a4e'],['Azul oceano','#337ab7'],['Verde oliva','#66856a'],['Amarelo solar','#e3b948'],['Laranja cobre','#bd7046'],['Violeta urbano','#8272a6']];
 function showOrder(id){
  const {designs,f}=state(),d=designs.find(x=>String(x.id)===String(id));
  if(!d)return toast('Projeto não encontrado');
@@ -35,11 +38,13 @@ function showOrder(id){
  if(!plants.length)return toast('Nenhuma fábrica compatível com o projeto');
  let box=document.getElementById('ae-production-dialog');if(box)box.remove();
  box=document.createElement('div');box.id='ae-production-dialog';
- box.innerHTML='<h4>Ordem de produção · '+esc(d.name)+'</h4><label>Fábrica<select id="ae-order-plant">'+plants.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Quantidade<input id="ae-order-quantity" type="number" inputmode="numeric" min="1" max="20" value="1"></label><div class="ae-production-summary" id="ae-order-summary"></div><p class="ae-production-error" id="ae-order-error" role="status"></p><button type="button" id="ae-order-confirm">Confirmar produção</button><button type="button" id="ae-order-cancel">Cancelar</button>';
+ box.innerHTML='<h4>Ordem de produção · '+esc(d.name)+'</h4><label>Fábrica<select id="ae-order-plant">'+plants.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Pintura<select id="ae-order-paint"><option value="mixed">Cores variadas no lote</option>'+paints.map((p,i)=>'<option value="'+i+'">'+esc(p[0])+'</option>').join('')+'</select></label><div class="ae-paint-preview" id="ae-order-paint-preview"></div><label>Quantidade<input id="ae-order-quantity" type="number" inputmode="numeric" min="1" max="20" value="1"></label><div class="ae-production-summary" id="ae-order-summary"></div><p class="ae-production-error" id="ae-order-error" role="status"></p><button type="button" id="ae-order-confirm">Confirmar produção</button><button type="button" id="ae-order-cancel">Cancelar</button>';
  const saved=studio.querySelector('#ae-studio-saved');saved?.parentNode.insertBefore(box,saved);
- const select=box.querySelector('#ae-order-plant'),quantity=box.querySelector('#ae-order-quantity');
+ const select=box.querySelector('#ae-order-plant'),quantity=box.querySelector('#ae-order-quantity'),paint=box.querySelector('#ae-order-paint');
  function quote(){
   const p=plants.find(x=>x.id===select.value)||plants[0];
+  const chosen=paints[Number(paint.value)]||null;
+  box.querySelector('#ae-order-paint-preview').innerHTML=chosen?'<i style="background:'+chosen[1]+'"></i>'+esc(chosen[0]):'Cada unidade receberá uma pintura diferente, conforme disponibilidade.';
   const q=Number(quantity.value);
   const {f}=state(),queue=f?.queue||[];
   const used=queue.filter(j=>p.id==='main'?!j.plantId:String(j.plantId)===p.id).length;
@@ -53,7 +58,7 @@ function showOrder(id){
   box.querySelector('#ae-order-confirm').disabled=!!error;
   return {p,q,cost,days,error};
  }
- select.addEventListener('change',quote);quantity.addEventListener('input',quote);
+ select.addEventListener('change',quote);quantity.addEventListener('input',quote);paint.addEventListener('change',quote);
  box.querySelector('#ae-order-cancel').addEventListener('click',()=>box.remove());
  box.querySelector('#ae-order-confirm').addEventListener('click',()=>{
   const {p,q,cost,days,error}=quote();if(error)return;
@@ -63,7 +68,7 @@ function showOrder(id){
   const {f,e}=state();if(!f?.opened||s.cash<q*cost)return toast('Produção indisponível');
   s.cash-=q*cost;entry('Lote de produção · '+d.name+' · '+p.name,-q*cost);
   const supplier=window.AEOperations?.getSupplier?.().id||'standard';
-  for(let i=0;i<q;i++)f.queue.push({...(p.id==='main'?{}:{plantId:p.id}),model:d.name,kind:d.kind,cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),due:s.day+days,designId:d.id,quality:d.quality,supplier});
+  for(let i=0;i<q;i++){const chosen=paints[paint.value==='mixed'?(i+Math.floor(Math.random()*paints.length))%paints.length:Number(paint.value)]||paints[0];f.queue.push({color:chosen[1],colorName:chosen[0],...(p.id==='main'?{}:{plantId:p.id}),model:d.name,kind:d.kind,cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),due:s.day+days,designId:d.id,quality:d.quality,supplier});}
   f.model=d.name;note('Produção iniciada: '+q+' unidade(s) de '+d.name+' em '+p.name+'.');save();render();box.remove();toast('Lote enviado para produção!');
  });
  quote();box.scrollIntoView({behavior:'smooth',block:'nearest'});
