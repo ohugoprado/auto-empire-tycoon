@@ -21,7 +21,8 @@ jobs:
       - name: Prepare browser tests outside the checkout
         run: |
           npm install --prefix "$RUNNER_TEMP/ae-browser-tests" --no-save --package-lock=false playwright@1.62.1
-          echo "NODE_PATH=$RUNNER_TEMP/ae-browser-tests/node_modules" >> "$GITHUB_ENV"
+          export NODE_PATH="$RUNNER_TEMP/ae-browser-tests/node_modules"
+          echo "NODE_PATH=$NODE_PATH" >> "$GITHUB_ENV"
           "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install-deps chromium webkit
           # Use the official Microsoft mirror and Google Chrome for Testing origin.
           # The default Chromium CDN currently serves a certificate for another host.
