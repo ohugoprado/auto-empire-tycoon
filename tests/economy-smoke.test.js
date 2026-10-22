@@ -7,9 +7,11 @@ const vm=require('node:vm');
 const root=path.resolve(__dirname,'..');
 const scripts=[
  'preview/js/trade-math.js','preview/js/text-management.js','preview/js/company-intro.js',
+ 'preview/js/save-backups.js','preview/js/staff-system.js',
  'preview/js/empire-systems.js','preview/js/quality-pack.js',
  'preview/js/world-expansion.js','preview/js/global-economy.js',
  'preview/js/operations-finance.js','preview/js/vehicle-design-studio.js',
+ 'preview/js/iphone-experience.js',
  'preview/js/vehicle-sprites.js','preview/js/visual-redesign.js','preview/js/runtime-performance.js'
 ];
 let checks=0;

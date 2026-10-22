@@ -193,6 +193,7 @@ body.ae-redesign .bottom .navinner svg{width:21px;height:21px;flex:none}
 body.ae-redesign .bottom .navinner button.active,body.ae-redesign .bottom .navinner button[aria-current=page]{background:#e7edda!important;border-color:#bdccaa!important;color:#405c31!important}
 body.ae-redesign #toast{z-index:10000!important;bottom:100px!important;max-width:calc(100% - 32px)!important;background:#163538!important;color:#fff5e7!important;border:1px solid #6c8a75!important;border-radius:10px!important;padding:12px 17px!important;box-shadow:0 6px 25px #16353825!important;font-size:12px!important}
 /* Dialog and first-run setup use daylight surfaces as well. */
+body.ae-redesign #modal{z-index:500!important}
 body.ae-redesign #modalbody{max-width:570px!important;padding:22px!important;border:1px solid #9daf94!important;border-radius:15px!important;background:#fffdf7!important;color:#163538!important}
 body.ae-redesign #modalbody h2{font-size:23px!important;line-height:1.2!important;letter-spacing:-.5px!important;color:#163538!important}
 body.ae-redesign #modalbody :is(h3,p,span,b,strong,label){color:#254b39!important}
@@ -200,7 +201,8 @@ body.ae-redesign #modalbody .red,body.ae-redesign #modalbody .loss{color:#a34234
 body.ae-redesign #modalbody .vehicle .carart{width:43%!important}
 body.ae-redesign #modalbody .ae-dialog-close{min-width:64px!important;width:auto!important;padding:8px 12px!important;background:#e7ecdd!important;border:1px solid #bdcbb0!important;color:#355332!important;font-size:11px!important}
 body.ae-redesign #modalbody .ae-neg-quick button{background:#edf1e3!important;border-color:#b8caaa!important;color:#416137!important}
-body.ae-redesign #modalbody .ae-neg-grid>div,body.ae-redesign #modalbody #ae-neg-analysis,body.ae-redesign #modalbody .ae-neg-card,body.ae-redesign #modalbody .ae-buyer-profile,body.ae-redesign #modalbody .ae-bank-contract{background:#edf1e3!important;border-color:#b8caaa!important;color:#355d36!important}
+body.ae-redesign #modalbody .ae-neg-grid>div,body.ae-redesign #modalbody #ae-neg-analysis,body.ae-redesign #modalbody .ae-neg-card,body.ae-redesign #modalbody .ae-buyer-profile,body.ae-redesign #modalbody .ae-bank-contract,body.ae-redesign #modalbody .inspectbox,body.ae-redesign #modalbody .ae-seller-profile{background:#edf1e3!important;border-color:#b8caaa!important;color:#355d36!important}
+body.ae-redesign #modalbody .ae-counter-box{background:#faeddf!important;border-color:#cfa98a!important;color:#7c432c!important}
 body.ae-redesign #ae-company-screen{background:radial-gradient(ellipse at top,#355b4b,#163538 75%)!important;padding:calc(24px + env(safe-area-inset-top,0px)) 18px calc(24px + env(safe-area-inset-bottom,0px))!important}
 body.ae-redesign #ae-company-screen .ae-onboard-card{width:min(100%,500px)!important;margin:auto;padding:0 28px 26px!important;border:1px solid #c2d1b5!important;border-radius:18px!important;background:#fffdf7!important;overflow:hidden;box-shadow:0 30px 100px #061d1d55!important}
 body.ae-redesign .ae-onboard-art{position:relative;height:180px;margin:0 -28px 24px;background:linear-gradient(135deg,#e4e9d9,#f6f4e9);border-bottom:1px solid #d5dfc9;overflow:hidden}

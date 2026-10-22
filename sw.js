@@ -1,7 +1,7 @@
 /* Motor District: network-first updates with a complete offline application shell. */
 'use strict';
 const PREFIX = 'auto-empire-';
-const CACHE = PREFIX + 'motor-district-5101';
+const CACHE = PREFIX + 'motor-district-5200';
 const ASSETS = [
   "./",
   "./index.html",
@@ -13,16 +13,18 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./preview/assets/fleet-atlas.webp",
+  "./preview/js/save-backups.js?v=5200",
   "./preview/js/trade-math.js?v=1930",
   "./preview/js/text-management.js?v=1930",
   "./preview/js/company-intro.js?v=2400",
-  "./preview/js/empire-systems.js?v=2310",
-  "./preview/js/quality-pack.js?v=2310",
+  "./preview/js/staff-system.js?v=5200",
+  "./preview/js/empire-systems.js?v=5200",
+  "./preview/js/quality-pack.js?v=5200",
   "./preview/js/world-expansion.js?v=2400",
   "./preview/js/global-economy.js?v=4400",
-  "./preview/js/operations-finance.js?v=2700",
+  "./preview/js/operations-finance.js?v=5200",
   "./preview/js/vehicle-design-studio.js?v=2700",
-  "./preview/js/iphone-experience.js?v=2800",
+  "./preview/js/iphone-experience.js?v=5200",
   "./preview/js/iphone-dashboard.js?v=3000",
   "./preview/js/iphone-command-center.js?v=3100",
   "./preview/js/iphone-trading.js?v=5100",
@@ -42,7 +44,7 @@ const ASSETS = [
   "./preview/js/visual-redesign.js?v=5100",
   "./preview/js/runtime-performance.js?v=5100",
   "./preview/js/pwa-updates.js?v=5100",
-  "./preview/css/visual-redesign.css?v=5101"
+  "./preview/css/visual-redesign.css?v=5200"
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

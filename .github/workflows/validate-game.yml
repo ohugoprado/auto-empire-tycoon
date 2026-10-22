@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   game:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/ae-browser-tests" --no-save --package-lock=false playwright@1.62.1
           echo "NODE_PATH=$RUNNER_TEMP/ae-browser-tests/node_modules" >> "$GITHUB_ENV"
-          "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install --with-deps chromium
+          "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install --with-deps chromium webkit
       - name: Select installed Chromium
         run: |
           AE_BROWSER=$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")
@@ -33,5 +33,19 @@ jobs:
           node tests/runtime-performance.test.js
           node tests/trading-identity.test.js
           node tests/corporate-banking.test.js
+          node tests/staff-system.test.js
+          node tests/backup-restore.test.js
+          AE_BROWSER=webkit node tests/backup-restore.test.js
           node tests/visual-smoke.test.js
           node tests/publication-smoke.test.js
+          node tests/iphone-webkit.test.js
+      - name: Keep browser screenshots and WebKit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iphone-browser-review
+          path: |
+            /tmp/auto-empire-review
+            /tmp/auto-empire-webkit
+          if-no-files-found: ignore
+          retention-days: 7

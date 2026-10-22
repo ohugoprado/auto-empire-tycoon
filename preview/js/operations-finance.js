@@ -46,7 +46,7 @@ document.getElementById('garage')?.append(panel);
 const selector=panel.querySelector('#ae-op-supplier');for(const item of suppliers){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;selector.append(option)}
 function metrics(){
  const o=ensure(),e=s.empire.economy,flow=calc.monthly(s.ledger,s.day);
- const wages=Object.entries({seller:850,mechanic:700,analyst:550}).reduce((n,[k,v])=>n+v*(Number(s.empire.staff?.[k])||0),0);
+ const wages=window.AEStaff.monthlyPayroll(s);
  const rent={casual:700,normal:1200,hard:1900}[s.difficulty]||1200;
  const upkeep=Math.round((s.empire.world?.owned||[]).reduce((a,id)=>a+(window.AEWorld?.cities.find(c=>c.id===id)?.upkeep||0),0)*.9);
  const fixed=wages+rent+upkeep;

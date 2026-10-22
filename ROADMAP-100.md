@@ -1,5 +1,7 @@
 # Auto Empire Tycoon — 100 melhorias priorizadas
 
+> Backlog histórico. Consulte [ROADMAP.md](ROADMAP.md) para a ordem atual de entregas e as pendências específicas de iPhone. Os marcadores abaixo refletem avaliações antigas; recursos como crédito, contrapropostas e parte dos testes já avançaram.
+
 **Plataforma prioritária: iPhone (iOS).** Todas as próximas entregas devem ser pensadas para toque, tela vertical, safe areas, teclado virtual, desempenho e instalação na App Store. Steam/desktop não é prioridade.
 
 Este documento é um backlog, **não** uma declaração de 100 recursos entregues. Os itens marcados como *implementado inicialmente* ou *implementado parcialmente* existem na prévia Alpha 2.6/2.7, mas ainda dependem de testes funcionais e balanceamento. Demais itens estão propostos.

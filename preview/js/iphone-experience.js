@@ -67,12 +67,8 @@ document.querySelectorAll('.bottom button[data-tab]').forEach(button=>{
   });
  },{passive:true});
 });
-document.addEventListener('focusin',event=>{
- const el=event.target;
- if(!el.matches?.('input,textarea,select'))return;
- // Keep the active field accessible above the iPhone keyboard without changing zoom.
- window.setTimeout?.(()=>{if(document.activeElement===el)el.scrollIntoView?.({block:'nearest',behavior:'smooth'})},220);
-});
+// Let the browser reveal focused fields inside the scrollable dialog. A delayed
+// smooth scroll can move a button while the player is already tapping it.
 const media=window.matchMedia?.('(display-mode:standalone)');
 function updateMode(){document.documentElement.classList.toggle('ae-ios-installed',!!(media?.matches||navigator.standalone))}
 updateMode();
