@@ -113,6 +113,45 @@ async function assertTouchHit(locator, label) {
   check(hit.correct, label + ': the visible action receives touch at its center (' + JSON.stringify(hit) + ')');
 }
 
+async function assertDialogFocus(page, carId, label) {
+  const focus = await page.evaluate(async carId => {
+    const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+    const body = document.getElementById('modalbody');
+
+    buyDialog(carId);
+    await nextFrame();
+    const natural = document.activeElement === document.getElementById('bid');
+    closeModal();
+
+    // Focus the real field in the same task that opens the modal, before its
+    // scheduled autofocus. This deterministically reproduces the fill race.
+    buyDialog(carId);
+    const enteredField = document.getElementById('bid');
+    enteredField.focus({ preventScroll: true });
+    await nextFrame();
+    const preserved = enteredField.isConnected && document.activeElement === enteredField;
+    closeModal();
+
+    buyDialog(carId);
+    closeModal();
+    // Observe between the obsolete opening's frame and the new opening's
+    // frame: a closed dialog must not autofocus the newly created content.
+    const betweenOpenings = new Promise(resolve => requestAnimationFrame(() => {
+      resolve(!body.contains(document.activeElement));
+    }));
+    buyDialog(carId);
+    const obsoleteFrameIgnored = await betweenOpenings;
+    await nextFrame();
+    const reopened = document.activeElement === document.getElementById('bid');
+    closeModal();
+    return { natural, preserved, obsoleteFrameIgnored, reopened };
+  }, carId);
+  check(focus.natural, label + ': natural dialog autofocus selects the offer field');
+  check(focus.preserved, label + ': scheduled autofocus preserves a field focused in the opening task');
+  check(focus.obsoleteFrameIgnored, label + ': a closed opening cannot autofocus a newer dialog');
+  check(focus.reopened, label + ': the current opening still focuses its own offer field');
+}
+
 async function assertSprites(page, selector, expected, label) {
   check(await page.locator(selector + ' svg.ae-sprite > image').count() === expected,
     label + ': the expected sprites are present');
@@ -324,6 +363,7 @@ async function testProfile(base, profile) {
     check(target.ask < target.cash, label + ': a starting campaign can afford a market vehicle');
     const buy = page.locator('#listings button[onclick="buyDialog(' + target.id + ')"]');
     await assertTouchTarget(buy, label + ' negotiate');
+    await assertDialogFocus(page, target.id, label);
     await buy.tap();
     const modal = page.locator('#modalbody');
     await modal.waitFor({ state: 'visible' });

@@ -40,6 +40,8 @@ Os testes de navegador usam Playwright 1.62.1. Instale-o fora do repositório, c
 
 O teste WebKit usa toque emulado em cinco perfis, começando pelo iPhone 17 Pro Max oficial do Playwright: viewport 440 × 763, tela 440 × 956, escala 3. As larguras auxiliares são 320, 375, 390 e 430 pixels. Capturas e relatório ficam em `/tmp/auto-empire-webkit` (`AE_WEBKIT_REVIEW_DIR` altera o destino). O relatório distingue emulação e aparelho real. Neste ambiente WPE, a recarga offline tem exclusão explícita após reproduzir erro interno em uma página mínima independente; cache e service worker do jogo são conferidos. Offline continua testado no Chromium e pendente no iPhone real.
 
+No CI, o Chromium vem da origem oficial do Google Chrome for Testing, na versão indicada pelo Playwright fixado; o WebKit usa o espelho oficial da Microsoft. Essa configuração contorna um certificado de hostname incorreto no CDN padrão, preservando a verificação HTTPS.
+
 Eventos e Ferramentas usam `save-backups.js` para exportar/importar na campanha ativa. Antes da substituição, uma cópia recuperável fica disponível nos dois menus, com opções para restaurar ou exportar a versão anterior. Os dois formatos de JSON existentes são aceitos; cancelamentos e falhas de gravação têm regressões nos dois motores. O perfil da empresa continua compartilhado entre as campanhas, enquanto dinheiro, veículos e progresso usam chaves separadas.
 
 A equipe usa apenas `s.empire.staff`. A migração soma as contratações dos dois sistemas antigos sem cobrar novamente, mantém benefícios comprados e preserva funcionários acima do limite atual de cinco por função. A folha única é mensal, a cada 30 dias simulados; descontos e bônus de vendedor não acumulam a mesma vantagem duas vezes.
@@ -48,7 +50,7 @@ Os sprites compartilham um atlas WebP sem perda em `preview/assets/fleet-atlas.w
 
 O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. A economia e o formato dos salvamentos foram preservados.
 
-O service worker registra a versão `motor-district-5200`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo os módulos de backup e equipe. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O service worker registra a versão `motor-district-5201`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo os módulos de backup e equipe. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Limitações
 

@@ -22,11 +22,17 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/ae-browser-tests" --no-save --package-lock=false playwright@1.62.1
           echo "NODE_PATH=$RUNNER_TEMP/ae-browser-tests/node_modules" >> "$GITHUB_ENV"
-          "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install --with-deps chromium webkit
+          "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install-deps chromium webkit
+          # Use the official Microsoft mirror and Google Chrome for Testing origin.
+          # The default Chromium CDN currently serves a certificate for another host.
+          PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.download.prss.microsoft.com/dbazure/download/playwright "$RUNNER_TEMP/ae-browser-tests/node_modules/.bin/playwright" install webkit
+          AE_CHROME_VERSION=$(node -e "const fs=require('node:fs'),path=require('node:path');const file=path.join(path.dirname(require.resolve('playwright-core/package.json')),'browsers.json');process.stdout.write(JSON.parse(fs.readFileSync(file,'utf8')).browsers.find(b=>b.name==='chromium').browserVersion)")
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 "https://storage.googleapis.com/chrome-for-testing-public/$AE_CHROME_VERSION/linux64/chrome-linux64.zip" --output "$RUNNER_TEMP/ae-browser-tests/chrome.zip"
+          unzip -q "$RUNNER_TEMP/ae-browser-tests/chrome.zip" -d "$RUNNER_TEMP/ae-browser-tests"
       - name: Select installed Chromium
         run: |
-          AE_BROWSER=$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")
-          echo "AE_CHROMIUM_PATH=$AE_BROWSER" >> "$GITHUB_ENV"
+          test -x "$RUNNER_TEMP/ae-browser-tests/chrome-linux64/chrome"
+          echo "AE_CHROMIUM_PATH=$RUNNER_TEMP/ae-browser-tests/chrome-linux64/chrome" >> "$GITHUB_ENV"
       - name: Check game logic and workflows
         run: |
           node tests/economy-smoke.test.js

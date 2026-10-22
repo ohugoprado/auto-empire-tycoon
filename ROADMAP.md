@@ -22,7 +22,7 @@ A próxima entrega deve tornar esse ciclo confiável e agradável no iPhone. O a
 | Persistência | Importação na campanha ativa, dois formatos de backup e recuperação anterior nos dois menus | Exportação, compartilhamento e restauração pelo sistema de arquivos do iOS |
 | PWA | Cache da interface, atualização e navegação offline | Instalação, retomada, atualização e armazenamento no iOS real |
 
-O Chromium cobre economia, banco, ordenação, campanhas, interface e recarga offline. O WebKit 26.5 passou por 626 verificações de toque emulado, layout, compra, anúncio, persistência, sprites e galeria, em cinco perfis: iPhone 17 Pro Max (viewport 440 × 763; tela 440 × 956) e larguras auxiliares de 320, 375, 390 e 430 pixels. Backups também têm regressões nos dois motores. Isso complementa a validação física; não homologa Safari/iOS.
+O Chromium cobre economia, banco, ordenação, campanhas, interface e recarga offline. O WebKit 26.5 passou por 646 verificações de toque emulado, layout, compra, anúncio, persistência, sprites e galeria, em cinco perfis: iPhone 17 Pro Max (viewport 440 × 763; tela 440 × 956) e larguras auxiliares de 320, 375, 390 e 430 pixels. Backups também têm regressões nos dois motores. Isso complementa a validação física; não homologa Safari/iOS.
 
 A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também em uma página mínima independente com service worker ativo e arquivos em cache. O teste registra uma exclusão explícita desse cenário. O cache do jogo foi verificado, mas navegação offline no WebKit e no iPhone permanece pendente.
 
@@ -111,7 +111,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 ## Próxima entrega recomendada
 
-As correções de backup e dos diálogos, a equipe unificada e a passagem automatizada por WebKit fazem parte da versão `motor-district-5200`. A próxima validação é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar os cenários econômicos de revenda e produção.
+As correções de backup e dos diálogos, a equipe unificada e a passagem automatizada por WebKit fazem parte da versão `motor-district-5201`. A próxima validação é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar os cenários econômicos de revenda e produção.
 
 Depois disso, preparar o tutorial da primeira venda. Cada entrega deve declarar o que foi implementado, o que foi testado e quais aparelhos foram usados.
 

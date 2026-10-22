@@ -1,7 +1,7 @@
 /* Motor District: network-first updates with a complete offline application shell. */
 'use strict';
 const PREFIX = 'auto-empire-';
-const CACHE = PREFIX + 'motor-district-5200';
+const CACHE = PREFIX + 'motor-district-5201';
 const ASSETS = [
   "./",
   "./index.html",
@@ -37,7 +37,7 @@ const ASSETS = [
   "./preview/js/management-navigation.js?v=4000",
   "./preview/js/iphone-workspace.js?v=4100",
   "./preview/js/trading-flow.js?v=4200",
-  "./preview/js/iphone-dialog-accessibility.js?v=4300",
+  "./preview/js/iphone-dialog-accessibility.js?v=5201",
   "./preview/js/factory-planning.js?v=4600",
   "./preview/js/manufacturer-rivals.js?v=4700",
   "./preview/js/vehicle-sprites.js?v=5100",

@@ -11,7 +11,7 @@ const scripts=[
  'preview/js/empire-systems.js','preview/js/quality-pack.js',
  'preview/js/world-expansion.js','preview/js/global-economy.js',
  'preview/js/operations-finance.js','preview/js/vehicle-design-studio.js',
- 'preview/js/iphone-experience.js',
+ 'preview/js/iphone-experience.js','preview/js/iphone-dialog-accessibility.js',
  'preview/js/vehicle-sprites.js','preview/js/visual-redesign.js','preview/js/runtime-performance.js'
 ];
 let checks=0;

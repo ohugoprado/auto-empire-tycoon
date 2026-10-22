@@ -8,7 +8,7 @@ O app atual é uma PWA. Instalar pela tela inicial não equivale a publicar um a
 
 O usuário informou **iPhone 17 Pro Max**; a versão do iOS ainda não foi informada. Esse é o alvo principal do roteiro físico.
 
-Na versão `motor-district-5200`, o WebKit 26.5 passou por 626 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria. Backups têm cobertura adicional em Chromium e WebKit; a migração de equipe e a folha única também possuem regressão dedicada.
+Na versão `motor-district-5201`, o WebKit 26.5 passou por 646 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria. Backups têm cobertura adicional em Chromium e WebKit; a migração de equipe e a folha única também possuem regressão dedicada.
 
 Uma verificação de navegação offline foi excluída explicitamente: o WebKit/WPE deste ambiente falha com erro interno também em uma página mínima independente, já controlada por service worker e com arquivos em cache. O cache do jogo foi conferido; recarga offline continua sem aprovação nesse motor. O teste offline do Chromium permanece obrigatório. Não extrapolar nenhum desses resultados para instalação, teclado, compartilhamento, áreas seguras ou retomada do iOS real.
 
