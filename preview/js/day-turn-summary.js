@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 13.1 turn summary and accounting audit */
+/* Auto Empire Tycoon — Alpha 13.2 turn summary and accounting audit */
 (function(){
 'use strict';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
@@ -21,18 +21,20 @@ window.AEDaySummary={show(before){
  if(!before||!window.s&&typeof s==='undefined')return;
  const delta=(Number(s.cash)||0)-(Number(before.cash)||0);
  const sales=Math.max(0,(Number(s.sales)||0)-(Number(before.sales)||0));
- const movements=(s.ledger||[]).filter(x=>Number(x.day)===Number(s.day));
+ const oldLedger=new Set(before.ledgerSnapshot||[]);
+ const movements=(s.ledger||[]).filter(x=>!oldLedger.has(x));
+ const oldLogs=new Set(before.logsSnapshot||[]);
+ const recent=(s.logs||[]).filter(x=>!oldLogs.has(x)).slice(0,8);
  const credits=movements.reduce((sum,x)=>sum+Math.max(0,Number(x.amount)||0),0);
  const debits=movements.reduce((sum,x)=>sum+Math.max(0,-Number(x.amount)||0),0);
  const metrics=[['Saldo atual',fmt(s.cash)+' CR'],['Variação do caixa',(delta>=0?'+':'')+fmt(delta)+' CR'],['Receitas registradas',fmt(credits)+' CR'],['Despesas registradas',fmt(debits)+' CR'],['Vendas no turno',String(sales)],['Veículos na loja',String(s.stock.length)]];
  const recorded=credits-debits;
  const difference=Math.round(delta-recorded);
- const audit=Math.abs(difference)>1?'<p class="ae-turn-warning">Atenção: a variação de caixa difere dos lançamentos registrados em '+esc(fmt(difference))+' CR. Alguns movimentos podem não estar detalhados no livro-caixa.</p>':'';
+ const audit=Math.abs(difference)>1?'<p class="ae-turn-warning">Atenção: diferença de '+esc(fmt(Math.abs(difference)))+' CR entre o caixa e os lançamentos deste turno. Alguns movimentos podem não estar detalhados no livro-caixa.</p>':'';
  overlay.querySelector('#ae-turn-ledger').innerHTML=movements.slice(0,12).map(x=>'<div class="ae-turn-ledger-row"><span>'+esc(x.name||'Movimentação')+'</span><b>'+((Number(x.amount)||0)>=0?'+':'')+fmt(x.amount)+' CR</b></div>').join('')+(movements.length>12?'<p class="ae-turn-warning">Mostrando os 12 lançamentos mais recentes.</p>':'')+audit+(!movements.length?'<div class="ae-turn-event">Nenhum lançamento financeiro registrado.</div>':'');
  overlay.querySelector('#ae-turn-title').textContent='Dia '+s.day+' concluído';
  overlay.querySelector('#ae-turn-metrics').innerHTML=metrics.map(([k,v])=>'<div class="ae-turn-metric"><small>'+esc(k)+'</small><b>'+esc(v)+'</b></div>').join('');
- const recent=(s.logs||[]).filter(x=>String(x).startsWith('Dia '+s.day+' · ')).slice(0,8);
- overlay.querySelector('#ae-turn-events').innerHTML=recent.map(x=>'<div class="ae-turn-event">'+esc(x.replace(/^Dia [0-9]+ · /,''))+'</div>').join('')||'<div class="ae-turn-event">Nenhum acontecimento registrado neste dia.</div>';
+ overlay.querySelector('#ae-turn-events').innerHTML=recent.map(x=>'<div class="ae-turn-event">'+esc(String(x).replace(/^Dia [0-9]+ · /,''))+'</div>').join('')||'<div class="ae-turn-event">Nenhum acontecimento registrado neste dia.</div>';
  overlay.hidden=false;overlay.querySelector('#ae-turn-continue').focus();
 }};
 })();
