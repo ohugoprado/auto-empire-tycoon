@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 9.6: capital commitments and rival bidding. */
+/* Auto Empire Tycoon — Alpha 9.7: mobile auction layout and financial exposure. */
 (function(){
 'use strict';
 const market=document.getElementById('market');if(!market)return;
@@ -16,7 +16,24 @@ const css=document.createElement('style');css.textContent=`
 #ae-auctions button{min-height:44px;padding:9px 12px}
 #ae-auctions button:disabled{opacity:.5}
 #ae-auctions .ae-auction-secondary{background:#304a59;color:#e7f0f6;border:1px solid #567587}
-#ae-auctions .ae-auction-alert{color:#ffcf95;font-size:12px}\n#ae-auctions .ae-auction-lot{padding:12px 0;border-bottom:1px solid #4a6472}\n#ae-auctions h4{margin:8px 0;font-size:15px}\n#ae-auctions [aria-pressed=true]{background:#f4c568;color:#152735}
+#ae-auctions .ae-auction-alert{color:#ffcf95;font-size:12px}
+#ae-auctions .ae-auction-lot{padding:12px 0;border-bottom:1px solid #4a6472}
+#ae-auctions h4{margin:8px 0;font-size:15px}
+#ae-auctions [aria-pressed=true]{background:#f4c568;color:#152735}
+
+@media(max-width:600px){
+ #ae-auctions{padding:12px;margin:10px 0;border-radius:12px;min-width:0}
+ #ae-auctions .ae-auction-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #ae-auctions .ae-auction-actions button{width:100%;font-size:12px;padding:10px 5px;white-space:normal;overflow-wrap:anywhere}
+ #ae-auctions .ae-auction-metrics{gap:6px}
+ #ae-auctions .ae-auction-metrics>div{padding:9px 7px;overflow-wrap:anywhere}
+ #ae-auctions .ae-auction-lot{padding:14px 0}
+ #ae-auctions .ae-auction-lot h4{line-height:1.4}
+}
+#ae-auctions .ae-auction-finance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+#ae-auctions .ae-auction-finance>div{padding:10px;background:#284252;border-radius:9px;font-size:12px}
+#ae-auctions .ae-auction-finance b{display:block;font-size:14px;margin-top:5px;color:#fff;overflow-wrap:anywhere}
+#ae-auctions .ae-auction-lot:focus-within{outline:1px solid #f4c568;outline-offset:2px}
 `;document.head.append(css);
 const filters=['all','fleet','recovered','premium','classic'];let selected='all';
 const panel=document.createElement('section');panel.id='ae-auctions';panel.setAttribute('aria-label','Leilão de veículos');
@@ -95,9 +112,13 @@ function refresh(){
  const buttons=filters.map(id=>'<button class="ae-auction-secondary" data-auction-filter="'+id+'" aria-pressed="'+(selected===id)+'">'+({all:'Todos',fleet:'Frotas',recovered:'Recuperados',premium:'Premium',classic:'Clássicos'}[id])+'</button>').join('');
  const visible=active.filter(l=>selected==='all'||l.category===selected);
  const held=commitments(a);
- panel.innerHTML='<h3>Central de leilões</h3><p>'+active.length+' lotes ativos · Lances competitivos e inspeções opcionais. Os arremates são cobrados no encerramento.</p><p><strong>Comprometido em lances líderes:</strong> '+fmtMoney(held.cash)+' · '+held.slots+' vaga(s) prevista(s) · Disponível para novos lances: '+fmtMoney(Math.max(0,n(s.cash)-held.cash))+'</p><div class="ae-auction-actions" aria-label="Filtrar lotes">'+buttons+'</div><div id="ae-auction-lots">'+(visible.length?visible.map(lot=>{
+ const free=Math.max(0,n(s.cash)-held.cash);
+ const freeSlots=Math.max(0,n(s.slots)-n(s.stock.length)-held.slots);
+ const finance='<div class="ae-auction-finance" aria-label="Planejamento financeiro dos leilões"><div>Caixa da empresa<b>'+fmtMoney(s.cash)+'</b></div><div>Lances líderes<b>'+fmtMoney(held.cash)+'</b></div><div>Caixa livre projetado<b>'+fmtMoney(free)+'</b></div><div>Vagas livres projetadas<b>'+freeSlots+'</b></div></div><p class="ae-auction-alert">O caixa comprometido é uma previsão, não um débito. Outras despesas da empresa podem reduzir o saldo antes do arremate.</p>';
+ panel.innerHTML='<h3>Central de leilões</h3><p>'+active.length+' lotes ativos · Lances competitivos e inspeções opcionais. Os arremates são cobrados no encerramento.</p><p><strong>Comprometido em lances líderes:</strong> '+fmtMoney(held.cash)+' · '+held.slots+' vaga(s) prevista(s) · Disponível para novos lances: '+fmtMoney(Math.max(0,n(s.cash)-held.cash))+'</p>'+finance+'<div class="ae-auction-actions" aria-label="Filtrar lotes">'+buttons+'</div><div id="ae-auction-lots">'+(visible.length?visible.map(lot=>{
  const id=n(lot.car.id),minBid=Math.round((n(lot.high)+Math.max(100,Math.round(n(lot.high)*.02/100)*100))/100)*100;
  const enough=canCommit(a,lot,minBid);
+ const margin=n(lot.car.value)-n(lot.high)-(lot.inspected?n(lot.defect?.cost):0);
  const fee=Math.max(150,Math.round(n(lot.car.value)*.012/50)*50);
  const defect=lot.defect||{name:'Sem defeitos relevantes',cost:0};
  return '<article class="ae-auction-lot" data-auction-lot="'+id+'"><p><strong>'+esc(lot.categoryLabel||'Leilão geral')+'</strong> · '+esc(lot.categoryDescription||'')+'</p><h4>'+esc(lot.car.name)+'</h4><p>Ano '+n(lot.car.year)+' · '+n(lot.car.km).toLocaleString('pt-BR')+' km · Conservação '+n(lot.car.condition)+'%</p><div class="ae-auction-metrics"><div>Lance atual<b>'+fmtMoney(lot.high)+'</b></div><div>Líder<b>'+esc(lot.leader)+'</b></div><div>Valor estimado<b>'+fmtMoney(lot.car.value)+'</b></div><div>Encerra no dia<b>'+n(lot.ends)+'</b></div></div><p>Próximo lance: <strong>'+fmtMoney(minBid)+'</strong></p><div class="ae-auction-actions"><button data-auction-bid="'+id+'" '+(!enough||n(lot.rounds)>=12?'disabled':'')+'>Dar lance</button><button class="ae-auction-secondary" data-auction-max="'+id+'" '+(!canCommit(a,lot,Math.round(minBid*1.08/100)*100)||n(lot.rounds)>=12?'disabled':'')+'>Lance +8%</button></div><p><strong>Laudo:</strong> '+(lot.inspected?esc(defect.name)+' · Reparo adicional: '+fmtMoney(n(defect.cost)):'Defeitos ocultos possíveis')+'</p>'+(lot.inspected?'':'<button class="ae-auction-secondary" data-auction-inspect="'+id+'" '+(n(s.cash)-held.cash<fee?'disabled':'')+'>Inspecionar · '+fmtMoney(fee)+'</button>')+'</article>';
@@ -117,7 +138,7 @@ function inspect(id){
  note('Laudo concluído: '+lot.car.name+' · '+(lot.defect?.name||'Sem defeitos relevantes')+'.');
  save();refresh();render();
 }
-function history(a){return a.history.length?'<p><strong>Últimos resultados</strong></p>'+a.history.slice(0,3).map(h=>'<p>Dia '+n(h.day)+' · '+esc(h.name)+' · '+esc(h.result)+' · '+fmtMoney(h.price)+'</p>').join(''):'';}
+function history(a){return a.history.length?'<p><strong>Últimos resultados</strong></p>'+a.history.slice(0,8).map(h=>'<p>Dia '+n(h.day)+' · '+esc(h.name)+' · '+esc(h.result)+' · '+fmtMoney(h.price)+'</p>').join(''):'';}
 function bid(id,raise){
  const a=ensure(),lot=a?.lots?.find(x=>n(x.car.id)===id);if(!lot||n(s.day)>n(lot.ends))return;
  const minimum=Math.round((n(lot.high)+Math.max(100,Math.round(n(lot.high)*.02/100)*100))/100)*100;
