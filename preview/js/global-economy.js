@@ -41,6 +41,32 @@ function updateDay(){
   e.crisis={...type,end:s.day+type.duration,region:type.id==='war'||type.id==='political'?country:null};
   e.lastCrisisDay=s.day;note('ALERTA ECONÔMICO: '+type.name+' em '+(e.crisis.region||'diversos mercados')+'. '+type.description);
  }
+
+ // Feed existing vehicle production queue from compact industrial contracts.
+ // Each plant has finite parallel lines; finished cars wait when storage is full.
+ for(const order of (e.factory.industrialOrders||[])){
+  if(!order||order.remaining<=0)continue;
+  const plant=order.plantId?(e.plantNetwork?.plants||[]).find(p=>String(p.id)===String(order.plantId)):e.factory;
+  if(!plant)continue;
+  const level=Math.max(1,Number(plant.level)||1),lines=level*2;
+  const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
+  const open=Math.max(0,lines-active);
+  const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length-e.factory.queue.length);
+  const count=Math.min(order.remaining,open,freeStorage);
+  for(let i=0;i<count;i++){
+   const palette=window.AESprites?.paints||[];
+   const paint=order.paint==='mixed'?palette[Math.floor(Math.random()*palette.length)]:palette[Number(order.paint)];
+   e.factory.queue.push({model:order.model,kind:order.kind,designId:order.designId,
+    generation:order.generation,facelift:order.facelift,modelIntroducedDay:order.modelIntroducedDay,
+    lifecycleBonus:order.lifecycleBonus,brandParts:order.brandParts?{...order.brandParts}:undefined,
+    quality:order.quality,supplier:order.supplier,plantId:order.plantId,
+    color:paint?.hex||'#b6d2e5',colorName:paint?.name||'Prata metálico',
+    cost:order.cost,value:order.value,due:s.day+Math.max(2,Number(order.cycleDays)||7)});
+  }
+  order.remaining-=count;
+  if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
+ }
+ e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0);
  // Manufacturing uses real in-game days; never completes while the app is closed.
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
