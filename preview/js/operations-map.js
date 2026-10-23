@@ -114,6 +114,12 @@
     const panelId=id === 'projects'?'ae-studio':'ae-economy';
     const foldId=id === 'projects'?'fold-ae-studio':'fold-ae-economy';
     if(typeof window.AEManagement?.openArea==='function')window.AEManagement.openArea('factory',foldId);
+    else {
+      const managementTab=document.querySelector('[data-workspace="management"]');
+      if(managementTab?.getAttribute('aria-pressed')!=='true')managementTab?.click();
+      const foldButton=document.querySelector('#'+foldId+' > .ae-fold-head');
+      if(foldButton?.getAttribute('aria-expanded')==='false')foldButton.click();
+    }
     const target=document.getElementById(foldId)||document.getElementById(panelId);
     if(target){
       for(let ancestor=target.parentElement;ancestor;ancestor=ancestor.parentElement){
@@ -124,7 +130,7 @@
       }
       // Focus the visible management section rather than a nested panel hidden in a fold.
       const foldHead=target.querySelector?.('.ae-fold-head');
-      focusPanel(foldHead||target);
+      requestAnimationFrame(()=>focusPanel(foldHead||target));
     }else{
       const fallback=document.getElementById('ae-industrial-dashboard')||document.getElementById('garage');
       focusPanel(fallback);
