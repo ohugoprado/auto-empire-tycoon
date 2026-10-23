@@ -50,13 +50,16 @@ function showOrder(id){
   const q=Number(quantity.value);
   const {f,e}=state(),queue=f?.queue||[];
   const used=queue.filter(j=>p.id==='main'?!j.plantId:String(j.plantId)===p.id).length;
-  const capacity=p.level*2,free=Math.max(0,capacity-used);
+  const plantRef=p.id==='main'?f:(e?.plantNetwork?.plants||[]).find(x=>String(x.id)===p.id);
+  const shifts=plantRef?.workforce?.shift===2?2:1;
+  const staff=plantRef?.workforce?Math.max(0,Number(plantRef.workforce.staff)||0):p.level*6;
+  const capacity=Math.min(p.level*4,Math.floor(staff/(3*shifts))*shifts),free=Math.max(0,capacity-used);
   const storage=Math.max(0,num(s.slots)-s.stock.length-queue.length);
   const valid=Number.isInteger(q)&&q>=1&&q<=1000;
   const industrial=(f?.industrialOrders||[]).some(o=>o.remaining>0&&(p.id==='main'?!o.plantId:String(o.plantId)===p.id));
   const cost=getCost(d,p),days=getDays(d,p);
   const crisis=window.AEEconomy?.crisisFor?.(s.empire.world?.active);
-  const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 1.000 unidades.':industrial?'Já existe um lote industrial ativo nesta fábrica.':free<1?'Nenhuma linha de produção disponível.':storage<1?'Sem vagas de estoque para receber o primeiro veículo.':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
+  const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 1.000 unidades.':industrial?'Já existe um lote industrial ativo nesta fábrica.':capacity<1?'Contrate funcionários para habilitar linhas de produção.':free<1?'Nenhuma linha de produção disponível.':storage<1?'Sem vagas de estoque para receber o primeiro veículo.':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
   box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Investimento antecipado: '+money(q*cost)+' · Primeiro ciclo: '+days+' dias · Ritmo: até '+capacity+' carros/ciclo · Vagas atuais: '+storage+' (entregas pausam se lotar). Custos operacionais diários cobrados à parte.';
   box.querySelector('#ae-order-error').textContent=error;
   box.querySelector('#ae-order-confirm').disabled=!!error;
