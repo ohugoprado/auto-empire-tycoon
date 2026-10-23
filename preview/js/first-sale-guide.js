@@ -162,8 +162,7 @@
     } else if (action === 'list' && view.car) listDialog(view.car.id);
     else if (action === 'offers' && view.car) offersDialog(view.car.id);
     else if (action === 'advance' && view.stage === 'wait') {
-      if (!paused || !document.getElementById('modal')?.classList.contains('hide')) return toast('Pause a simulação e feche a janela antes de avançar um dia.');
-      tickDay(); render(); toast('Dia ' + s.day + ' iniciado. Propostas dependem do mercado.');
+      if(typeof advanceDay==='function')advanceDay();else toast('O controle de avanço diário está indisponível.');
     }
   });
   window.AEFirstSaleGuide = Object.freeze({ snapshot, start, dismiss, resume });
