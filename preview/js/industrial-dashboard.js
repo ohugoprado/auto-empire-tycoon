@@ -6,7 +6,7 @@ const num=x=>Number.isFinite(Number(x))?Number(x):0;
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const panel=document.createElement('section');panel.id='ae-industrial-dashboard';panel.className='panel';
-panel.innerHTML='<h3>Central de operações industriais</h3><p class="tiny">Produção, entregas e despesas da rede em um só lugar.</p><div id="ae-industrial-kpis"></div><div class="ae-id-controls"><label for="ae-id-filter">Exibir fábricas</label><select id="ae-id-filter"><option value="all">Todas</option><option value="busy">Em produção</option><option value="available">Com vagas</option><option value="delayed">Com atrasos</option></select><label for="ae-id-sort">Ordenar</label><select id="ae-id-sort"><option value="name">Nome</option><option value="occupation">Ocupação</option><option value="delivery">Próxima entrega</option></select></div><div id="ae-industrial-lines"></div><h4>Contratos industriais</h4><div id="ae-industrial-contracts"></div><p class="tiny" id="ae-industrial-note"></p>';
+panel.innerHTML='<h3>Central de operações industriais</h3><p class="tiny">Produção, entregas e despesas da rede em um só lugar.</p><div id="ae-industrial-kpis"></div><div class="ae-id-controls"><label for="ae-id-filter">Exibir fábricas</label><select id="ae-id-filter"><option value="all">Todas</option><option value="busy">Em produção</option><option value="available">Com vagas</option><option value="delayed">Com atrasos</option></select><label for="ae-id-sort">Ordenar</label><select id="ae-id-sort"><option value="name">Nome</option><option value="occupation">Ocupação</option><option value="delivery">Próxima entrega</option></select></div><div id="ae-industrial-lines"></div><h4>Contratos industriais</h4><div id="ae-industrial-contracts"></div><h4>Últimas entregas concluídas</h4><div id="ae-industrial-history"></div><p class="tiny" id="ae-industrial-note"></p>';
 const style=document.createElement('style');style.textContent=`
 #ae-industrial-dashboard{padding:14px;margin:12px 0}
 #ae-industrial-dashboard h3{font-size:15px;color:#f4d38b;margin:0 0 8px}
@@ -40,6 +40,8 @@ function refresh(){
   const eta=cycles*Math.max(2,num(o.cycleDays)||7);
   return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId?esc(plant?.name||'Unidade industrial'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
  }).join('')||'<p class="tiny">Sem contratos aguardando montagem. Verifique as linhas acima para veículos já em produção.</p>';
+ const history=(factory.completedIndustrialOrders||[]).slice(-5).reverse();
+ panel.querySelector('#ae-industrial-history').innerHTML=history.map(o=>'<div class="ae-id-line"><p><b>'+esc(o.model)+'</b> · '+num(o.delivered)+' veículos · concluído no dia '+num(o.completedDay)+' · investimento '+money(num(o.investment))+'</p></div>').join('')||'<p class="tiny">Nenhum contrato industrial concluído ainda.</p>';
  const payroll=plants.reduce((sum,p)=>sum+Math.max(0,num(p.staff))*1100*Math.max(1,num(p.level)),0);
  const invested=jobs.reduce((sum,j)=>sum+Math.max(0,num(j.cost)),0);
  const delayed=jobs.filter(j=>num(j.due)<num(s.day)).length;
