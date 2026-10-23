@@ -55,7 +55,9 @@ function updateDay(){
   const lines=Math.min(baseLines*2,staffedLines);
   const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
   const open=Math.max(0,lines-active);
-  const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length-e.factory.queue.length);
+  const warehouse=e.factory.warehouseCars||[];
+  const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
+  const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length+warehouseCapacity-warehouse.length-e.factory.queue.length);
   const count=Math.max(0,Math.min(order.remaining,open,freeStorage));
   for(let i=0;i<count;i++){
    const palette=window.AESprites?.paints||[];
@@ -94,7 +96,9 @@ function updateDay(){
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
-  if(s.stock.length>=s.slots){job.due=s.day+1;continue}
+  const warehouse=e.factory.warehouseCars||(e.factory.warehouseCars=[]);
+  const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
+  if(s.stock.length>=s.slots&&warehouse.length>=warehouseCapacity){job.due=s.day+1;continue}
   const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,generation:job.generation||1,facelift:job.facelift||0,modelIntroducedDay:job.modelIntroducedDay||s.day,lifecycleBonus:job.lifecycleBonus||0,brandParts:job.brandParts?{...job.brandParts}:undefined,plantId:job.plantId??null};
   const supplier=job.supplier||'standard';
   const defectRate=supplier==='economy'?.07:supplier==='premium'?.012:.03;
@@ -105,7 +109,8 @@ function updateDay(){
    const ops=window.AEOperations?.ensure?.();if(ops)ops.defects++;
    note('Controle de qualidade: '+c.name+' exige revisão antes de ser anunciado.');
   }
-  s.stock.push(c);e.factory.produced++;if(job.industrialOrderId){const contract=(e.factory.industrialOrders||[]).find(o=>o.id===job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
+  if(s.stock.length<s.slots)s.stock.push(c);else warehouse.push(c);
+  e.factory.produced++;if(job.industrialOrderId){const contract=(e.factory.industrialOrders||[]).find(o=>o.id===job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+(s.stock.includes(c)?'. Entregue à concessionária.':'. Armazenado no pátio industrial.'));
  }
  // Archive fulfilled contracts only after actual deliveries; keep a bounded summary.
  const finished=(e.factory.industrialOrders||[]).filter(o=>Number(o.remaining)<=0&&Number(o.delivered)>=Number(o.total));
