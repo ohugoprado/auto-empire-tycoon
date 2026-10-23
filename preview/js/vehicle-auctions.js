@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 9.3: auctions with pre-purchase inspections and hidden defects. */
+/* Auto Empire Tycoon — Alpha 9.4: auction categories, varied risks and provenance. */
 (function(){
 'use strict';
 const market=document.getElementById('market');if(!market)return;
@@ -27,7 +27,18 @@ function ensure(){
  return a;
 }
 function createLot(a){
- const car=makeCar(),base=Math.max(500,Math.round(n(car.value)*(.61+Math.random()*.13)/100)*100);
+ const categories=[
+ {id:'fleet',label:'Frota empresarial',description:'Veículo de uso intenso, com desconto maior e desgaste frequente.',base:.57,wear:9,risk:.68},
+ {id:'recovered',label:'Veículo recuperado',description:'Preço agressivo, mas maior risco de reparos relevantes.',base:.47,wear:13,risk:.86},
+ {id:'premium',label:'Seleção premium',description:'Lote de maior valor, geralmente melhor conservado.',base:.77,wear:0,risk:.32},
+ {id:'classic',label:'Clássico colecionável',description:'Veículo raro com valor de mercado variável e potencial de restauração.',base:.64,wear:7,risk:.57}
+ ];
+ const category=categories[Math.floor(Math.random()*categories.length)];
+ const car=makeCar();
+ if(category.id==='premium'){car.value=Math.round(n(car.value)*1.4/100)*100;car.condition=Math.min(98,n(car.condition)+12);}
+ if(category.id==='classic'){car.year=Math.min(n(car.year),1998);car.value=Math.round(n(car.value)*1.15/100)*100;}
+ if(category.id==='fleet'){car.km+=65000;}
+ const base=Math.max(500,Math.round(n(car.value)*(category.base+Math.random()*.09)/100)*100);
  const rivals=['Atlas Motors','Orion Auto','Norte Veículos'];
  const defects=[
  {name:'Sem defeitos relevantes',cost:0,conditionLoss:0},
@@ -35,10 +46,12 @@ function createLot(a){
  {name:'Transmissão desgastada',cost:Math.round(n(car.value)*.095/100)*100,conditionLoss:14},
  {name:'Motor com reparo pendente',cost:Math.round(n(car.value)*.15/100)*100,conditionLoss:20}
  ];
- const roll=Math.random(),defect=defects[roll<.35?0:roll<.67?1:roll<.88?2:3];
- a.lot={car,day:s.day,ends:s.day+3,high:base,leader:'Leiloeiro',rival:rivals[Math.floor(Math.random()*rivals.length)],rivalLimit:Math.round(n(car.value)*(.77+Math.random()*.22)/100)*100,playerBid:0,rounds:0,defect,inspected:false};
+ const roll=Math.random(),risk=category.risk;
+ const defect=defects[roll>risk?0:roll>risk*.55?1:roll>risk*.20?2:3];
+ car.condition=Math.max(18,n(car.condition)-category.wear);
+ a.lot={car,day:s.day,ends:s.day+3,high:base,leader:'Leiloeiro',rival:rivals[Math.floor(Math.random()*rivals.length)],rivalLimit:Math.round(n(car.value)*(.77+Math.random()*.22)/100)*100,playerBid:0,rounds:0,defect,inspected:false,category:category.id,categoryLabel:category.label,categoryDescription:category.description};
  a.nextDay=s.day+6;
- note('Novo leilão: '+car.name+' disponível até o dia '+a.lot.ends+'.');
+ note('Novo leilão de '+category.label+': '+car.name+' disponível até o dia '+a.lot.ends+'.');
 }
 function finish(a){
  const lot=a.lot;if(!lot)return;
@@ -50,6 +63,7 @@ function finish(a){
    car.repair=n(car.repair)+n(defect.cost);
    car.auctionDefect=String(defect.name||'Sem defeitos relevantes');
    car.auctionInspected=!!lot.inspected;
+   car.auctionCategory=String(lot.categoryLabel||'Leilão geral');
    s.cash-=price;car.bought=price;car.spent=0;car.listed=false;car.offers=[];s.stock.push(car);
    if(n(defect.cost)>0)note('Avaliação pós-arremate: '+car.auctionDefect+' em '+car.name+'.');
    entry('Arremate · '+car.name,-price);note('Arrematou '+car.name+' por '+fmtMoney(price)+'.');
