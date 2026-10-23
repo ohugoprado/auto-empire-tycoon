@@ -9,7 +9,9 @@ const net = require('node:net');
 const { spawn } = require('node:child_process');
 const playwright = require('playwright');
 const root = path.resolve(__dirname, '..');
-let browser, server, checks = 0;
+let browser, server, activePage, checks = 0;
+const loadErrors = [], failedRequests = [];
+let serverOutput = '';
 const check = (condition, description) => { assert.ok(condition, description); checks++; };
 const equal = (actual, expected, description) => { assert.deepEqual(actual, expected, description); checks++; };
 
@@ -24,8 +26,8 @@ async function startServer() {
     cwd: root, stdio: ['ignore', 'pipe', 'pipe']
   });
   server.once('error', error => { failure = error; });
-  server.stdout.on('data', data => { output += data; });
-  server.stderr.on('data', data => { output += data; });
+  server.stdout.on('data', data => { output += data; serverOutput += data; });
+  server.stderr.on('data', data => { output += data; serverOutput += data; });
   const base = 'http://127.0.0.1:' + port;
   for (let attempt = 0; attempt < 60; attempt++) {
     if (failure) throw failure;
@@ -94,9 +96,11 @@ async function reloadCampaign(page, expected, label) {
       }
     });
     const page = await context.newPage();
+    activePage = page;
     page.setDefaultTimeout(15000);
     const errors = [];
-    page.on('pageerror', error => errors.push(error.message));
+    page.on('pageerror', error => { errors.push(error.message); loadErrors.push(error.stack || error.message); });
+    page.on('requestfailed', request => failedRequests.push({ url: request.url(), type: request.resourceType(), error: request.failure()?.errorText }));
     const acceptDialog = dialog => dialog.accept();
     page.on('dialog', acceptDialog);
     await page.goto(base + '/preview/?campaign=main', { waitUntil: 'networkidle' });
@@ -302,6 +306,15 @@ async function reloadCampaign(page, expected, label) {
     equal(errors, [], 'The full integrated commerce campaign has no JavaScript errors');
     await context.close();
     console.log('PASS: ' + checks + ' integrated resale, generated offers, ledger, taxes, payroll, debt and reload checks (' + engine + ')');
+  } catch (error) {
+    const documentState = await activePage?.evaluate(() => ({
+      url: location.href, readyState: document.readyState,
+      statePresent: typeof s !== 'undefined', empirePresent: typeof s !== 'undefined' && Boolean(s.empire),
+      staffLoaded: Boolean(window.AEStaff), mapLoaded: Boolean(window.AEOperationsMap),
+      scripts: [...document.scripts].filter(script => script.src).map(script => script.src)
+    })).catch(() => null);
+    console.error('Commerce failure diagnostics:', JSON.stringify({ documentState, loadErrors, failedRequests, serverTail: serverOutput.split('\n').slice(-25) }, null, 2));
+    throw error;
   } finally {
     if (browser) await browser.close();
     if (server?.pid && server.exitCode === null) await new Promise(resolve => { server.once('exit', resolve); server.kill('SIGTERM'); });
