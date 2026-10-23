@@ -14,13 +14,13 @@ O [plano de retenção e progressão](docs/RETENCAO-E-PROGRESSAO.md) propõe tra
 
 O primeiro incremento recomendado é um comparador de dois veículos após cinco vendas, com desbloqueio permanente e uma mudança visual da fachada. Ferramentas atuais e qualidade básica permanecem disponíveis. A automação avançada fica para uma etapa posterior, com orçamento, limites e histórico.
 
-O [conceito de mapa da empresa](docs/MAPA-DA-EMPRESA.md) mostra uma direção visual para navegação por construções e acompanhamento de produção. É uma proposta; o mapa interativo ainda não foi implementado.
+O [mapa da empresa](docs/MAPA-DA-EMPRESA.md) já tem três construções interativas, com imagens próprias: garagem, fabricante e projetos. Os indicadores consultam estoque, propostas, reservas, P&D e fila reais. Escritório, rede e evolução das fachadas continuam propostos.
 
 ## Situação atual e limites da validação
 
 | Área | O que existe | O que ainda falta comprovar |
 | --- | --- | --- |
-| Visual | Novo visual navy/azul/mint, 32 carrocerias e cinco pinturas por modelo, showroom e galeria interativa | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
+| Visual | Visual navy/azul/mint, 32 carrocerias e cinco pinturas por modelo, mapa operacional de três construções e galeria interativa | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
 | Comércio | Compra até venda, guia opcional, custos comparáveis e regressão integrada com folha/dívida/tributos | Campanhas longas e experiência completa em iPhone físico |
 | Compradores | Arquétipos, compatibilidade, histórico, fidelidade, clientes e indicações persistidos | Balanceamento de retorno, preferências e indicações em campanhas longas |
 | Banco | Empréstimos, parcelas, amortização, carência e score; regressão dedicada | Integração econômica de longo prazo e uso pelo Safari |
@@ -44,6 +44,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 - [x] Automatizar WebKit com toque e o perfil oficial do iPhone 17 Pro Max, registrando separadamente o limite de navegação offline do ambiente.
 - [ ] Validar Safari e tela inicial em aparelhos reais, seguindo [o roteiro de teste do iPhone](docs/TESTE-IPHONE.md), começando pelo iPhone 17 Pro Max informado.
 - [x] Testar um ciclo completo de revenda, incluindo vistorias, reparo, anúncio, propostas da simulação, venda, tributos, folha, dívida e recarga, em Chromium e WebKit.
+- [x] Impedir arremates repetidos do mesmo lote, persistindo consumo e cotação na campanha; testar toques rápidos, botões antigos, recarga, renovação, caixa e vagas nos dois motores.
 - [x] Cobrir pesquisa, homologação, fundação, produção por lote, pintura, entrega e recarga com regressão em Chromium e WebKit. A abertura fica em Gestão → Fabricante, com requisitos visíveis.
 - [ ] Testar uma campanha industrial completa, incluindo projeto, insumos, produção, entrega, venda e custos por período.
 - [ ] Reduzir os estilos e as sobrescritas de funções antigos por partes, preservando o comportamento com testes de regressão.

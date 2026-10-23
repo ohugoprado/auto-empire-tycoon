@@ -193,8 +193,8 @@ async function testViewport(base, width, height) {
       width + ': visual redesign is loaded');
     await createCompany(page);
     await page.locator('#ae-showroom').waitFor({ state: 'visible' });
-    check(await page.locator('#ae-showroom svg.ae-sprite > image').count() > 0,
-      width + ': showroom contains sprite artwork');
+    check(await page.locator('#ae-showroom svg.ae-district-art > image').count() === 3,
+      width + ': district contains all three building illustrations');
     await assertLayout(page, width + ' garage');
     await page.screenshot({ path: path.join(artifacts, 'garage-' + width + '.png'), fullPage: true });
 

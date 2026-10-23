@@ -82,7 +82,7 @@ async function assertOffline(context, page, expectedCar) {
       async function inspect() {
         if (!navigator.serviceWorker.controller) return;
         try {
-          const cache = await caches.open('auto-empire-motor-district-9001');
+          const cache = await caches.open('auto-empire-motor-district-9100');
           const keys = await cache.keys();
           clearTimeout(timeout);
           resolve({
@@ -101,6 +101,7 @@ async function assertOffline(context, page, expectedCar) {
   check(worker.assets.some(asset => asset.endsWith('/visual-redesign.css')) && [...'abcdefgh'].every(letter => worker.assets.some(asset => asset.endsWith('/fleet-models-' + letter + '.webp'))),
     'The offline shell contains the new stylesheet and sprite artwork');
   check(worker.assets.some(asset => /\/preview\/galeria\/$/.test(asset)), 'The offline shell includes the vehicle gallery');
+  check(worker.assets.some(asset => asset.endsWith('/district-buildings.webp')), 'The offline shell includes the interactive district artwork');
   const loadedResources = await page.evaluate(() => [...document.querySelectorAll('script[src],link[rel="stylesheet"][href]')].map(node => new URL(node.src || node.href).pathname));
   check(loadedResources.every(resource => worker.assets.includes(resource)), 'Every loaded game extension and stylesheet is available in the offline cache');
   const onlineBackground = await page.locator('body').evaluate(body => getComputedStyle(body).backgroundColor);

@@ -2,7 +2,7 @@
 
 Jogo web experimental de gestão automotiva para iPhone, com showroom, mercado, negociações, vistorias, reparos, vendas e salvamento local. Safari e instalação pela tela inicial são os alvos prioritários; a validação em aparelho real ainda está pendente.
 
-Consulte o [conceito de mapa da empresa](docs/MAPA-DA-EMPRESA.md), o [plano de retenção e conveniências conquistadas](docs/RETENCAO-E-PROGRESSAO.md), o [roadmap atual para iPhone](ROADMAP.md) e o [roteiro de teste em aparelhos reais](docs/TESTE-IPHONE.md). O arquivo `ROADMAP-100.md` é um backlog histórico, com estados que precisam ser reavaliados.
+Consulte o [mapa da empresa e suas próximas etapas](docs/MAPA-DA-EMPRESA.md), o [plano de retenção e conveniências conquistadas](docs/RETENCAO-E-PROGRESSAO.md), o [roadmap atual para iPhone](ROADMAP.md) e o [roteiro de teste em aparelhos reais](docs/TESTE-IPHONE.md). O arquivo `ROADMAP-100.md` é um backlog histórico, com estados que precisam ser reavaliados.
 
 ## Publicar no GitHub Pages
 
@@ -31,6 +31,10 @@ node tests/corporate-banking.test.js
 node tests/staff-system.test.js
 node tests/commerce-campaign.test.js
 AE_BROWSER=webkit node tests/commerce-campaign.test.js
+node tests/auction-purchase.test.js
+AE_BROWSER=webkit node tests/auction-purchase.test.js
+node tests/operations-map.test.js
+AE_BROWSER=webkit node tests/operations-map.test.js
 node tests/factory-production.test.js
 AE_BROWSER=webkit node tests/factory-production.test.js
 node tests/backup-restore.test.js
@@ -60,11 +64,15 @@ Os 32 modelos do catálogo têm carrocerias distintas e cinco pinturas: Branco P
 
 O guia da primeira venda é opcional, pode ser pausado e retomado em Eventos e salva seu progresso na campanha ativa. Preparar/reparar continua opcional; avançar um dia exige uma ação explícita. O painel de progressão consulta oito marcos reais da empresa, sem duplicar recompensas; a campanha não avança enquanto está fechada. O estoque e os diálogos mostram compra, despesas registradas no veículo, investimento e lucro bruto estimado; tributos e despesas da empresa ficam separados.
 
-A coleção passou por 1.713 verificações em cada motor (Chromium e WebKit), incluindo pixels dos 160 recortes, cores, enquadramento, filtros, zoom e migração de pinturas antigas. O fluxo industrial (pesquisa, homologação, fundação, lote, entrega e recarga) passou por 177 verificações por motor; o guia passou por 220 verificações por motor; o comércio integrado, por 163; os backups, por 175. Esses resultados são automatizados.
+A coleção passou por 1.713 verificações em cada motor (Chromium e WebKit), incluindo pixels dos 160 recortes, cores, enquadramento, filtros, zoom e migração de pinturas antigas. O fluxo industrial (pesquisa, homologação, fundação, lote, entrega e recarga) passou por 177 verificações por motor; o guia passou por 220 verificações por motor; o comércio integrado, por 163; os backups, por 175. O leilão tem 163 verificações por motor para arremate único, toques rápidos, botões antigos, recarga, renovação e campanhas separadas. Esses resultados são automatizados.
 
 O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. O formato dos salvamentos foi preservado, incluindo os sistemas de progressão, clientes e indústria adicionados em paralelo.
 
-O service worker registra a versão `motor-district-9001`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O mapa operacional da garagem abre estoque, fundação/produção e projetos com um toque. As três construções têm imagens próprias e indicadores reais de propostas, vagas, reservas, homologações e próxima entrega da fábrica principal. É um distrito esquemático; não atribui cidades às plantas nem inventa prazos de transporte. Os menus anteriores continuam disponíveis.
+
+O leilão regional mantém um único veículo por lote de dois dias simulados. Carro e cotação ficam congelados na campanha; o primeiro arremate consome o lote e desativa o botão. Cliques repetidos, atualização do mercado e recarga não permitem comprar o mesmo lote outra vez. Caixa insuficiente, falência ou falta de vaga impedem a aquisição sem consumir a oferta. Salvamentos antigos e carros já adquiridos são preservados.
+
+O service worker registra a versão `motor-district-9100`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo mapa, guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Abrir a fabricante e produzir
 

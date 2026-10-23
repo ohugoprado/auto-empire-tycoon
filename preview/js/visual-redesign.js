@@ -212,14 +212,14 @@
       stock.querySelector('button').addEventListener('click', () => show('market'));
     }
     const sceneSignature = JSON.stringify([s.slots, s.stock.length, s.stock.slice(0, 3).map(car => [car.id, car.name, car.kind])]);
-    if (sceneSignature !== lastScene) {
+    if (document.getElementById('ae-showroom-cars') && sceneSignature !== lastScene) {
       lastScene = sceneSignature;
       const cars = s.stock.length ? s.stock.slice(0, 3) : [{ kind: 'SUV' }, { kind: 'Esportivo' }];
       document.getElementById('ae-showroom-cars').innerHTML = cars.map((car, i) => '<div class="ae-showroom-car ae-showroom-car-' + i + '">' + sprite(car, true) + '</div>').join('');
       document.getElementById('ae-scene-caption').textContent = s.stock.length ? 'SUA FROTA · ' + s.stock.length + '/' + s.slots + ' VAGAS' : 'FROTA ILUSTRATIVA';
     }
     const commandSub = document.getElementById('ae-command-sub');
-    if (commandSub) {
+    if (commandSub && document.getElementById('ae-showroom-location')) {
       const city = commandSub.textContent.split(' · ')[0];
       document.getElementById('ae-showroom-location').textContent = city + ' · Sede principal';
     }

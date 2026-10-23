@@ -342,7 +342,7 @@ async function testProfile(base, profile) {
     check((await page.locator('#ae-company-identity').innerText()).includes('Aurora iPhone'), label + ': company creation succeeds by touch');
     await page.locator('#toast').waitFor({ state: 'hidden' });
     await assertLayout(page, label + ' showroom');
-    check(await page.locator('#ae-showroom svg.ae-sprite > image').count() > 0, label + ': showroom artwork is present');
+    check(await page.locator('#ae-showroom svg.ae-district-art > image').count() === 3, label + ': all three district illustrations are present');
     await page.screenshot({ path: path.join(artifacts, 'garage-' + label + '.png'), fullPage: true });
 
     await page.locator('.bottom [data-tab="market"]').tap();

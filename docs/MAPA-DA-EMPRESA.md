@@ -1,24 +1,24 @@
 # Mapa da empresa e imagens que orientam o jogador
 
-Proposta visual · 23/10/2026. A imagem abaixo é um conceito gerado, não uma captura de uma funcionalidade implementada. O mapa interativo ainda não está no jogo.
+Atualizado em 23/10/2026. A primeira versão interativa está no jogo: garagem, fabricante e projetos abrem as telas reais e mostram o estado da campanha. A imagem abaixo continua sendo um conceito de expansão, não uma captura da interface atual.
 
 ![Conceito de distrito automotivo com garagem, concessionária, fabricante, oficina, projetos e área de expansão](assets/operations-map-concept.webp)
 
 ## Primeira versão útil
 
-Um painel visual da operação com três construções grandes: **garagem, fabricante e centro de projetos**. Tocar numa construção abre a tela real correspondente. Depois entram escritório e rede industrial. O mapa complementa os menus atuais.
+O painel da garagem tem três construções tocáveis: **garagem, fabricante e centro de projetos**. Cada uma usa uma ilustração própria no atlas transparente `district-buildings.webp`, de aproximadamente 815 KiB, compartilhado e armazenado no cache offline. Tocar abre e focaliza a seção correspondente. Escritório e rede industrial continuam como propostas para próximas versões. O mapa complementa os menus atuais, sem custo novo nem alteração do formato da campanha.
 
 | Ponto tocável | Informação útil | Ação |
 | --- | --- | --- |
 | Garagem / showroom | Estoque, vagas e propostas pendentes | Abrir estoque ou analisar propostas |
 | Fabricante | Aberta ou não, linhas ocupadas e próxima entrega | Abrir fundação ou ordens de produção |
 | Projetos | Pontos P&D e modelos homologados | Abrir desenvolvimento e escolher projeto |
-| Escritório | Caixa, reputação e alertas financeiros | Abrir Gestão / Finanças |
-| Rede industrial | Plantas e ordens por unidade | Selecionar unidade e administrar produção |
+| Escritório (futuro) | Caixa, reputação e alertas financeiros | Abrir Gestão / Finanças |
+| Rede industrial (futuro) | Plantas e ordens por unidade | Selecionar unidade e administrar produção |
 
-Cada prédio mostra um estado legível: **a construir, disponível, trabalhando ou precisa de atenção**. Ícone e texto acompanham a cor. Exemplos: “Estoque cheio”, “2/4 linhas ocupadas”, “Entrega em 3 dias”. Uma fábrica ainda fechada mostra o custo de fundação ao toque, em vez de deixar o jogador procurar o botão em outro menu.
+Cada prédio mostra um estado legível, acompanhado de texto. A garagem informa estoque, propostas, vagas livres e reservas da produção. A fabricante informa fundação e capital faltante, linhas principais ocupadas e próxima entrega, além de alertas de crise, estoque cheio ou falência. Projetos mostra pontos P&D e modelos homologados. Uma fábrica ainda fechada exibe o custo e leva diretamente à fundação. Ordens de outras unidades aparecem em um aviso separado; a previsão da construção principal usa apenas a fila dessa unidade.
 
-No iPhone, os alvos têm pelo menos 44 × 44 pontos. O toque abre um painel inferior com uma ação principal. Nomes, sinais e números importantes devem ser elementos da interface; a ilustração serve de cenário. Animações são discretas, opcionais e respeitam a redução de movimento. O mapa só atualiza quando estoque, fila ou estado da empresa muda.
+Os controles têm pelo menos 44 × 44 pixels CSS. O toque abre a seção existente e move o foco até ela; nomes e números são texto da interface, separados das imagens. O mapa informa se a simulação está pausada e que os prazos usam dias do jogo. Não há transporte ou produção em segundo plano novos. O relógio sozinho não reconstrói o mapa, e a redução de movimento é respeitada. A validação física no iPhone continua pendente.
 
 ## Outras imagens que ajudam a jogar
 
