@@ -61,6 +61,7 @@
     button.setAttribute('aria-describedby', 'ae-map-status-' + id + ' ae-map-detail-' + id);
     button.innerHTML = '<span class="ae-district-art-wrap"><svg class="ae-district-art" viewBox="' + art.boxes[id] + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><image href="' + art.url + '" width="' + art.width + '" height="' + art.height + '"/></svg><span class="ae-map-node-arrow" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 15 15 5M5 5h10v10"/></svg></span></span><span class="ae-map-node-name" id="ae-map-name-' + id + '">' + label + '</span><span class="ae-map-node-status" data-map-status id="ae-map-status-' + id + '"></span><span class="ae-map-node-detail" data-map-detail id="ae-map-detail-' + id + '"></span>';
     button.addEventListener('click', () => visit(id));
+    button.style.touchAction='manipulation';
     board.append(button);
     nodes.set(id, { button, status: button.querySelector('[data-map-status]'), detail: button.querySelector('[data-map-detail]') });
   }
@@ -113,7 +114,7 @@
     const panelId=id === 'projects'?'ae-studio':'ae-economy';
     const foldId=id === 'projects'?'fold-ae-studio':'fold-ae-economy';
     if(typeof window.AEManagement?.openArea==='function')window.AEManagement.openArea('factory',foldId);
-    const target=document.getElementById(panelId);
+    const target=document.getElementById(foldId)||document.getElementById(panelId);
     if(target){
       for(let ancestor=target.parentElement;ancestor;ancestor=ancestor.parentElement){
         if(ancestor.classList.contains('ae-panel-content')&&ancestor.hidden){
@@ -121,7 +122,9 @@
           if(toggle)toggle.click();else ancestor.hidden=false;
         }
       }
-      focusPanel(target);
+      // Focus the visible management section rather than a nested panel hidden in a fold.
+      const foldHead=target.querySelector?.('.ae-fold-head');
+      focusPanel(foldHead||target);
     }else{
       const fallback=document.getElementById('ae-industrial-dashboard')||document.getElementById('garage');
       focusPanel(fallback);
