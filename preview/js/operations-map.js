@@ -110,8 +110,22 @@
       focusPanel(document.getElementById('stock'));
       return;
     }
-    window.AEManagement?.openArea('factory', id === 'projects' ? 'fold-ae-studio' : 'fold-ae-economy');
-    focusPanel(document.getElementById(id === 'projects' ? 'ae-studio' : snapshot().factory.mainJobs ? 'ae-factory-planning' : 'ae-economy'));
+    const panelId=id === 'projects'?'ae-studio':'ae-economy';
+    const foldId=id === 'projects'?'fold-ae-studio':'fold-ae-economy';
+    if(typeof window.AEManagement?.openArea==='function')window.AEManagement.openArea('factory',foldId);
+    const target=document.getElementById(panelId);
+    if(target){
+      for(let ancestor=target.parentElement;ancestor;ancestor=ancestor.parentElement){
+        if(ancestor.classList.contains('ae-panel-content')&&ancestor.hidden){
+          const toggle=ancestor.parentElement?.querySelector('.ae-panel-toggle');
+          if(toggle)toggle.click();else ancestor.hidden=false;
+        }
+      }
+      focusPanel(target);
+    }else{
+      const fallback=document.getElementById('ae-industrial-dashboard')||document.getElementById('garage');
+      focusPanel(fallback);
+    }
   }
   const previousRender = render;
   render = function () { const result = previousRender.apply(this, arguments); refresh(); return result; };
