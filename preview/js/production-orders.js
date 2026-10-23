@@ -54,7 +54,9 @@ function showOrder(id){
   const shifts=plantRef?.workforce?.shift===2?2:1;
   const staff=plantRef?.workforce?Math.max(0,Number(plantRef.workforce.staff)||0):p.level*6;
   const capacity=Math.min(p.level*4,Math.floor(staff/(3*shifts))*shifts),free=Math.max(0,capacity-used);
-  const storage=Math.max(0,num(s.slots)-s.stock.length-queue.length);
+  const yardCapacity=Math.max(20,Number(f?.warehouseCapacity)||20);
+  const yardUsed=Array.isArray(f?.warehouseCars)?f.warehouseCars.length:0;
+  const storage=Math.max(0,Math.max(0,num(s.slots)-s.stock.length)+Math.max(0,yardCapacity-yardUsed)-queue.length);
   const valid=Number.isInteger(q)&&q>=1&&q<=1000;
   const industrial=(f?.industrialOrders||[]).some(o=>o.remaining>0&&(p.id==='main'?!o.plantId:String(o.plantId)===p.id));
   const cost=getCost(d,p),days=getDays(d,p);
