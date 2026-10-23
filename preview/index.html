@@ -43,6 +43,23 @@ body:has(#ae-turn-overlay:not([hidden])) #ae-end-day{visibility:hidden;pointer-e
  #market>.section-head button,#garage>.section-head button{font-size:12px}
  #market .panel,#reports .panel,#events .panel{padding:12px}
 }
+/* Industrial management: dense data, legible on iPhone. */
+#ae-industrial-dashboard,#ae-workforce,#ae-factory-warehouse{min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+#ae-industrial-dashboard h3,#ae-workforce h3,#ae-factory-warehouse h3{line-height:1.35;margin-bottom:8px}
+#ae-industrial-kpis,#ae-warehouse-stats{min-width:0;max-width:100%}
+#ae-id-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+#ae-id-controls label{min-width:0}
+#ae-id-controls select{min-width:0;max-width:100%;font-size:16px}
+#ae-id-line,.ae-workforce-unit,.ae-warehouse-car{min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+#ae-id-line p,.ae-workforce-unit p,.ae-warehouse-car p{line-height:1.5}
+#ae-factory-warehouse button,#ae-workforce button,#ae-industrial-dashboard button{min-height:40px;max-width:100%;white-space:normal;touch-action:manipulation}
+#ae-factory-warehouse input,#ae-workforce input,#ae-industrial-dashboard input{max-width:100%;box-sizing:border-box}
+#ae-warehouse-pagination{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media(max-width:420px){
+ #ae-industrial-dashboard,#ae-workforce,#ae-factory-warehouse{padding:12px!important}
+ #ae-id-controls>*{flex:1 1 130px}
+ #ae-warehouse-fleet,#ae-warehouse-bulk{max-width:100%}
+}
 /* Keep the primary turn action above the real bottom navigation height. */
 :root{--ae-bottom-nav-height:80px}
 #ae-end-day{bottom:calc(var(--ae-bottom-nav-height) + 12px)!important}
@@ -1013,10 +1030,10 @@ scene();
 </script><script id="alpha108-polish">
 (function(){
 'use strict';
-const VERSION='Alpha 13.9',BUILD='13900';
+const VERSION='Alpha 14.0',BUILD='14000';
 document.title='Auto Empire Tycoon — '+VERSION;
 const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 13.9 · POR TURNOS';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 14.0 · POR TURNOS';
 const css=document.createElement('style');
 css.textContent=`
 /* Stage 1: visual hierarchy and responsive readability */
