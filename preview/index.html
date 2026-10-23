@@ -29,6 +29,20 @@ body:has(#ae-turn-overlay:not([hidden])) #ae-end-day{visibility:hidden;pointer-e
  .stats .panel{padding:10px 7px}
  .stats .num{font-size:clamp(12px,3.4vw,17px)}
 }
+/* Market and management panel hierarchy on narrow screens. */
+#market,#reports,#events{min-width:0}
+#market>.section-head,#garage>.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#market>.section-head>.title,#garage>.section-head>.title{min-width:0;flex:1 1 150px}
+#market>.section-head button,#garage>.section-head button{flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#market .panel,#reports .panel,#events .panel{min-width:0;max-width:100%;overflow-wrap:anywhere}
+#market .actions,#reports .actions,#events .actions{display:flex;flex-wrap:wrap;gap:8px}
+#market button,#reports button,#events button{touch-action:manipulation}
+#reports #ledger,#events #log{overflow-x:auto;overscroll-behavior-x:contain}
+#reports .title,#events .title{margin-top:14px;margin-bottom:10px}
+@media(max-width:380px){
+ #market>.section-head button,#garage>.section-head button{font-size:12px}
+ #market .panel,#reports .panel,#events .panel{padding:12px}
+}
 /* Keep the primary turn action above the real bottom navigation height. */
 :root{--ae-bottom-nav-height:80px}
 #ae-end-day{bottom:calc(var(--ae-bottom-nav-height) + 12px)!important}
@@ -999,10 +1013,10 @@ scene();
 </script><script id="alpha108-polish">
 (function(){
 'use strict';
-const VERSION='Alpha 13.8',BUILD='13800';
+const VERSION='Alpha 13.9',BUILD='13900';
 document.title='Auto Empire Tycoon — '+VERSION;
 const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 13.8 · POR TURNOS';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 13.9 · POR TURNOS';
 const css=document.createElement('style');
 css.textContent=`
 /* Stage 1: visual hierarchy and responsive readability */
