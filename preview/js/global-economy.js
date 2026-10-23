@@ -42,6 +42,12 @@ function updateDay(){
   e.lastCrisisDay=s.day;note('ALERTA ECONÔMICO: '+type.name+' em '+(e.crisis.region||'diversos mercados')+'. '+type.description);
  }
 
+ // Index active jobs once per day instead of scanning the entire queue for each contract.
+ const activeJobsByPlant=new Map();
+ for(const job of e.factory.queue){
+  const key=job.plantId==null?'main':String(job.plantId);
+  activeJobsByPlant.set(key,(activeJobsByPlant.get(key)||0)+1);
+ }
  // Feed existing vehicle production queue from compact industrial contracts.
  // Each plant has finite parallel lines; finished cars wait when storage is full.
  for(const order of (e.factory.industrialOrders||[])){
@@ -53,7 +59,8 @@ function updateDay(){
   const shifts=Number(workforce.shift)===2?2:1;
   const staffedLines=Math.floor(Math.max(0,Number(workforce.staff)||0)/(3*shifts))*shifts;
   const lines=Math.min(baseLines*2,staffedLines);
-  const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
+  const plantKey=order.plantId==null?'main':String(order.plantId);
+  const active=activeJobsByPlant.get(plantKey)||0;
   const open=Math.max(0,lines-active);
   const warehouse=e.factory.warehouseCars||[];
   const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
@@ -77,6 +84,7 @@ function updateDay(){
     color:paintHex||'#b6d2e5',colorName:paintName||'Prata metálico',
     cost:order.cost,value:order.value,due:s.day+Math.max(2,Number(order.cycleDays)||7)});
   }
+  activeJobsByPlant.set(plantKey,active+count);
   order.remaining-=count;
   order.started=(Number(order.started)||0)+count;
   if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
@@ -99,6 +107,7 @@ function updateDay(){
   entry('Custos operacionais industriais',-overhead);
  }
  // Manufacturing uses real in-game days; never completes while the app is closed.
+ const industrialOrdersById=new Map((e.factory.industrialOrders||[]).map(o=>[o.id,o]));
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
@@ -116,7 +125,7 @@ function updateDay(){
    note('Controle de qualidade: '+c.name+' exige revisão antes de ser anunciado.');
   }
   if(s.stock.length<s.slots)s.stock.push(c);else warehouse.push(c);
-  e.factory.produced++;if(job.industrialOrderId){const contract=(e.factory.industrialOrders||[]).find(o=>o.id===job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+(s.stock.includes(c)?'. Entregue à concessionária.':'. Armazenado no pátio industrial.'));
+  e.factory.produced++;if(job.industrialOrderId){const contract=industrialOrdersById.get(job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+(s.stock.includes(c)?'. Entregue à concessionária.':'. Armazenado no pátio industrial.'));
  }
  // Archive fulfilled contracts only after actual deliveries; keep a bounded summary.
  const finished=(e.factory.industrialOrders||[]).filter(o=>Number(o.remaining)<=0&&Number(o.delivered)>=Number(o.total));
