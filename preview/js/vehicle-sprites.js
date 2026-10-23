@@ -170,7 +170,7 @@
     // SVG inset stays proportional to each atlas crop. It is a brand badge,
     // not a claim of pixel-perfect placement on the car's grille.
     const badge = factoryLogo && [vx,vy,vw,vh].every(Number.isFinite)
-      ? '<svg x="'+(vx+vw*.76)+'" y="'+(vy+vh*.06)+'" width="'+(vw*.18)+'" height="'+(vh*.27)+'" viewBox="0 0 160 160" aria-hidden="true">'+factoryLogo.replace(/^<svg[^>]*>/,'').replace(/<\\/svg>$/,'')+'</svg>'
+      ? '<svg x="'+(vx+vw*.76)+'" y="'+(vy+vh*.06)+'" width="'+(vw*.18)+'" height="'+(vh*.27)+'" viewBox="0 0 160 160" aria-hidden="true">'+factoryLogo.replace(/^<svg[^>]*>/,'').replace('</svg>','')+'</svg>'
       : '';
     return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-variant="' + spec.id + '" viewBox="' + spec.box + '" preserveAspectRatio="xMidYMid meet" ' +
       (decorative ? 'aria-hidden="true"' : 'role="img" aria-label="' + escape(label) + '"') +
