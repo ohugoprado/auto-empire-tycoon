@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 9.4: auction categories, varied risks and provenance. */
+/* Auto Empire Tycoon — Alpha 9.5: multi-lot auction center. */
 (function(){
 'use strict';
 const market=document.getElementById('market');if(!market)return;
@@ -16,14 +16,17 @@ const css=document.createElement('style');css.textContent=`
 #ae-auctions button{min-height:44px;padding:9px 12px}
 #ae-auctions button:disabled{opacity:.5}
 #ae-auctions .ae-auction-secondary{background:#304a59;color:#e7f0f6;border:1px solid #567587}
-#ae-auctions .ae-auction-alert{color:#ffcf95;font-size:12px}
+#ae-auctions .ae-auction-alert{color:#ffcf95;font-size:12px}\n#ae-auctions .ae-auction-lot{padding:12px 0;border-bottom:1px solid #4a6472}\n#ae-auctions h4{margin:8px 0;font-size:15px}\n#ae-auctions [aria-pressed=true]{background:#f4c568;color:#152735}
 `;document.head.append(css);
+const filters=['all','fleet','recovered','premium','classic'];let selected='all';
 const panel=document.createElement('section');panel.id='ae-auctions';panel.setAttribute('aria-label','Leilão de veículos');
 const listings=document.getElementById('listings');market.insertBefore(panel,listings||market.firstChild);
 function ensure(){
  if(!s||typeof s!=='object')return null;
- if(!s.vehicleAuctions||typeof s.vehicleAuctions!=='object')s.vehicleAuctions={lot:null,history:[],nextDay:Math.max(1,n(s.day))};
+ if(!s.vehicleAuctions||typeof s.vehicleAuctions!=='object')s.vehicleAuctions={lots:[],history:[],nextDay:Math.max(1,n(s.day))};
  const a=s.vehicleAuctions;if(!Array.isArray(a.history))a.history=[];
+ if(!Array.isArray(a.lots))a.lots=[];
+ if(a.lot){a.lots.push(a.lot);a.lot=null;}
  return a;
 }
 function createLot(a){
@@ -49,12 +52,13 @@ function createLot(a){
  const roll=Math.random(),risk=category.risk;
  const defect=defects[roll>risk?0:roll>risk*.55?1:roll>risk*.20?2:3];
  car.condition=Math.max(18,n(car.condition)-category.wear);
- a.lot={car,day:s.day,ends:s.day+3,high:base,leader:'Leiloeiro',rival:rivals[Math.floor(Math.random()*rivals.length)],rivalLimit:Math.round(n(car.value)*(.77+Math.random()*.22)/100)*100,playerBid:0,rounds:0,defect,inspected:false,category:category.id,categoryLabel:category.label,categoryDescription:category.description};
+ const lot={car,day:s.day,ends:s.day+3,high:base,leader:'Leiloeiro',rival:rivals[Math.floor(Math.random()*rivals.length)],rivalLimit:Math.round(n(car.value)*(.77+Math.random()*.22)/100)*100,playerBid:0,rounds:0,defect,inspected:false,category:category.id,categoryLabel:category.label,categoryDescription:category.description};
+ a.lots.push(lot);
  a.nextDay=s.day+6;
- note('Novo leilão de '+category.label+': '+car.name+' disponível até o dia '+a.lot.ends+'.');
+ note('Novo leilão de '+category.label+': '+car.name+' disponível até o dia '+lot.ends+'.');
 }
-function finish(a){
- const lot=a.lot;if(!lot)return;
+function finish(a,lot){
+ if(!lot)return;
  if(lot.leader==='Você'&&n(lot.playerBid)>0){
   const car=lot.car,price=n(lot.playerBid);
   if(s.stock.length<s.slots&&n(s.cash)>=price){
@@ -75,39 +79,40 @@ function finish(a){
  }else{
   a.history.unshift({day:s.day,name:lot.car.name,price:n(lot.high),result:'Arrematado por concorrente'});
  }
- a.history=a.history.slice(0,12);a.lot=null;
+ a.history=a.history.slice(0,24);a.lots=a.lots.filter(x=>x!==lot);
 }
 function refresh(){
  const a=ensure();if(!a)return;
- const lot=a.lot;
- if(!lot){
-  panel.innerHTML='<h3>Leilões competitivos</h3><p>Nenhum lote disponível agora. Próximo leilão a partir do dia '+Math.max(n(s.day),n(a.nextDay))+'.</p>'+history(a);
-  return;
- }
- const minBid=Math.round((n(lot.high)+Math.max(100,Math.round(n(lot.high)*.02/100)*100))/100)*100;
+ const active=a.lots||[];
+ const buttons=filters.map(id=>'<button class="ae-auction-secondary" data-auction-filter="'+id+'" aria-pressed="'+(selected===id)+'">'+({all:'Todos',fleet:'Frotas',recovered:'Recuperados',premium:'Premium',classic:'Clássicos'}[id])+'</button>').join('');
+ const visible=active.filter(l=>selected==='all'||l.category===selected);
+ panel.innerHTML='<h3>Central de leilões</h3><p>'+active.length+' lotes ativos · Lances competitivos e inspeções opcionais. Os arremates são cobrados no encerramento.</p><div class="ae-auction-actions" aria-label="Filtrar lotes">'+buttons+'</div><div id="ae-auction-lots">'+(visible.length?visible.map(lot=>{
+ const id=n(lot.car.id),minBid=Math.round((n(lot.high)+Math.max(100,Math.round(n(lot.high)*.02/100)*100))/100)*100;
  const enough=n(s.cash)>=minBid&&s.stock.length<s.slots;
  const fee=Math.max(150,Math.round(n(lot.car.value)*.012/50)*50);
  const defect=lot.defect||{name:'Sem defeitos relevantes',cost:0};
- panel.innerHTML='<h3>Leilão de veículos</h3><p>Dispute um carro com compradores rivais. O lance vencedor só é cobrado no encerramento. Não há reserva de saldo ou vaga.</p><strong>'+esc(lot.car.name)+'</strong><p>Ano '+n(lot.car.year)+' · '+n(lot.car.km).toLocaleString('pt-BR')+' km · Conservação '+n(lot.car.condition)+'%</p><div class="ae-auction-metrics"><div>Lance atual<b>'+fmtMoney(lot.high)+'</b></div><div>Líder<b>'+esc(lot.leader)+'</b></div><div>Valor estimado<b>'+fmtMoney(lot.car.value)+'</b></div><div>Encerra no dia<b>'+n(lot.ends)+'</b></div></div><p>Próximo lance mínimo: <strong>'+fmtMoney(minBid)+'</strong></p><div class="ae-auction-actions"><button id="ae-auction-bid" '+(!enough?'disabled':'')+'>Dar lance</button><button id="ae-auction-max" class="ae-auction-secondary" '+(n(s.cash)<Math.round(minBid*1.08/100)*100||s.stock.length>=s.slots?'disabled':'')+'>Lance +8%</button></div>'+(s.stock.length>=s.slots?'<p class="ae-auction-alert">Garagem cheia: expanda ou venda um veículo.</p>':n(s.cash)<minBid?'<p class="ae-auction-alert">Saldo insuficiente para o lance mínimo.</p>':'')+'<p class="ae-auction-alert">Se perder capacidade de pagamento ou vaga antes do encerramento, não receberá o veículo.</p><div class="ae-auction-inspection"><strong>Inspeção pré-compra</strong><p>'+(lot.inspected?'Laudo: '+esc(defect.name)+' · Reparo adicional estimado: '+fmtMoney(n(defect.cost)):'O lote pode apresentar defeitos ocultos. Solicite um laudo antes de dar o lance.')+'</p>'+(lot.inspected?'':'<button id="ae-auction-inspect" class="ae-auction-secondary" '+(n(s.cash)<fee?'disabled':'')+'>Inspecionar · '+fmtMoney(fee)+'</button>')+'</div>'+history(a);
- const b=document.getElementById('ae-auction-bid'),max=document.getElementById('ae-auction-max');
- if(b)b.onclick=()=>bid(minBid);
- if(max)max.onclick=()=>bid(Math.round(minBid*1.08/100)*100);
- const inspect=document.getElementById('ae-auction-inspect');
- if(inspect)inspect.onclick=()=>{
-  const state=ensure(),active=state?.lot;
-  if(!active||active.inspected)return;
-  const price=Math.max(150,Math.round(n(active.car.value)*.012/50)*50);
-  if(n(s.cash)<price)return toast('Caixa insuficiente para inspeção.');
-  s.cash-=price;active.inspected=true;
-  entry('Inspeção de leilão · '+active.car.name,-price);
-  note('Laudo concluído: '+active.car.name+' · '+(active.defect?.name||'Sem defeitos relevantes')+'.');
-  save();refresh();render();
- };
+ return '<article class="ae-auction-lot" data-auction-lot="'+id+'"><p><strong>'+esc(lot.categoryLabel||'Leilão geral')+'</strong> · '+esc(lot.categoryDescription||'')+'</p><h4>'+esc(lot.car.name)+'</h4><p>Ano '+n(lot.car.year)+' · '+n(lot.car.km).toLocaleString('pt-BR')+' km · Conservação '+n(lot.car.condition)+'%</p><div class="ae-auction-metrics"><div>Lance atual<b>'+fmtMoney(lot.high)+'</b></div><div>Líder<b>'+esc(lot.leader)+'</b></div><div>Valor estimado<b>'+fmtMoney(lot.car.value)+'</b></div><div>Encerra no dia<b>'+n(lot.ends)+'</b></div></div><p>Próximo lance: <strong>'+fmtMoney(minBid)+'</strong></p><div class="ae-auction-actions"><button data-auction-bid="'+id+'" '+(!enough||n(lot.rounds)>=12?'disabled':'')+'>Dar lance</button><button class="ae-auction-secondary" data-auction-max="'+id+'" '+(n(s.cash)<Math.round(minBid*1.08/100)*100||s.stock.length>=s.slots||n(lot.rounds)>=12?'disabled':'')+'>Lance +8%</button></div><p><strong>Laudo:</strong> '+(lot.inspected?esc(defect.name)+' · Reparo adicional: '+fmtMoney(n(defect.cost)):'Defeitos ocultos possíveis')+'</p>'+(lot.inspected?'':'<button class="ae-auction-secondary" data-auction-inspect="'+id+'" '+(n(s.cash)<fee?'disabled':'')+'>Inspecionar · '+fmtMoney(fee)+'</button>')+'</article>';
+ }).join(''):'<p>Nenhum lote nesta categoria. Próxima rodada a partir do dia '+Math.max(n(s.day),n(a.nextDay))+'.</p>')+'</div>'+history(a);
+ panel.querySelectorAll('[data-auction-filter]').forEach(b=>b.onclick=()=>{selected=b.dataset.auctionFilter;refresh();});
+ panel.querySelectorAll('[data-auction-bid]').forEach(b=>b.onclick=()=>bid(Number(b.dataset.auctionBid),false));
+ panel.querySelectorAll('[data-auction-max]').forEach(b=>b.onclick=()=>bid(Number(b.dataset.auctionMax),true));
+ panel.querySelectorAll('[data-auction-inspect]').forEach(b=>b.onclick=()=>inspect(Number(b.dataset.auctionInspect)));
+}
+function inspect(id){
+ const a=ensure(),lot=a?.lots?.find(x=>n(x.car.id)===id);
+ if(!lot||lot.inspected)return;
+ const price=Math.max(150,Math.round(n(lot.car.value)*.012/50)*50);
+ if(n(s.cash)<price)return toast('Caixa insuficiente para inspeção.');
+ s.cash-=price;lot.inspected=true;
+ entry('Inspeção de leilão · '+lot.car.name,-price);
+ note('Laudo concluído: '+lot.car.name+' · '+(lot.defect?.name||'Sem defeitos relevantes')+'.');
+ save();refresh();render();
 }
 function history(a){return a.history.length?'<p><strong>Últimos resultados</strong></p>'+a.history.slice(0,3).map(h=>'<p>Dia '+n(h.day)+' · '+esc(h.name)+' · '+esc(h.result)+' · '+fmtMoney(h.price)+'</p>').join(''):'';}
-function bid(amount){
- const a=ensure(),lot=a?.lot;if(!lot||n(s.day)>n(lot.ends))return;
+function bid(id,raise){
+ const a=ensure(),lot=a?.lots?.find(x=>n(x.car.id)===id);if(!lot||n(s.day)>n(lot.ends))return;
  const minimum=Math.round((n(lot.high)+Math.max(100,Math.round(n(lot.high)*.02/100)*100))/100)*100;
+ const amount=raise?Math.round(minimum*1.08/100)*100:minimum;
  if(amount<minimum||!Number.isFinite(amount))return toast('Lance abaixo do mínimo.');
  if(s.stock.length>=s.slots)return toast('Garagem cheia.');
  if(n(s.cash)<amount)return toast('Caixa insuficiente.');
@@ -124,13 +129,13 @@ function bid(amount){
 const previousTick=tickDay;
 tickDay=function(){
  const result=previousTick(),a=ensure();if(!a)return result;
- if(a.lot&&s.day>a.lot.ends)finish(a);
- if(!a.lot&&s.day>=n(a.nextDay))createLot(a);
+ for(const lot of [...a.lots].sort((x,y)=>n(x.ends)-n(y.ends)))if(s.day>n(lot.ends))finish(a,lot);
+ if(s.day>=n(a.nextDay)&&a.lots.length<3){while(a.lots.length<3)createLot(a);}
  save();refresh();return result;
 };
 const previousSeed=seed;
-seed=function(){previousSeed();const a=ensure();if(a&&!a.lot)createLot(a);save();refresh();};
+seed=function(){previousSeed();const a=ensure();if(a&&!a.lots.length){while(a.lots.length<3)createLot(a);}save();refresh();};
 const previousRender=render;let signature='';
-render=function(){previousRender();const a=ensure(),next=[s?.day,s?.cash,s?.stock?.length,a?.lot?.high,a?.lot?.leader].join('|');if(next!==signature){signature=next;refresh();}};
-const a=ensure();if(a&&!a.lot&&s.day>=n(a.nextDay))createLot(a);save();refresh();
+render=function(){previousRender();const a=ensure(),next=[s?.day,s?.cash,s?.stock?.length,a?.lots?.map(x=>[x.car.id,x.high,x.leader].join(':')).join(';')].join('|');if(next!==signature){signature=next;refresh();}};
+const a=ensure();if(a&&!a.lots.length&&s.day>=n(a.nextDay)){while(a.lots.length<3)createLot(a);}save();refresh();
 })();
