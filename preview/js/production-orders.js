@@ -57,7 +57,7 @@ function showOrder(id){
   const cost=getCost(d,p),days=getDays(d,p);
   const crisis=window.AEEconomy?.crisisFor?.(s.empire.world?.active);
   const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 1.000 unidades.':industrial?'Já existe um lote industrial ativo nesta fábrica.':free<1?'Nenhuma linha de produção disponível.':storage<1?'Sem vagas de estoque para receber o primeiro veículo.':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
-  box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Investimento antecipado: '+money(q*cost)+' · Primeiro ciclo: '+days+' dias · Ritmo: até '+capacity+' carros/ciclo · Vagas atuais: '+storage+' (entregas pausam se lotar).';
+  box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Investimento antecipado: '+money(q*cost)+' · Primeiro ciclo: '+days+' dias · Ritmo: até '+capacity+' carros/ciclo · Vagas atuais: '+storage+' (entregas pausam se lotar). Custos operacionais diários cobrados à parte.';
   box.querySelector('#ae-order-error').textContent=error;
   box.querySelector('#ae-order-confirm').disabled=!!error;
   return {p,q,cost,days,error};
