@@ -57,6 +57,7 @@ panel.addEventListener('click',e=>{
  // rewriting the original engineering or changing already queued cars.
  const bonus=action==='generation'?.06:.025;
  d.lifecycleBonus=Math.min(.2,(Number(d.lifecycleBonus)||0)+bonus);
+ if(action==='facelift')d.introducedDay=s.day;
  note(d.name+' recebeu '+title+' e entra em uma nova fase comercial.');
  save();render();refresh();toast('Projeto atualizado. Próximas ordens receberão a revisão.');
 });
