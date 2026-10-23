@@ -33,7 +33,7 @@ const network=document.getElementById('ae-industrial-network');
 if(network?.parentNode)network.parentNode.insertBefore(panel,network);else garage.append(panel);
 function refresh(){
  const f=factory();if(!f?.opened||!f.logo){panel.hidden=true;return}
- const emblem=logoMarkup(f.logo);if(!emblem){panel.hidden=true;return}
+ const emblem=window.AECompanyEmblem?.svg?.(f.logo)||logoMarkup(f.logo);if(!emblem){panel.hidden=true;return}
  panel.hidden=false;
  const stock=(s.stock||[]).filter(c=>c.manufactured);
  const plants=s.empire?.economy?.plantNetwork?.plants||[];
