@@ -30,15 +30,15 @@ if(network?.parentNode)network.parentNode.insertBefore(panel,network);else garag
 function refresh(){
  const economy=s?.empire?.economy;if(!economy)return;
  const factory=economy.factory||{},jobs=Array.isArray(factory.queue)?factory.queue:[];
- const contracts=Array.isArray(factory.industrialOrders)?factory.industrialOrders.filter(o=>Number(o.remaining)>0):[];
+ const contracts=Array.isArray(factory.industrialOrders)?factory.industrialOrders.filter(o=>Number(o.remaining)>0||Number(o.delivered)<Number(o.total)):[];
  const plants=Array.isArray(economy.plantNetwork?.plants)?economy.plantNetwork.plants:[];
  const lines=[{id:null,name:'Fábrica principal',level:Math.max(1,num(factory.level)),staff:null,capacity:Math.max(1,num(factory.level))*2},...plants.map(p=>({id:p.id,name:p.name||'Unidade industrial',level:Math.max(1,num(p.level)),staff:Math.max(0,num(p.staff)),capacity:Math.max(1,num(p.level))*2}))];
  panel.querySelector('#ae-industrial-contracts').innerHTML=contracts.map(o=>{
-  const total=Math.max(1,num(o.total)),remaining=Math.max(0,num(o.remaining)),started=total-remaining;
+  const total=Math.max(1,num(o.total)),remaining=Math.max(0,num(o.remaining)),started=total-remaining,delivered=Math.max(0,num(o.delivered));
   const plant=o.plantId?plants.find(p=>String(p.id)===String(o.plantId)):factory;
   const capacity=Math.max(1,num(plant?.level))*2,cycles=Math.ceil(remaining/capacity);
   const eta=cycles*Math.max(2,num(o.cycleDays)||7);
-  return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+started+'/'+total+' encaminhados</h4><div class="ae-id-progress"><span style="width:'+Math.round(started/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId?esc(plant?.name||'Unidade industrial'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
+  return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId?esc(plant?.name||'Unidade industrial'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
  }).join('')||'<p class="tiny">Sem contratos aguardando montagem. Verifique as linhas acima para veículos já em produção.</p>';
  const payroll=plants.reduce((sum,p)=>sum+Math.max(0,num(p.staff))*1100*Math.max(1,num(p.level)),0);
  const invested=jobs.reduce((sum,j)=>sum+Math.max(0,num(j.cost)),0);
