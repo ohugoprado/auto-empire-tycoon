@@ -5,7 +5,7 @@ const garage=document.getElementById('garage');if(!garage)return;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
 const valid=x=>/^#[0-9a-f]{6}$/i.test(x)?x:'#287ec5';
 const box=document.createElement('section');box.id='ae-brand-showroom';box.hidden=true;
-box.innerHTML='<h3>Showroom da fabricante</h3><p class="tiny">Visualize a identidade da sua marca na dianteira, traseira e no volante dos carros próprios. Ilustrações conceituais, não sprites finais.</p><label>Modelo <select id="ae-showroom-model"></select></label><div class="ae-showroom-tabs"><button type="button" data-view="front">Dianteira</button><button type="button" data-view="rear">Traseira</button><button type="button" data-view="interior">Interior</button></div><div id="ae-showroom-stage"></div><div id="ae-showroom-custom" class="ae-showroom-custom"><h4>Ateliê de design</h4><p class="tiny">Componentes avançados exigem pesquisa concluída. A configuração fica registrada no modelo exibido.</p><label>Faróis<select data-part="lights"><option value="standard">Clássicos</option><option value="led" data-requires="tech">LED matriciais</option><option value="sport" data-requires="performance">Esportivos</option></select></label><label>Grade<select data-part="grille"><option value="standard">Tradicional</option><option value="aero" data-requires="aero">Aerodinâmica</option><option value="premium" data-requires="luxury">Premium</option></select></label><label>Interior<select data-part="cabin"><option value="standard">Essencial</option><option value="premium" data-requires="comfort">Premium</option><option value="digital" data-requires="tech">Digital</option></select></label><button type="button" id="ae-showroom-save">Salvar design</button></div><p id="ae-showroom-note" class="tiny"></p>';
+box.innerHTML='<h3>Showroom da fabricante</h3><p class="tiny">Visualize a identidade da sua marca na dianteira, traseira e no volante dos carros próprios. Ilustrações conceituais, não sprites finais.</p><label>Modelo <select id="ae-showroom-model"></select></label><div class="ae-showroom-tabs"><button type="button" data-view="front">Dianteira</button><button type="button" data-view="rear">Traseira</button><button type="button" data-view="interior">Interior</button></div><div id="ae-showroom-stage"></div><div id="ae-showroom-custom" class="ae-showroom-custom"><h4>Ateliê de design</h4><p class="tiny">Componentes avançados exigem pesquisa concluída. A configuração pode ser aplicada ao projeto de fábrica para todas as próximas unidades.</p><label>Faróis<select data-part="lights"><option value="standard">Clássicos</option><option value="led" data-requires="tech">LED matriciais</option><option value="sport" data-requires="performance">Esportivos</option></select></label><label>Grade<select data-part="grille"><option value="standard">Tradicional</option><option value="aero" data-requires="aero">Aerodinâmica</option><option value="premium" data-requires="luxury">Premium</option></select></label><label>Interior<select data-part="cabin"><option value="standard">Essencial</option><option value="premium" data-requires="comfort">Premium</option><option value="digital" data-requires="tech">Digital</option></select></label><button type="button" id="ae-showroom-save">Salvar neste veículo</button><button type="button" id="ae-showroom-blueprint">Aplicar ao projeto e próximas unidades</button></div><p id="ae-showroom-note" class="tiny"></p>';
 const anchor=document.getElementById('ae-brand-network');if(anchor?.parentNode)anchor.after(box);else garage.append(box);
 const style=document.createElement('style');style.textContent=`
 #ae-brand-showroom{background:#172f3d;border:1px solid #526f80;border-radius:12px;padding:13px;margin:12px 0}
@@ -17,7 +17,7 @@ const style=document.createElement('style');style.textContent=`
 .ae-showroom-tabs button[aria-pressed=true]{border:2px solid #f1cf84;background:#35556a;color:#fff}
 #ae-showroom-stage{background:radial-gradient(ellipse at 50% 60%,#385568,#10222e 72%);border-radius:10px;padding:8px;min-height:190px;display:grid;place-items:center}
 #ae-showroom-stage svg{width:100%;max-width:420px;height:auto;display:block}
- .ae-showroom-custom{margin-top:12px;padding:10px;border:1px solid #4b6c7c;border-radius:9px}.ae-showroom-custom h4{margin:0 0 8px}.ae-showroom-custom label{margin:7px 0}.ae-showroom-custom button{min-height:44px;width:100%;margin-top:9px}
+ .ae-showroom-custom{margin-top:12px;padding:10px;border:1px solid #4b6c7c;border-radius:9px}.ae-showroom-custom h4{margin:0 0 8px}.ae-showroom-custom label{margin:7px 0}.ae-showroom-custom button{min-height:44px;width:100%;margin-top:9px}#ae-showroom-blueprint{background:#315f68;border:1px solid #8bc3bd}
 `;document.head.append(style);
 const select=box.querySelector('#ae-showroom-model'),stage=box.querySelector('#ae-showroom-stage');let view='front',signature='',chosen='';
 const badge=(x,y,size,logo)=>{
@@ -50,6 +50,7 @@ function refresh(){
  box.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
  if(!car){stage.innerHTML='<p>Nenhum veículo próprio em estoque. Produza um carro para abrir o showroom.</p>';box.querySelector('#ae-showroom-note').textContent='';return}
  const tech=s?.empire?.economy?.brandTechnology?.unlocked||[];
+ box.querySelector('#ae-showroom-blueprint').disabled=!car.designId;
  box.querySelectorAll('[data-part]').forEach(field=>{
   for(const option of field.options){const req=option.dataset.requires;option.disabled=!!req&&!tech.includes(req);}
   const selected=car.brandParts?.[field.dataset.part]||'standard';field.value=Array.from(field.options).some(o=>o.value===selected&&!o.disabled)?selected:'standard';
@@ -60,14 +61,28 @@ function refresh(){
 }
 box.addEventListener('click',e=>{const btn=e.target.closest('[data-view]');if(!btn)return;view=btn.dataset.view;refresh()});
 select.addEventListener('change',()=>{chosen=select.value;refresh()});
-box.querySelector('#ae-showroom-save').addEventListener('click',()=>{
- const car=(s?.stock||[]).find(c=>c.manufactured&&String(c.id)===String(select.value));if(!car)return;
+function selectedParts(){
  const tech=s?.empire?.economy?.brandTechnology?.unlocked||[],parts={};
  for(const field of box.querySelectorAll('[data-part]')){
-  const opt=field.selectedOptions[0];if(opt?.dataset.requires&&!tech.includes(opt.dataset.requires))return toast('Tecnologia ainda não pesquisada.');
+  const opt=field.selectedOptions[0];if(opt?.dataset.requires&&!tech.includes(opt.dataset.requires))return null;
   parts[field.dataset.part]=field.value;
  }
+ return parts;
+}
+box.querySelector('#ae-showroom-save').addEventListener('click',()=>{
+ const car=(s?.stock||[]).find(c=>c.manufactured&&String(c.id)===String(select.value));if(!car)return;
+ const parts=selectedParts();if(!parts)return toast('Tecnologia ainda não pesquisada.');
  car.brandParts=parts;save();refresh();toast('Design da carroceria atualizado.');
+});
+box.querySelector('#ae-showroom-blueprint').addEventListener('click',()=>{
+ const car=(s?.stock||[]).find(c=>c.manufactured&&String(c.id)===String(select.value));
+ const designs=s?.empire?.economy?.studio?.designs||[];
+ const design=designs.find(d=>String(d.id)===String(car?.designId));
+ if(!car||!design)return toast('Este veículo não está vinculado a um projeto homologado.');
+ const parts=selectedParts();if(!parts)return toast('Pesquise as tecnologias necessárias.');
+ if(!confirm('Aplicar este design ao projeto '+design.name+'? As próximas unidades serão produzidas com esses componentes.'))return;
+ design.brandParts={...parts};car.brandParts={...parts};
+ save();refresh();toast('Projeto atualizado para as próximas produções.');
 });
 const oldRender=render;render=function(){const result=oldRender.apply(this,arguments);const f=s?.empire?.economy?.factory;const next=[f?.opened,JSON.stringify(f?.logo),(s?.stock||[]).filter(c=>c.manufactured).map(c=>[c.id,c.name,c.color,JSON.stringify(c.brandParts)].join(':')).join('|')].join(';');if(next!==signature){signature=next;refresh()}return result;};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
