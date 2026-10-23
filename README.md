@@ -2,7 +2,7 @@
 
 Jogo web experimental de gestão automotiva para iPhone, com showroom, mercado, negociações, vistorias, reparos, vendas e salvamento local. Safari e instalação pela tela inicial são os alvos prioritários; a validação em aparelho real ainda está pendente.
 
-Consulte o [roadmap atual para iPhone](ROADMAP.md) e o [roteiro de teste em aparelhos reais](docs/TESTE-IPHONE.md). O arquivo `ROADMAP-100.md` é um backlog histórico, com estados que precisam ser reavaliados.
+Consulte o [plano de retenção e conveniências conquistadas](docs/RETENCAO-E-PROGRESSAO.md), o [roadmap atual para iPhone](ROADMAP.md) e o [roteiro de teste em aparelhos reais](docs/TESTE-IPHONE.md). O arquivo `ROADMAP-100.md` é um backlog histórico, com estados que precisam ser reavaliados.
 
 ## Publicar no GitHub Pages
 

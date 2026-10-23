@@ -8,6 +8,12 @@ Transformar uma pequena garagem em uma empresa automotiva por meio de decisões 
 
 A próxima entrega deve tornar esse ciclo confiável e agradável no iPhone. O aumento de conteúdo vem depois da validação dessa experiência.
 
+## Nova prioridade — conveniências conquistadas e retenção
+
+O [plano de retenção e progressão](docs/RETENCAO-E-PROGRESSAO.md) propõe transformar a carreira existente em uma trilha de novas ferramentas: comparador, consultas salvas, ações comerciais em lote, gerentes e políticas por filial. Coleção permanente e mudanças na garagem acompanham as conquistas. Requisitos e custos são hipóteses de balanceamento, ainda não implementadas.
+
+O primeiro incremento recomendado é um comparador de dois veículos após cinco vendas, com desbloqueio permanente e uma mudança visual da fachada. Ferramentas atuais e qualidade básica permanecem disponíveis. A automação avançada fica para uma etapa posterior, com orçamento, limites e histórico.
+
 ## Situação atual e limites da validação
 
 | Área | O que existe | O que ainda falta comprovar |
@@ -115,7 +121,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 Na versão `motor-district-9000`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 160 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
 
-A próxima validação externa é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar o cenário industrial e observar novos jogadores antes de ajustar o ritmo ou criar mais mecânicas. A meta de quatro entre cinco jogadores concluindo uma primeira venda ainda não foi medida.
+A próxima validação externa é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, iniciar a primeira conquista prática e visual do plano de retenção, completar o cenário industrial e observar novos jogadores para calibrar o ritmo. A meta de quatro entre cinco jogadores concluindo uma primeira venda ainda não foi medida.
 
 ## Relação com o backlog antigo
 
