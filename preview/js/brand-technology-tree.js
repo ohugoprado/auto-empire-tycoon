@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 10.1: own-brand design and investment-gated technology tree. */
+/* Auto Empire Tycoon — Alpha 10.2: scaled multi-stage technology investment. */
 (function(){
 'use strict';
 const studio=document.getElementById('ae-studio');if(!studio)return;
@@ -6,15 +6,15 @@ const n=x=>Number.isFinite(Number(x))?Number(x):0;
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&gt;','"':'&quot;'}[c]));
 const nodes=[
- {id:'sketch',name:'Estúdio de estilo',cost:6000,days:2,requires:[],description:'Desbloqueia a identidade visual própria e a assinatura da marca.'},
- {id:'aero',name:'Aerodinâmica',cost:11000,days:3,requires:['sketch'],description:'Permite desenho de carroceria mais eficiente.'},
- {id:'safety',name:'Segurança avançada',cost:15000,days:4,requires:['sketch'],description:'Libera projetos com segurança acima de 3.'},
- {id:'comfort',name:'Cabine premium',cost:14000,days:4,requires:['sketch'],description:'Libera conforto acima de 3 e acabamento premium.'},
- {id:'reliability',name:'Engenharia de durabilidade',cost:16000,days:4,requires:['aero'],description:'Libera confiabilidade acima de 3.'},
- {id:'tech',name:'Eletrônica embarcada',cost:18000,days:5,requires:['aero'],description:'Libera tecnologia acima de 3.'},
- {id:'performance',name:'Powertrain esportivo',cost:24000,days:6,requires:['reliability'],description:'Libera motores de performance.'},
- {id:'electric',name:'Plataforma elétrica',cost:36000,days:8,requires:['tech','safety'],description:'Libera motorização elétrica.'},
- {id:'luxury',name:'Plataforma de luxo',cost:29000,days:6,requires:['comfort','safety'],description:'Libera SUVs, picapes e esportivos de projeto próprio.'}
+ {id:'sketch',name:'Estúdio de estilo',cost:450000,days:2,requires:[],description:'Desbloqueia a identidade visual própria e a assinatura da marca.'},
+ {id:'aero',name:'Aerodinâmica',cost:1200000,days:3,requires:['sketch'],description:'Permite desenho de carroceria mais eficiente.'},
+ {id:'safety',name:'Segurança avançada',cost:2400000,days:4,requires:['sketch'],description:'Libera projetos com segurança acima de 3.'},
+ {id:'comfort',name:'Cabine premium',cost:1900000,days:4,requires:['sketch'],description:'Libera conforto acima de 3 e acabamento premium.'},
+ {id:'reliability',name:'Engenharia de durabilidade',cost:3400000,days:4,requires:['aero'],description:'Libera confiabilidade acima de 3.'},
+ {id:'tech',name:'Eletrônica embarcada',cost:4200000,days:5,requires:['aero'],description:'Libera tecnologia acima de 3.'},
+ {id:'performance',name:'Powertrain esportivo',cost:9500000,days:6,requires:['reliability'],description:'Libera motores de performance.'},
+ {id:'electric',name:'Plataforma elétrica',cost:22000000,days:8,requires:['tech','safety'],description:'Libera motorização elétrica.'},
+ {id:'luxury',name:'Plataforma de luxo',cost:12500000,days:6,requires:['comfort','safety'],description:'Libera SUVs, picapes e esportivos de projeto próprio.'}
 ];
 function state(){
  const e=s?.empire?.economy;if(!e)return null;
@@ -22,10 +22,15 @@ function state(){
  const st=e.brandTechnology;
  if(!Array.isArray(st.unlocked))st.unlocked=[];
  if(!st.designStyle)st.designStyle='signature';
+ if(!st.funding||typeof st.funding!=='object')st.funding={};
  return st;
 }
 const has=(st,id)=>st.unlocked.includes(id);
-const activeCost=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
+const difficultyFactor=()=>({casual:.7,normal:1,hard:1.55})[s?.difficulty]||1;
+const activeCost=()=>Math.max(1,n(s.empire?.economy?.inflation)||1)*difficultyFactor();
+const totalCost=node=>Math.max(1000,Math.round(node.cost*activeCost()/1000)*1000);
+const stageCost=(node,st)=>Math.max(1000,totalCost(node)-Math.max(0,n(st.funding?.[node.id]||0)));
+const contribution=(node,st)=>Math.min(stageCost(node,st),Math.max(1000,Math.ceil(totalCost(node)/5/1000)*1000));
 function constraints(){
  const st=state();if(!st)return [];
  const errors=[],kind=studio.querySelector('#ae-design-kind')?.value,engine=studio.querySelector('#ae-design-engine')?.value;
@@ -62,10 +67,10 @@ function refresh(){
  const active=st.active,remaining=active?Math.max(0,n(active.due)-n(s.day)):0;
  box.querySelector('#ae-tech-summary').innerHTML='<p class="ae-tech-status"><strong>Investido em tecnologia:</strong> '+money(st.spent)+' · <strong>Pesquisas concluídas:</strong> '+st.unlocked.length+'/'+nodes.length+'</p>'+(active?'<p class="ae-tech-status">Em desenvolvimento: '+esc(nodes.find(x=>x.id===active.id)?.name||active.id)+' · conclusão no dia '+n(active.due)+' ('+remaining+' dia(s))</p>':'<p class="ae-tech-status">Equipe disponível para nova pesquisa.</p>');
  box.querySelector('#ae-tech-nodes').innerHTML='<div class="ae-tech-grid">'+nodes.map(node=>{
-  const done=has(st,node.id),missing=node.requires.filter(id=>!has(st,id)),cost=Math.round(node.cost*activeCost()/100)*100;
+  const done=has(st,node.id),missing=node.requires.filter(id=>!has(st,id)),cost=totalCost(node),remaining=stageCost(node,st),payment=contribution(node,st);
   const locked=missing.length>0,status=done?'done':locked?'locked':'available';
   const requirements=missing.map(id=>nodes.find(x=>x.id===id)?.name||id).join(', ');
-  return '<article class="ae-tech-node" data-status="'+status+'"><strong>'+esc(node.name)+'</strong><p>'+esc(node.description)+'</p><p>'+(done?'Concluída':locked?'Pré-requisito: '+esc(requirements):'Investimento: '+money(cost)+' · '+node.days+' dias')+'</p>'+(done?'':('<button type="button" data-tech-research="'+node.id+'" '+(locked||!!active||n(s.cash)<cost||!!s.empire?.economy?.bankrupt?'disabled':'')+'>Pesquisar</button>'))+'</article>';
+  return '<article class="ae-tech-node" data-status="'+status+'"><strong>'+esc(node.name)+'</strong><p>'+esc(node.description)+'</p><p>'+(done?'Concluída':locked?'Pré-requisito: '+esc(requirements):'Investimento total: '+money(cost)+' · aportado: '+money(cost-remaining)+' · parcela: '+money(payment)+' · '+node.days+' dias após financiar')+'</p>'+(done?'':('<button type="button" data-tech-research="'+node.id+'" '+(locked||!!active||n(s.cash)<payment||!!s.empire?.economy?.bankrupt?'disabled':'')+'>Investir na pesquisa</button>'))+'</article>';
  }).join('')+'</div>';
  const issues=constraints(),style=st.designStyle;
  const color=style==='sport'?'#c14f4f':style==='luxury'?'#c9ad78':'#4388bc';
@@ -76,11 +81,15 @@ box.addEventListener('click',event=>{
  const st=state(),node=nodes.find(x=>x.id===button.dataset.techResearch);
  if(!st||!node||has(st,node.id)||st.active||node.requires.some(id=>!has(st,id)))return;
  if(s.empire?.economy?.bankrupt)return toast('Pesquisa indisponível durante falência.');
- const cost=Math.round(node.cost*activeCost()/100)*100;
- if(n(s.cash)<cost)return toast('Caixa insuficiente para investir em tecnologia.');
- if(!confirm('Investir '+money(cost)+' em '+node.name+'? Prazo: '+node.days+' dias.'))return;
- s.cash-=cost;st.spent+=cost;st.active={id:node.id,due:n(s.day)+node.days,cost};
- entry('P&D tecnológico · '+node.name,-cost);note('Pesquisa iniciada: '+node.name+'.');
+ const cost=totalCost(node),payment=contribution(node,st);
+ if(n(s.cash)<payment)return toast('Caixa insuficiente para a próxima parcela de pesquisa.');
+ if(!confirm('Investir '+money(payment)+' em '+node.name+'? Total do projeto: '+money(cost)+'.'))return;
+ s.cash-=payment;st.spent+=payment;st.funding[node.id]=Math.min(cost,n(st.funding[node.id])+payment);
+ entry('P&D tecnológico · '+node.name,-payment);
+ if(st.funding[node.id]>=cost){
+  st.active={id:node.id,due:n(s.day)+node.days,cost};
+  note('Financiamento concluído: pesquisa de '+node.name+' iniciada.');
+ }else note('Aporte em '+node.name+': '+money(st.funding[node.id])+' / '+money(cost)+'.');
  save();render();refresh();
 });
 box.addEventListener('change',event=>{
@@ -116,7 +125,7 @@ tickDay=function(){
 const prevRender=render;let signature='';
 render=function(){
  prevRender();
- const st=state(),next=[s?.day,s?.cash,st?.active?.id,st?.unlocked?.join(','),st?.designStyle].join('|');
+ const st=state(),next=[s?.day,s?.cash,st?.active?.id,st?.unlocked?.join(','),st?.spent,st?.designStyle].join('|');
  if(next!==signature){signature=next;refresh();}
 };
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
