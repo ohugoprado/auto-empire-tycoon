@@ -31,9 +31,10 @@ function getCost(d,p){
 function getDays(d,p){return p.id==='main'?Math.max(2,Math.round(num(d.days)||7)):Math.max(2,Math.round(num(d.days)||7)-p.level+1-Math.floor(p.staff/4));}
 const paints=window.AESprites?.paints.map(paint=>[paint.name,paint.hex])||[['Branco Polar','#e7ebef'],['Azul Oceano','#287ec5'],['Vermelho Rubi','#c33d42'],['Grafite','#333d4a'],['Amarelo Solar','#e9b847']];
 function showOrder(id){
- const {designs,f}=state(),d=designs.find(x=>String(x.id)===String(id));
+ const {designs,f,e}=state(),d=designs.find(x=>String(x.id)===String(id));
  if(!d)return toast('Projeto não encontrado');
- if(!f?.opened)return toast('Abra sua fabricante antes de produzir');
+ if(!f?.opened){window.AEManagement?.openArea('factory','fold-ae-economy');return toast('Abra sua fabricante na seção Fundação e gestão da fabricante. Seu projeto homologado continua salvo.');}
+ if(e?.bankrupt)return toast('Produção indisponível: empresa falida.');
  const plants=options(d);
  if(!plants.length)return toast('Nenhuma fábrica compatível com o projeto');
  let box=document.getElementById('ae-production-dialog');if(box)box.remove();
@@ -46,13 +47,14 @@ function showOrder(id){
   const chosen=paints[Number(paint.value)]||null;
   box.querySelector('#ae-order-paint-preview').innerHTML=chosen?'<i style="background:'+chosen[1]+'"></i>'+esc(chosen[0]):'Cada unidade receberá uma pintura diferente, conforme disponibilidade.';
   const q=Number(quantity.value);
-  const {f}=state(),queue=f?.queue||[];
+  const {f,e}=state(),queue=f?.queue||[];
   const used=queue.filter(j=>p.id==='main'?!j.plantId:String(j.plantId)===p.id).length;
   const capacity=p.level*2,free=Math.max(0,capacity-used);
   const storage=Math.max(0,num(s.slots)-s.stock.length-queue.length);
   const valid=Number.isInteger(q)&&q>=1&&q<=20;
   const cost=getCost(d,p),days=getDays(d,p);
-  const error=!valid?'Escolha de 1 a 20 unidades.':q>free?'A fábrica tem apenas '+free+' linha(s) disponível(is).':q>storage?'Estoque suporta apenas '+storage+' unidade(s) adicional(is).':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
+  const crisis=window.AEEconomy?.crisisFor?.(s.empire.world?.active);
+  const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 20 unidades.':q>free?'A fábrica tem apenas '+free+' linha(s) disponível(is).':q>storage?'Estoque suporta apenas '+storage+' unidade(s) adicional(is).':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
   box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Total: '+money(q*cost)+' · Prazo: '+days+' dias · Linhas livres: '+free+' · Vagas disponíveis: '+storage;
   box.querySelector('#ae-order-error').textContent=error;
   box.querySelector('#ae-order-confirm').disabled=!!error;
@@ -90,4 +92,5 @@ const observer=new MutationObserver(refreshButtons);
 const list=studio.querySelector('#ae-studio-saved');if(list)observer.observe(list,{childList:true});
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refreshButtons);
 refreshButtons();
+window.AEProductionOrders=Object.freeze({showOrder});
 })();

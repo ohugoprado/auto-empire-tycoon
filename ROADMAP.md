@@ -14,6 +14,8 @@ O [plano de retenção e progressão](docs/RETENCAO-E-PROGRESSAO.md) propõe tra
 
 O primeiro incremento recomendado é um comparador de dois veículos após cinco vendas, com desbloqueio permanente e uma mudança visual da fachada. Ferramentas atuais e qualidade básica permanecem disponíveis. A automação avançada fica para uma etapa posterior, com orçamento, limites e histórico.
 
+O [conceito de mapa da empresa](docs/MAPA-DA-EMPRESA.md) mostra uma direção visual para navegação por construções e acompanhamento de produção. É uma proposta; o mapa interativo ainda não foi implementado.
+
 ## Situação atual e limites da validação
 
 | Área | O que existe | O que ainda falta comprovar |
@@ -42,6 +44,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 - [x] Automatizar WebKit com toque e o perfil oficial do iPhone 17 Pro Max, registrando separadamente o limite de navegação offline do ambiente.
 - [ ] Validar Safari e tela inicial em aparelhos reais, seguindo [o roteiro de teste do iPhone](docs/TESTE-IPHONE.md), começando pelo iPhone 17 Pro Max informado.
 - [x] Testar um ciclo completo de revenda, incluindo vistorias, reparo, anúncio, propostas da simulação, venda, tributos, folha, dívida e recarga, em Chromium e WebKit.
+- [x] Cobrir pesquisa, homologação, fundação, produção por lote, pintura, entrega e recarga com regressão em Chromium e WebKit. A abertura fica em Gestão → Fabricante, com requisitos visíveis.
 - [ ] Testar uma campanha industrial completa, incluindo projeto, insumos, produção, entrega, venda e custos por período.
 - [ ] Reduzir os estilos e as sobrescritas de funções antigos por partes, preservando o comportamento com testes de regressão.
 
@@ -119,7 +122,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 ## Próxima entrega recomendada
 
-Na versão `motor-district-9000`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 160 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
+Na versão `motor-district-9001`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 160 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
 
 A próxima validação externa é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, iniciar a primeira conquista prática e visual do plano de retenção, completar o cenário industrial e observar novos jogadores para calibrar o ritmo. A meta de quatro entre cinco jogadores concluindo uma primeira venda ainda não foi medida.
 

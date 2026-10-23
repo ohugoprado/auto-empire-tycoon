@@ -8,10 +8,10 @@ const CATEGORIES={
 };
 const ENGINE={economico:{name:'Econômico',factor:.86,quality:-3},equilibrado:{name:'Equilibrado',factor:1,quality:0},performance:{name:'Performance',factor:1.29,quality:6},eletrico:{name:'Elétrico',factor:1.44,quality:9}};
 const escText=v=>esc(String(v??''));
-const currency=v=>fmt(Math.round(v));
+const currency=v=>Math.round(v).toLocaleString('pt-BR');
 const limit=(v,a,b)=>Math.max(a,Math.min(b,v));
 const panel=document.createElement('section');panel.id='ae-studio';
-panel.innerHTML='<div class="ae-studio-head"><h3>🛠️ Centro de desenvolvimento automotivo</h3><span id="ae-studio-points"></span></div><p class="tiny">Desenvolva projetos próprios, invista em engenharia e coloque novos modelos em produção. Os valores são fictícios e ajustados para a economia do jogo.</p><div class="ae-studio-grid"><label>Nome do modelo<input id="ae-design-name" maxlength="28" value="Empire One"></label><label>Segmento<select id="ae-design-kind"></select></label><label>Motorização<select id="ae-design-engine"></select></label><label>Posicionamento<select id="ae-design-position"><option value="budget">Acessível</option><option value="standard" selected>Equilibrado</option><option value="premium">Premium</option></select></label><label>Segurança <span id="ae-design-safety-v">3</span>/5<input id="ae-design-safety" type="range" min="1" max="5" value="3"></label><label>Confiabilidade <span id="ae-design-reliability-v">3</span>/5<input id="ae-design-reliability" type="range" min="1" max="5" value="3"></label><label>Tecnologia <span id="ae-design-tech-v">3</span>/5<input id="ae-design-tech" type="range" min="1" max="5" value="3"></label><label>Conforto <span id="ae-design-comfort-v">3</span>/5<input id="ae-design-comfort" type="range" min="1" max="5" value="3"></label></div><div class="ae-studio-stats" id="ae-studio-stats"></div><div class="ae-studio-actions"><button type="button" data-studio="research">Investir em P&D</button><button type="button" data-studio="save">Homologar projeto</button><button type="button" data-studio="produce">Produzir projeto</button></div><div id="ae-studio-saved"></div>';
+panel.innerHTML='<div class="ae-studio-head"><h3>🛠️ Centro de desenvolvimento automotivo</h3><span id="ae-studio-points"></span></div><p class="tiny">Desenvolva projetos próprios, invista em engenharia e coloque novos modelos em produção. Os valores são fictícios e ajustados para a economia do jogo.</p><div id="ae-studio-factory-status" class="ae-studio-factory-status" role="status"></div><div class="ae-studio-grid"><label>Nome do modelo<input id="ae-design-name" maxlength="28" value="Empire One"></label><label>Segmento<select id="ae-design-kind"></select></label><label>Motorização<select id="ae-design-engine"></select></label><label>Posicionamento<select id="ae-design-position"><option value="budget">Acessível</option><option value="standard" selected>Equilibrado</option><option value="premium">Premium</option></select></label><label>Segurança <span id="ae-design-safety-v">3</span>/5<input id="ae-design-safety" type="range" min="1" max="5" value="3"></label><label>Confiabilidade <span id="ae-design-reliability-v">3</span>/5<input id="ae-design-reliability" type="range" min="1" max="5" value="3"></label><label>Tecnologia <span id="ae-design-tech-v">3</span>/5<input id="ae-design-tech" type="range" min="1" max="5" value="3"></label><label>Conforto <span id="ae-design-comfort-v">3</span>/5<input id="ae-design-comfort" type="range" min="1" max="5" value="3"></label></div><div class="ae-studio-stats" id="ae-studio-stats"></div><div class="ae-studio-actions"><button type="button" data-studio="research">Investir em P&D</button><button type="button" data-studio="save">Homologar projeto</button><button type="button" data-studio="produce">Produzir projeto</button></div><div id="ae-studio-saved"></div>';
 const css=document.createElement('style');css.textContent=`
 #ae-studio{background:#112b39;border:1px solid #4b6a7a;border-radius:13px;padding:14px;margin:12px 0}
 .ae-studio-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -77,7 +77,13 @@ function update(){
  ['Tempo de produção',calc.days+' dias'],['Margem bruta estimada',currency(calc.value-calc.cost)+' CR']
  ].map(([k,v])=>'<div><small>'+k+'</small><b>'+v+'</b></div>').join('');
  const factory=s.empire.economy.factory;
- const button=panel.querySelector('[data-studio="produce"]');button.disabled=!factory.opened;
+ const button=panel.querySelector('[data-studio="produce"]');button.disabled=!factory.opened||!!s.empire.economy.bankrupt;
+ const freeLines=Math.max(0,factory.level*2-factory.queue.filter(job=>!job.plantId).length);
+ const freeStock=Math.max(0,s.slots-s.stock.length-factory.queue.length);
+ panel.querySelector('#ae-studio-factory-status').innerHTML=factory.opened?
+  '<b>'+escText(factory.brand)+' · fabricante aberta</b><p>Linhas principais livres: '+freeLines+' · Vagas para novas unidades: '+freeStock+'. Toque em Produzir no projeto homologado para escolher fábrica, cor e quantidade. O prazo usa dias simulados.</p>':
+  '<b>Falta abrir sua fabricante</b><p>'+(st.designs.length?'Seus projetos homologados estão salvos. ':'Você pode desenvolver e homologar projetos antes da fundação. ')+'A fundação da fabricante libera a produção.</p><button type="button" data-studio="open-factory">Ver abertura da fabricante</button>';
+
  panel.querySelector('#ae-studio-saved').innerHTML='<h4>Projetos homologados ('+st.designs.length+'/12)</h4>'+st.designs.map(d=>'<div class="ae-studio-item"><div><b>'+escText(d.name)+'</b><small>'+escText(d.kind)+' · '+escText(ENGINE[d.engine]?.name||d.engine)+' · '+currency(d.cost)+' CR · qualidade '+d.quality+'</small></div><button data-design-id="'+d.id+'">Selecionar</button></div>').join('')+(st.designs.length?'':'<p class="tiny">Nenhum projeto salvo. Invista em P&D e homologue o primeiro modelo.</p>');
 }
 function invest(){
@@ -100,6 +106,7 @@ function produce(){
  const st=ensure(),f=s.empire.economy.factory;if(!st||!f.opened)return toast('Abra sua fabricante primeiro');
  const name=read().name;
  const design=st.designs.find(d=>d.name===name);if(!design)return toast('Selecione um projeto homologado para produzir');
+ if(window.AEProductionOrders?.showOrder)return window.AEProductionOrders.showOrder(design.id);
  if(f.queue.filter(job=>!job.plantId).length>=f.level*2)return toast('Linha de produção principal ocupada');
  if(s.stock.length+f.queue.length>=s.slots)return toast('Não há vagas disponíveis no estoque');
  const crisis=window.AEEconomy?.crisisFor(s.empire.world?.active);
@@ -116,7 +123,7 @@ function produce(){
 panel.addEventListener('input',ev=>{if(ev.target.closest('.ae-studio-grid'))update()});
 panel.addEventListener('change',ev=>{if(ev.target.closest('.ae-studio-grid'))update()});
 panel.addEventListener('click',ev=>{
- const btn=ev.target.closest('[data-studio]');if(btn){if(btn.dataset.studio==='research')invest();if(btn.dataset.studio==='save')homologate();if(btn.dataset.studio==='produce')produce();return}
+ const btn=ev.target.closest('[data-studio]');if(btn){if(btn.dataset.studio==='open-factory'){window.AEManagement?.openArea('factory','fold-ae-economy');const target=document.querySelector('#ae-economy [data-econ="open"]');target?.scrollIntoView({behavior:'auto',block:'center'});target?.focus({preventScroll:true});return}if(btn.dataset.studio==='research')invest();if(btn.dataset.studio==='save')homologate();if(btn.dataset.studio==='produce')produce();return}
  const selected=ev.target.closest('[data-design-id]');if(!selected)return;
  const st=ensure(),d=st?.designs.find(x=>String(x.id)===selected.dataset.designId);if(!d)return;
  for(const key of ['name','kind','engine','position','safety','reliability','tech','comfort'])input(key).value=d[key];

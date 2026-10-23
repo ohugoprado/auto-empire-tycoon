@@ -8,7 +8,7 @@ O app atual é uma PWA. Instalar pela tela inicial não equivale a publicar um a
 
 O usuário informou **iPhone 17 Pro Max**; a versão do iOS ainda não foi informada. Esse é o alvo principal do roteiro físico.
 
-Na versão `motor-district-9000`, o WebKit 26.5 passou por 647 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria de 32 modelos. O ciclo de revenda com folha, tributos e dívida tem regressão nos dois motores, incluindo consistência da proposta ao cancelar, reabrir e recarregar. Guia e coleção têm testes adicionais; nenhum resultado automatizado equivale a uma sessão humana no iPhone.
+Na versão `motor-district-9001`, o WebKit 26.5 passou por 647 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria de 32 modelos. O ciclo de revenda com folha, tributos e dívida tem regressão nos dois motores, incluindo consistência da proposta ao cancelar, reabrir e recarregar. Guia e coleção têm testes adicionais; nenhum resultado automatizado equivale a uma sessão humana no iPhone.
 
 Uma verificação de navegação offline foi excluída explicitamente: o WebKit/WPE deste ambiente falha com erro interno também em uma página mínima independente, já controlada por service worker e com arquivos em cache. O cache do jogo foi conferido; recarga offline continua sem aprovação nesse motor. O teste offline do Chromium permanece obrigatório. Não extrapolar nenhum desses resultados para instalação, teclado, compartilhamento, áreas seguras ou retomada do iOS real.
 
@@ -56,6 +56,7 @@ Registrar modelo exato e versão instalada do iOS. A meta inicial é validar ver
 | IP-19 | Jogar uma sessão de 15 minutos | Sem travamentos; registrar aquecimento, lentidão, toques perdidos e tempo excessivo de espera |
 | IP-20 | Iniciar, pausar, retomar e concluir o guia da venda | Etapa salva na campanha correta; preparação opcional; avanço de um dia apenas por toque; custos e lucro estimado compreensíveis |
 | IP-21 | Concluir um marco e voltar ao painel | Progresso acompanha a campanha real, sem recompensa duplicada; guia e painel não apresentam ações conflitantes |
+| IP-22 | Abrir Gestão → Fabricante, pesquisar, homologar, fundar e produzir duas unidades com cor escolhida | Fundação mostra custo e capital faltante; homologação não funda automaticamente; cancelamentos não cobram; linhas, caixa, vagas e crises têm motivos visíveis; carros chegam após os dias simulados e permanecem após recarga |
 
 O defeito da chave fixa na importação por ferramentas foi corrigido. As duas rotas usam o mesmo serviço de backup da campanha ativa. Cancelamento, arquivo inválido e falhas nas etapas de gravação têm testes com preservação da campanha; o seletor de arquivos, download e compartilhamento ainda precisam ser exercitados no aparelho.
 

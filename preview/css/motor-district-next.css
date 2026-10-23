@@ -311,3 +311,14 @@ body.ae-redesign.ae-next #modalbody .ae-trade-presets button{min-width:0!importa
  body.ae-redesign.ae-next .ae-expanded-management :is(.ae-id-controls,.ae-pf-grid){grid-template-columns:minmax(0,1fr)!important}
  body.ae-redesign.ae-next #ae-mobile-hub{padding:11px!important}
 }
+
+/* Foundation and homologated production explain the next action in one area. */
+body.ae-redesign.ae-next #ae-studio-factory-status{margin:12px 0;padding:13px;border:1px solid #bdcfe5;border-radius:11px;background:#edf3fc;color:#36516e;font-size:13px;line-height:1.55}
+body.ae-redesign.ae-next #ae-studio-factory-status p{margin:7px 0;color:#52647a!important;font-size:12px!important}
+body.ae-redesign.ae-next #ae-studio-factory-status button{min-height:44px;white-space:normal}
+body.ae-redesign.ae-next #ae-economy [data-econ="open"]{grid-column:1/-1;min-height:48px!important;white-space:normal!important}
+body.ae-redesign.ae-next #ae-production-dialog{background:#fff!important;color:#36516e!important;border-color:#bdcfe5!important;border-radius:12px!important}
+body.ae-redesign.ae-next #ae-production-dialog select,body.ae-redesign.ae-next #ae-production-dialog input{font-size:16px!important;min-height:44px!important;min-width:0!important;max-width:100%!important}
+body.ae-redesign.ae-next #ae-business-section #ae-production-dialog .ae-production-error,body.ae-redesign.ae-next #ae-business-section .ae-econ-danger{color:#a33340!important}
+body.ae-redesign.ae-next .ae-factory-economic-details{margin-top:14px;border-top:1px solid #d4dfed;padding-top:5px}
+body.ae-redesign.ae-next .ae-factory-economic-details>summary{min-height:44px;padding:12px 0;color:#244b78;font-size:12px;line-height:1.5;cursor:pointer}

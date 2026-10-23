@@ -76,7 +76,7 @@ const style=document.createElement('style');style.textContent=`
 .ae-econ-danger{color:#ffb5aa;font-weight:700;font-size:12px;margin:8px 0}
 .ae-econ-hint{font-size:11px;color:#c3d5dd;line-height:1.55;margin:9px 0}
 `;document.head.append(style);
-const panel=document.createElement('section');panel.id='ae-economy';panel.innerHTML='<h3>🌐 Economia, riscos e indústria</h3><div id="ae-econ-status" class="ae-econ-grid"></div><div id="ae-econ-crisis"></div><div id="ae-econ-factory"></div><div class="ae-econ-actions"><button data-econ="open">Abrir fabricante</button><button data-econ="produce">Produzir veículo</button><button data-econ="upgrade">Ampliar fábrica</button><button data-econ="transfer">Transferir veículo</button></div><p class="ae-econ-hint">Economia, impostos e câmbio de referência fictícios; CR é a unidade contábil, e a moeda local aparece como contexto. Não representa acontecimentos ou taxas reais. Crises e inflação evoluem somente nos dias simulados. A falência exige insolvência persistente.</p>';
+const panel=document.createElement('section');panel.id='ae-economy';panel.innerHTML='<h3>Fabricante e produção</h3><div id="ae-econ-factory"></div><p class="ae-econ-hint" id="ae-factory-opening-hint" role="status"></p><div id="ae-econ-crisis"></div><div class="ae-econ-actions"><button data-econ="open">Abrir fabricante</button><button data-econ="produce">Produzir veículo básico</button><button data-econ="upgrade">Ampliar fábrica</button><button data-econ="transfer">Transferir veículo</button></div><details class="ae-factory-economic-details"><summary>Inflação, mercado e risco financeiro</summary><div id="ae-econ-status" class="ae-econ-grid"></div><p class="ae-econ-hint">Economia, impostos e câmbio de referência fictícios; CR é a unidade contábil, e a moeda local aparece como contexto. Não representa acontecimentos ou taxas reais. Crises e inflação evoluem somente nos dias simulados. A falência exige insolvência persistente.</p></details>';
 document.getElementById('garage')?.append(panel);
 function factoryCost(){return Math.round(110000*init().inflation)}
 function produceCost(){const f=init().factory;return Math.round((14500+f.level*1400)*init().inflation*crisisFor(s.empire.world?.active).cost)}
@@ -85,7 +85,13 @@ function show(){
  const cashForecast=s.cash+s.stock.reduce((a,x)=>a+(Number(x.value)||0)*.5,0);
  document.getElementById('ae-econ-status').innerHTML='<div class="ae-econ-cell"><small>Inflação acumulada</small><b>'+((e.inflation-1)*100).toFixed(1).replace('.',',')+'%</b></div><div class="ae-econ-cell"><small>Mercado ativo</small><b>'+esc(city?.name||'São Paulo')+'</b></div><div class="ae-econ-cell"><small>Risco financeiro</small><b>'+(cashForecast<0?'Crítico':s.cash<0?'Atenção':'Controlado')+'</b></div><div class="ae-econ-cell"><small>Indústria</small><b>'+(f.opened?'Nível '+f.level:'Não fundada')+'</b></div>';
  document.getElementById('ae-econ-crisis').innerHTML='<p class="'+(active.id==='stable'?'ae-econ-hint':'ae-econ-danger')+'">'+esc(active.name)+': '+esc(active.description)+(active.id==='stable'?'':' · até o dia '+c.end)+'</p>'+(e.distressDays?'<p class="ae-econ-danger">Insolvência: '+e.distressDays+'/7 dias. Recupere o patrimônio líquido.</p>':'')+(e.bankrupt?'<p class="ae-econ-danger">FALÊNCIA DECLARADA. Campanha encerrada. Exporte o backup ou inicie uma nova campanha.</p>':'');
- document.getElementById('ae-econ-factory').innerHTML='<p class="ae-econ-hint">'+(f.opened?'Fabricante: '+esc(f.brand)+' · modelo '+esc(f.model)+' · produzidos '+f.produced+' · na fila '+f.queue.length:'Abra uma fabricante por '+money(factoryCost())+' CR para produzir sua própria marca.')+'</p><p class="ae-econ-hint">Custo estimado por carro: '+money(produceCost())+' CR · produção: '+Math.max(2,8-f.level)+' dias · uma vaga por veículo finalizado.</p>';
+ document.getElementById('ae-econ-factory').innerHTML='<p class="ae-econ-hint">'+(f.opened?'Fabricante: '+esc(f.brand)+' · modelo '+esc(f.model)+' · produzidos '+f.produced+' · na fila '+f.queue.length:'Abra uma fabricante por '+money(factoryCost())+' CR para produzir sua própria marca.')+'</p><p class="ae-econ-hint">Veículo básico: custo estimado '+money(produceCost())+' CR · produção: '+Math.max(2,8-f.level)+' dias · uma vaga por veículo finalizado. Projetos homologados têm custo e prazo próprios, mostrados na ordem.</p>';
+ const opening=panel.querySelector('[data-econ="open"]');
+ opening.textContent=f.opened?'Fabricante aberta':'Abrir fabricante · '+money(factoryCost())+' CR';
+ const needed=Math.max(0,factoryCost()-s.cash);
+ const openingHint=document.getElementById('ae-factory-opening-hint');
+ openingHint.textContent=f.opened?'Para fabricar um modelo homologado, abra Projetos e desenvolvimento abaixo e toque em Produzir no projeto.':
+  'Homologar um projeto não funda a fabricante. '+(needed?'Faltam '+money(needed)+' CR para a fundação.':'Você já tem capital para a fundação.')+' Reserve também o custo de produção e uma vaga no estoque.';
  panel.querySelectorAll('[data-econ]').forEach(b=>b.disabled=e.bankrupt||(b.dataset.econ==='open'?f.opened:b.dataset.econ==='produce'?!f.opened:b.dataset.econ==='upgrade'?!f.opened||f.level>=4:false));
 }
 function transact(cost,label){if(init().bankrupt)return toast('Campanha encerrada por falência');if(!Number.isFinite(cost)||cost<=0||s.cash<cost)return toast('Capital insuficiente');s.cash-=cost;entry(label,-cost);return true}
@@ -93,7 +99,7 @@ panel.addEventListener('click',ev=>{
  const action=ev.target.closest('[data-econ]')?.dataset.econ;if(!action)return;
  const e=init(),f=e.factory;if(e.bankrupt)return toast('Empresa falida');
  if(action==='open'){
-  if(f.opened)return;const cost=factoryCost();if(s.cash<cost)return toast('Capital insuficiente');
+  if(f.opened)return;const cost=factoryCost();if(s.cash<cost)return toast('A fundação custa '+money(cost)+' CR. Faltam '+money(cost-s.cash)+' CR.');
   const brand=prompt('Nome da fabricante (2 a 24 caracteres):',s.empire.world?.hq==='saopaulo'?'São Paulo Motors':'Empire Motors');
   if(brand===null)return;const name=brand.trim().replace(/[<>]/g,'').slice(0,24);if(name.length<2)return toast('Nome inválido');
   if(!confirm('Fundar '+name+' por '+money(cost)+' CR?'))return;

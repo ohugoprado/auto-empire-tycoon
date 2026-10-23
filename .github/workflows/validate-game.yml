@@ -43,6 +43,8 @@ jobs:
           node tests/staff-system.test.js
           node tests/commerce-campaign.test.js
           AE_BROWSER=webkit node tests/commerce-campaign.test.js
+          node tests/factory-production.test.js
+          AE_BROWSER=webkit node tests/factory-production.test.js
           node tests/backup-restore.test.js
           AE_BROWSER=webkit node tests/backup-restore.test.js
           node tests/visual-smoke.test.js
@@ -60,6 +62,7 @@ jobs:
           path: |
             /tmp/auto-empire-review
             /tmp/auto-empire-webkit
+            /tmp/auto-empire-factory
             /tmp/auto-empire-first-sale
             /tmp/auto-empire-vehicle-collection
           if-no-files-found: ignore

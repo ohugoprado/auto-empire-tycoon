@@ -6,8 +6,8 @@ if(!section||!garage)return;
 const definitions=[
 {id:'finance',label:'Finanças',description:'Banco, crédito, fornecedores e resultados.',nodes:['ae-bank','fold-ae-operations']},
 {id:'clients',label:'Clientes',description:'Propostas, histórico, satisfação e fidelização.',nodes:['ae-buyers-panel']},
-{id:'network',label:'Expansão',description:'Cidades, filiais e economia global.',nodes:['fold-ae-world','fold-ae-economy']},
-{id:'factory',label:'Fabricante',description:'Projetos, produção e desenvolvimento.',nodes:['fold-ae-studio']}
+{id:'network',label:'Expansão',description:'Cidades, filiais e economia global.',nodes:['fold-ae-world']},
+{id:'factory',label:'Fabricante',description:'Abra sua fabricante, selecione um projeto homologado e acompanhe a produção.',nodes:['fold-ae-economy','fold-ae-studio']}
 ];
 const icons={finance:'<path d="M2 9l10-6 10 6M3 10h18M5 10v9m5-9v9m4-9v9m5-9v9M2 21h20"/>',clients:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 6a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/>',network:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/>',factory:'<path d="M3 21V10l6 4V9l6 5V5h6v16H3zM7 18h2m3 0h2m3 0h2"/>'};
 const svg=id=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[id]+'</svg>';
@@ -41,6 +41,15 @@ for(const spec of definitions){
  const view=document.createElement('div');view.className='ae-management-view';view.id='ae-mgmt-view-'+spec.id;view.setAttribute('role','tabpanel');view.setAttribute('aria-labelledby',button.id);
  const h=document.createElement('h3');h.textContent=spec.label;const p=document.createElement('p');p.textContent=spec.description;view.append(h,p);
  for(const id of spec.nodes){const node=document.getElementById(id);if(node&&section.contains(node))view.append(node)}
+ if(spec.id==='factory'){
+  const studioTitle=view.querySelector('#fold-ae-studio > .ae-fold-head > span');
+  if(studioTitle)studioTitle.textContent='Projetos e desenvolvimento';
+  const fold=view.querySelector('#fold-ae-economy > .ae-fold-head');
+  if(fold){
+   fold.firstElementChild.textContent='Fundação e gestão da fabricante';
+   if(!s.empire?.economy?.factory?.opened&&fold.getAttribute('aria-expanded')==='false')fold.click();
+  }
+ }
  nav.append(button);section.append(view);views.set(spec.id,view);buttons.set(spec.id,button);
  button.addEventListener('click',()=>select(spec.id,false));
  button.addEventListener('keydown',event=>{
