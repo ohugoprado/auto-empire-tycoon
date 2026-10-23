@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 9.9: buyer decision models. */
+/* Auto Empire Tycoon — Alpha 10.0: balanced buyer decisions. */
 (function(){
 'use strict';
 const num=x=>Number.isFinite(Number(x))?Number(x):0;
@@ -21,7 +21,7 @@ function model(car,offer){
  const reputationAdjustment=(rep-50)/100*.075;
  const ageAdjustment=-Math.min(45,days)*.0015;
  const willingness=clamp(profile.price+qualityAdjustment+reputationAdjustment+ageAdjustment,.7,1.2);
- const ceiling=Math.round(value*willingness/100)*100;
+ const ceiling=Math.max(0,Math.round(value*willingness/100)*100);
  const fit=clamp(Math.round(70+(willingness-priceRatio)*95+(condition-70)*.2),5,98);
  const acceptance=clamp(.62+(rep-50)*.002+(condition-70)*.002-(days/180),.28,.85);
  return {profile,ceiling,fit,acceptance,priceRatio};
@@ -32,7 +32,12 @@ function updateOffer(car,offer){
  if(!offer.aeNegotiation)offer.aeNegotiation={rounds:0,initial:num(offer.amount),limit:0};
  const negotiation=offer.aeNegotiation;
  // Recalculate only before a counteroffer; never reduce an accepted offer.
- if(!num(negotiation.rounds))negotiation.limit=Math.max(num(offer.amount),m.ceiling);
+ if(!num(negotiation.rounds)){
+  // Buyer ceiling must remain close to the actual offer; never replace it with
+  // the entire estimated vehicle valuation.
+  const affordable=Math.min(m.ceiling,num(offer.amount)*1.075);
+  negotiation.limit=Math.max(num(offer.amount),Math.round(affordable/100)*100);
+ }
  offer.aeDecision={fit:m.fit,ceiling:m.ceiling,acceptance:m.acceptance,condition:num(car.condition),reputation:num(s.rep),days:num(car.days)};
 }
 const oldTick=tickDay;
