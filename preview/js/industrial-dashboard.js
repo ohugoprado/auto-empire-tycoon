@@ -36,8 +36,11 @@ function refresh(){
  panel.querySelector('#ae-industrial-contracts').innerHTML=contracts.map(o=>{
   const total=Math.max(1,num(o.total)),remaining=Math.max(0,num(o.remaining)),started=total-remaining,delivered=Math.max(0,num(o.delivered));
   const plant=o.plantId?plants.find(p=>String(p.id)===String(o.plantId)):factory;
-  const capacity=Math.max(1,num(plant?.level))*2,cycles=Math.ceil(remaining/capacity);
-  const eta=cycles*Math.max(2,num(o.cycleDays)||7);
+  const shifts=Number(plant?.workforce?.shift)===2?2:1;
+  const staff=plant?.workforce?Math.max(0,num(plant.workforce.staff)):Math.max(1,num(plant?.level))*6;
+  const capacity=Math.min(Math.max(1,num(plant?.level))*4,Math.floor(staff/(3*shifts))*shifts);
+  const cycles=capacity>0?Math.ceil(remaining/capacity):null;
+  const eta=cycles===null?null:cycles*Math.max(2,num(o.cycleDays)||7);
   return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId?esc(plant?.name||'Unidade industrial'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
  }).join('')||'<p class="tiny">Sem contratos aguardando montagem. Verifique as linhas acima para veículos já em produção.</p>';
  const history=(factory.completedIndustrialOrders||[]).slice(-5).reverse();
