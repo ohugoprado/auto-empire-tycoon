@@ -1,11 +1,11 @@
-/* Alpha 12.3 — industrial warehouse and showroom transfers */
+/* Alpha 12.6 — warehouse operations, handling, and fleet logistics */
 (function(){
 'use strict';
 const garage=document.getElementById('garage');if(!garage)return;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
 const money=n=>Math.round(Number(n)||0).toLocaleString('pt-BR')+' CR';
 const panel=document.createElement('section');panel.id='ae-factory-warehouse';panel.className='panel';
-panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><div id="ae-warehouse-cars"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
+panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
 (document.getElementById('ae-industrial-dashboard')||garage).after(panel);
 const css=document.createElement('style');css.textContent='#ae-factory-warehouse{margin:12px 0;padding:13px}#ae-factory-warehouse h3{font-size:15px;color:#f3d28e}#ae-factory-warehouse p{font-size:12px;line-height:1.6}#ae-factory-warehouse button{min-height:44px;margin:5px 0}.ae-warehouse-auto{display:flex;gap:9px;align-items:center;font-size:12px;margin:12px 0}.ae-warehouse-auto input{width:20px;height:20px;flex:none}.ae-warehouse-car{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #415b6c;padding:8px 0;font-size:12px}';document.head.append(css);
 function state(){const f=s?.empire?.economy?.factory;if(!f)return null;if(!Array.isArray(f.warehouseCars))f.warehouseCars=[];f.warehouseCapacity=Math.max(20,Math.min(5000,Number(f.warehouseCapacity)||20));return f}
@@ -15,11 +15,14 @@ function refresh(){
  const free=Math.max(0,(Number(s.slots)||0)-s.stock.length);
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const fleetStats=fleet(f);
- panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · gasto acumulado: '+money(f.logisticsSpent||0)+'</p>';
+ const dailyStorage=Math.round(f.warehouseCars.length*12*Math.max(1,Number(s.empire?.economy?.inflation)||1));
+ panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · gasto acumulado: '+money(f.logisticsSpent||0)+'</p><p>Armazenagem: '+money(dailyStorage)+'/dia · total pago: '+money(f.storageSpent||0)+'</p>';
  panel.querySelector('#ae-fleet-upgrade').textContent=fleetStats.level>=10?'Frota no nível máximo':'Ampliar frota · '+money(fleetStats.upgrade);
  panel.querySelector('#ae-fleet-upgrade').disabled=fleetStats.level>=10||s.cash<fleetStats.upgrade;
  const cost=Math.round(20000*Math.pow(1.35,Math.max(0,(f.warehouseCapacity-20)/20)));
  panel.querySelector('#ae-warehouse-stats').innerHTML='<p><b>Pátio:</b> '+f.warehouseCars.length+'/'+f.warehouseCapacity+' vagas · <b>Vagas na concessionária:</b> '+free+'</p>';
+ panel.querySelector('#ae-warehouse-bulk').disabled=free<1||!f.warehouseCars.length;
+ panel.querySelector('#ae-warehouse-bulk').textContent='Transferir até '+Math.min(free,f.warehouseCars.length)+' veículo(s) para a concessionária';
  panel.querySelector('#ae-warehouse-cars').innerHTML=f.warehouseCars.slice(0,30).map(c=>'<div class="ae-warehouse-car"><span>'+esc(c.name)+' · '+esc(c.colorName||'')+'</span><button type="button" data-transfer="'+esc(c.id)+'"'+(free<1?' disabled':'')+'>Transferir</button></div>').join('')+(f.warehouseCars.length>30?'<p>Mostrando os primeiros 30 veículos.</p>':'');
  panel.querySelector('#ae-warehouse-upgrade').textContent=f.warehouseCapacity>=5000?'Capacidade máxima': 'Ampliar +20 vagas · '+money(cost);
  panel.querySelector('#ae-warehouse-upgrade').disabled=f.warehouseCapacity>=5000||s.cash<cost;
@@ -27,6 +30,13 @@ function refresh(){
 panel.querySelector('#ae-warehouse-auto').addEventListener('change',ev=>{const f=state();if(!f)return;f.autoDistribution=!!ev.target.checked;note('Distribuição automática '+(f.autoDistribution?'ativada':'desativada')+'.');save();refresh()});
 panel.addEventListener('click',ev=>{
  const f=state();if(!f)return;
+ if(ev.target.closest('#ae-warehouse-bulk')){
+  const count=Math.min(Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length),f.warehouseCars.length);
+  if(!count)return toast('Não há vagas ou veículos para transferir.');
+  s.stock.push(...f.warehouseCars.splice(0,count));
+  note('Transferência em lote: '+count+' veículo(s) enviados à concessionária.');
+  save();render();refresh();return;
+ }
  const transfer=ev.target.closest('[data-transfer]');
  if(transfer){
   if(s.stock.length>=s.slots)return toast('Concessionária sem vagas.');
@@ -56,7 +66,10 @@ const previousTick=tickDay;
 tickDay=function(){
  const result=previousTick.apply(this,arguments);
  const f=state();
- if(!f?.opened||!f.autoDistribution||!f.warehouseCars.length)return result;
+ if(!f?.opened)return result;
+ const storage=Math.round(f.warehouseCars.length*12*Math.max(1,Number(s.empire?.economy?.inflation)||1));
+ if(storage>0){s.cash-=storage;s.profit-=storage;f.storageSpent=(Number(f.storageSpent)||0)+storage;entry('Armazenagem industrial',-storage);}
+ if(!f.autoDistribution||!f.warehouseCars.length){if(storage>0){save();render();}return result;}
  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
  const stats=fleet(f);
  const affordable=Math.max(0,Math.floor((Number(s.cash)||0)/stats.fee));
@@ -70,7 +83,7 @@ tickDay=function(){
   entry('Logística industrial · '+quantity+' veículo(s)',-fee);
   note('Distribuição automática: '+quantity+' veículo(s) enviados à concessionária.');
   save();render();
- }
+ }else if(storage>0){save();render();}
  return result;
 };
 const oldRender=render;let key='';
