@@ -165,9 +165,17 @@
     const spec = variant(car), key = category(car), name = car.name || spec.model.name;
     const label = name + ' · ' + spec.paint.name + (spec.reference ? ' · carroceria ilustrativa de referência' : '');
     if (!spec.artworkReady) return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-artwork-ready="false" viewBox="0 0 300 200" role="img" aria-label="Imagem de ' + escape(name) + ' em revisão"><text x="150" y="100" text-anchor="middle" fill="currentColor" font-size="15">Arte em revisão</text></svg>';
+    const factoryLogo = car.manufactured ? window.AECompanyEmblem?.svg?.(window.AEGameBrandLogo?.() || null) : '';
+    const [vx,vy,vw,vh] = spec.box.split(' ').map(Number);
+    // SVG inset stays proportional to each atlas crop. It is a brand badge,
+    // not a claim of pixel-perfect placement on the car's grille.
+    const badge = factoryLogo && [vx,vy,vw,vh].every(Number.isFinite)
+      ? '<svg x="'+(vx+vw*.76)+'" y="'+(vy+vh*.06)+'" width="'+(vw*.18)+'" height="'+(vh*.27)+'" viewBox="0 0 160 160" aria-hidden="true">'+factoryLogo.replace(/^<svg[^>]*>/,'').replace(/<\\/svg>$/,'')+'</svg>'
+      : '';
     return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-variant="' + spec.id + '" viewBox="' + spec.box + '" preserveAspectRatio="xMidYMid meet" ' +
       (decorative ? 'aria-hidden="true"' : 'role="img" aria-label="' + escape(label) + '"') +
       '><image href="' + spec.url + '" width="' + spec.width + '" height="' + spec.height + '"/></svg>';
   }
+  window.AEGameBrandLogo = () => window.s?.empire?.economy?.factory?.logo || (typeof s !== 'undefined' ? s?.empire?.economy?.factory?.logo : null);
   window.AESprites = Object.freeze({ category, sprites, models, paints, atlases, modelFor, paintFor, variant, variants, render });
 })();
