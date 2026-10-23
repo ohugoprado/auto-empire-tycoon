@@ -64,9 +64,19 @@ function updateDay(){
     cost:order.cost,value:order.value,due:s.day+Math.max(2,Number(order.cycleDays)||7)});
   }
   order.remaining-=count;
+  order.started=(Number(order.started)||0)+count;
   if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
  }
  e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0);
+ // Variable overhead is charged only for active manufacturing lines.
+ // Payroll and equipment upkeep are independent of the prepaid material contract.
+ const activeLines=e.factory.queue.length;
+ if(activeLines>0){
+  const overhead=Math.round(activeLines*180*Math.max(1,Number(e.inflation)||1));
+  s.cash-=overhead;s.profit-=overhead;
+  e.factory.overheadSpent=(Number(e.factory.overheadSpent)||0)+overhead;
+  if(s.day%7===0)entry('Custos operacionais industriais',-overhead);
+ }
  // Manufacturing uses real in-game days; never completes while the app is closed.
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
