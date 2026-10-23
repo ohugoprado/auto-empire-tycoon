@@ -60,6 +60,14 @@ body:has(#ae-turn-overlay:not([hidden])) #ae-end-day{visibility:hidden;pointer-e
  #ae-id-controls>*{flex:1 1 130px}
  #ae-warehouse-fleet,#ae-warehouse-bulk{max-width:100%}
 }
+/* Interaction layers: dialogs must always receive taps before the floating action. */
+#modal.modalbg:not(.hide){z-index:950!important;pointer-events:auto!important}
+#modal.modalbg.hide{pointer-events:none!important}
+#modal .modal{position:relative;z-index:1;max-height:calc(100dvh - 32px);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#ae-end-day{z-index:40!important}
+nav.bottom{z-index:50}
+#toast{pointer-events:none}
+button:disabled{cursor:not-allowed;opacity:.55}
 /* Keep the primary turn action above the real bottom navigation height. */
 :root{--ae-bottom-nav-height:80px}
 #ae-end-day{bottom:calc(var(--ae-bottom-nav-height) + 12px)!important}
@@ -1030,10 +1038,10 @@ scene();
 </script><script id="alpha108-polish">
 (function(){
 'use strict';
-const VERSION='Alpha 14.2',BUILD='14200';
+const VERSION='Alpha 14.3',BUILD='14300';
 document.title='Auto Empire Tycoon — '+VERSION;
 const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 14.2 · POR TURNOS';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 14.3 · POR TURNOS';
 const css=document.createElement('style');
 css.textContent=`
 /* Stage 1: visual hierarchy and responsive readability */
