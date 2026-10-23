@@ -46,7 +46,7 @@ function refresh(){
  const upcoming=jobs.filter(j=>num(j.due)>=num(s.day)).sort((a,b)=>num(a.due)-num(b.due))[0];
  const totalCapacity=lines.filter(l=>l.id!==null||factory.opened).reduce((sum,l)=>sum+l.capacity,0);
  const utilization=totalCapacity?Math.round(jobs.length/totalCapacity*100):0;
- const metrics=[['Em produção',jobs.length],['Aguardando montagem',contracts.reduce((a,o)=>a+num(o.remaining),0)],['Capital em produção',money(invested)],['Folha mensal adicional',money(payroll)],['Ordens atrasadas',delayed],['Capacidade ocupada',utilization+'%'],['Custo médio por ordem',jobs.length?money(invested/jobs.length):'—']];
+ const metrics=[['Em produção',jobs.length],['Aguardando montagem',contracts.reduce((a,o)=>a+num(o.remaining),0)],['Custos operacionais acumulados',money(factory.overheadSpent||0)],['Capital em produção',money(invested)],['Folha mensal adicional',money(payroll)],['Ordens atrasadas',delayed],['Capacidade ocupada',utilization+'%'],['Custo médio por ordem',jobs.length?money(invested/jobs.length):'—']];
  panel.querySelector('#ae-industrial-kpis').innerHTML=metrics.map(([label,value])=>'<div class="ae-id-kpi"><small>'+label+'</small><strong>'+value+'</strong></div>').join('');
  const filter=panel.querySelector('#ae-id-filter').value,sort=panel.querySelector('#ae-id-sort').value;
  const eligible=lines.filter(l=>l.id!==null||factory.opened).filter(line=>{
