@@ -33,6 +33,7 @@ const paints=window.AESprites?.paints.map(paint=>[paint.name,paint.hex])||[['Bra
 function showOrder(id){
  const {designs,f,e}=state(),d=designs.find(x=>String(x.id)===String(id));
  if(!d)return toast('Projeto não encontrado');
+ if(d.retired)return toast('Projeto retirado de linha. Reative no painel de inteligência de mercado.');
  if(!f?.opened){window.AEManagement?.openArea('factory','fold-ae-economy');return toast('Abra sua fabricante na seção Fundação e gestão da fabricante. Seu projeto homologado continua salvo.');}
  if(e?.bankrupt)return toast('Produção indisponível: empresa falida.');
  const plants=options(d);
