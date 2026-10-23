@@ -70,7 +70,7 @@ function showOrder(id){
   const {f,e}=state();if(!f?.opened||s.cash<q*cost)return toast('Produção indisponível');
   s.cash-=q*cost;entry('Lote de produção · '+d.name+' · '+p.name,-q*cost);
   const supplier=window.AEOperations?.getSupplier?.().id||'standard';
-  for(let i=0;i<q;i++){const chosen=paints[paint.value==='mixed'?(i+Math.floor(Math.random()*paints.length))%paints.length:Number(paint.value)]||paints[0];f.queue.push({color:chosen[1],colorName:chosen[0],...(p.id==='main'?{}:{plantId:p.id}),model:d.name,kind:d.kind,cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),due:s.day+days,designId:d.id,brandParts:d.brandParts?{...d.brandParts}:undefined,quality:d.quality,supplier});}
+  for(let i=0;i<q;i++){const chosen=paints[paint.value==='mixed'?(i+Math.floor(Math.random()*paints.length))%paints.length:Number(paint.value)]||paints[0];f.queue.push({color:chosen[1],colorName:chosen[0],...(p.id==='main'?{}:{plantId:p.id}),model:d.name,kind:d.kind,cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),due:s.day+days,designId:d.id,generation:d.generation||1,facelift:d.facelift||0,brandParts:d.brandParts?{...d.brandParts}:undefined,quality:d.quality,supplier});}
   f.model=d.name;note('Produção iniciada: '+q+' unidade(s) de '+d.name+' em '+p.name+'.');save();render();box.remove();toast('Lote enviado para produção!');
  });
  quote();box.scrollIntoView({behavior:'smooth',block:'nearest'});
