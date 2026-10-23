@@ -46,7 +46,7 @@ function updateDay(){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
   if(s.stock.length>=s.slots){job.due=s.day+1;continue}
-  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,generation:job.generation||1,facelift:job.facelift||0,brandParts:job.brandParts?{...job.brandParts}:undefined,plantId:job.plantId??null};
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,generation:job.generation||1,facelift:job.facelift||0,modelIntroducedDay:job.modelIntroducedDay||s.day,lifecycleBonus:job.lifecycleBonus||0,brandParts:job.brandParts?{...job.brandParts}:undefined,plantId:job.plantId??null};
   const supplier=job.supplier||'standard';
   const defectRate=supplier==='economy'?.07:supplier==='premium'?.012:.03;
   if(Math.random()<defectRate){
@@ -151,7 +151,7 @@ tickDay=function(){
  if(s.day===previousDay)return;
  const e=init();
  // A crisis affects new proposals only, never retroactively changes an accepted offer.
- for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const demand=factor(car.originCity||s.empire.world?.active);for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}const designBoost=car.manufactured&&Number.isFinite(Number(car.designQuality))?1+Math.max(0,Number(car.designQuality)-65)*.002:1;offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)*designBoost/100)*100)}car.interested=offers.length>0}
+ for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const marketDemand=factor(car.originCity||s.empire.world?.active);const age=car.manufactured?Math.max(0,s.day-(Number(car.modelIntroducedDay)||s.day)):0;const freshness=car.manufactured?Math.max(.7,1-Math.max(0,age-45)*.0015):1;const lifecycle=car.manufactured?Math.min(1.2,Math.max(.8,freshness+Math.min(.2,Math.max(0,Number(car.lifecycleBonus)||0)))):1;const demand=Math.min(1,marketDemand*lifecycle);for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}const designBoost=car.manufactured&&Number.isFinite(Number(car.designQuality))?1+Math.max(0,Number(car.designQuality)-65)*.002:1;offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)*designBoost/100)*100)}car.interested=offers.length>0}
  updateDay();save();
 };
 const previousSubmit=submitBid;
