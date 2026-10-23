@@ -50,7 +50,8 @@ function updateDay(){
   if(!plant)continue;
   const level=Math.max(1,Number(plant.level)||1),baseLines=level*2;
   const workforce=plant.workforce||{staff:baseLines*3,shift:1};
-  const staffedLines=Math.floor(Math.max(0,Number(workforce.staff)||0)/3)*Math.max(1,Math.min(2,Number(workforce.shift)||1));
+  const shifts=Number(workforce.shift)===2?2:1;
+  const staffedLines=Math.floor(Math.max(0,Number(workforce.staff)||0)/(3*shifts))*shifts;
   const lines=Math.min(baseLines*2,staffedLines);
   const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
   const open=Math.max(0,lines-active);
@@ -58,7 +59,9 @@ function updateDay(){
   const count=Math.max(0,Math.min(order.remaining,open,freeStorage));
   for(let i=0;i<count;i++){
    const palette=window.AESprites?.paints||[];
-   const paint=order.paint==='mixed'?palette[Math.floor(Math.random()*palette.length)]:palette[Number(order.paint)];
+   const fallback=[{name:'Branco Polar',hex:'#e7ebef'},{name:'Azul Oceano',hex:'#287ec5'},{name:'Vermelho Rubi',hex:'#c33d42'},{name:'Grafite',hex:'#52545a'}];
+   const colors=palette.length?palette:fallback;
+   const paint=order.paint==='mixed'?colors[Math.floor(Math.random()*colors.length)]:colors[Number(order.paint)%colors.length];
    e.factory.queue.push({industrialOrderId:order.id,model:order.model,kind:order.kind,designId:order.designId,
     generation:order.generation,facelift:order.facelift,modelIntroducedDay:order.modelIntroducedDay,
     lifecycleBonus:order.lifecycleBonus,brandParts:order.brandParts?{...order.brandParts}:undefined,
@@ -71,7 +74,7 @@ function updateDay(){
   if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
  }
  // Keep completed contracts for delivery history, bounded to avoid save-file growth.
- e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0||Number(o.delivered)<Number(o.total)).slice(-100);
+ e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0||Number(o.delivered)<Number(o.total));
  // Variable overhead is charged only for active manufacturing lines.
  // Payroll and equipment upkeep are independent of the prepaid material contract.
  const activeLines=e.factory.queue.length;
