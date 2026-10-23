@@ -79,7 +79,7 @@ function showOrder(id){
    designId:d.id,generation:d.generation||1,facelift:d.facelift||0,
    modelIntroducedDay:d.introducedDay||s.day,lifecycleBonus:(d.lifecycleBonus||0)+(d.mediaBonus||0),
    brandParts:d.brandParts?{...d.brandParts}:undefined,quality:d.quality,supplier,
-   ...(p.id==='main'?{}:{plantId:p.id}),paint:chosenPaint,remaining:q,total:q,
+   ...(p.id==='main'?{}:{plantId:p.id}),paint:chosenPaint,remaining:q,total:q,delivered:0,started:0,
    cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),
    cycleDays:days,createdDay:s.day});
 
