@@ -1,4 +1,4 @@
-/* Auto Empire Tycoon — Alpha 9.8: buyer counteroffers and negotiation exits. */
+/* Auto Empire Tycoon — Alpha 10.0: stable counteroffers and buyer profiles. */
 (function(){
 'use strict';
 const num=x=>Number.isFinite(Number(x))?Number(x):0;
@@ -30,7 +30,10 @@ offersDialog=function(id){
     const m=current.aeNegotiation;if(!m||m.rounds>=2)return toast('Limite de negociação atingido.');
     m.rounds++;
     const desired=Math.ceil(num(current.amount)*1.03/100)*100;
-    const chance=.86-m.rounds*.12;
+    const decision=current.aeDecision;
+    const fit=num(decision?.fit)||55;
+    const patience=({budget:.9,family:1.08,premium:.95,enthusiast:1.05,dealer:.8})[current.aeBuyer?.type]||1;
+    const chance=Math.max(.2,Math.min(.85,(.62+(fit-55)*.003-m.rounds*.12)*patience));
     if(desired<=num(m.limit)&&Math.random()<chance){
      current.amount=desired;
      note('Cliente aumentou a proposta para '+live.name+' até '+money(desired)+'.');
