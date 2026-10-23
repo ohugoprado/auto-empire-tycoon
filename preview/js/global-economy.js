@@ -48,7 +48,10 @@ function updateDay(){
   if(!order||order.remaining<=0)continue;
   const plant=order.plantId?(e.plantNetwork?.plants||[]).find(p=>String(p.id)===String(order.plantId)):e.factory;
   if(!plant)continue;
-  const level=Math.max(1,Number(plant.level)||1),lines=level*2;
+  const level=Math.max(1,Number(plant.level)||1),baseLines=level*2;
+  const workforce=plant.workforce||{staff:baseLines*3,shift:1};
+  const staffedLines=Math.floor(Math.max(0,Number(workforce.staff)||0)/3)*Math.max(1,Math.min(2,Number(workforce.shift)||1));
+  const lines=Math.min(baseLines*2,staffedLines);
   const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
   const open=Math.max(0,lines-active);
   const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length-e.factory.queue.length);
@@ -72,6 +75,12 @@ function updateDay(){
  // Variable overhead is charged only for active manufacturing lines.
  // Payroll and equipment upkeep are independent of the prepaid material contract.
  const activeLines=e.factory.queue.length;
+ // Payroll for managed factory workforces, independent of materials and line overhead.
+ const allPlants=[e.factory,...(e.plantNetwork?.plants||[])];
+ let payroll=0;
+ for(const plant of allPlants){if(!plant.workforce)continue;const w=plant.workforce;payroll+=Math.round(Math.max(0,Number(w.staff)||0)*(Number(w.shift)===2?115:90)*Math.max(1,Number(e.inflation)||1));}
+ if(payroll){s.cash-=payroll;s.profit-=payroll;e.factory.workforceSpent=(Number(e.factory.workforceSpent)||0)+payroll;entry('Folha diária de funcionários industriais',-payroll);}
+
  if(activeLines>0){
   const overhead=Math.round(activeLines*180*Math.max(1,Number(e.inflation)||1));
   s.cash-=overhead;s.profit-=overhead;
