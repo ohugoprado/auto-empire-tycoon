@@ -52,11 +52,11 @@ function updateDay(){
   const active=e.factory.queue.filter(j=>order.plantId?String(j.plantId)===String(order.plantId):!j.plantId).length;
   const open=Math.max(0,lines-active);
   const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length-e.factory.queue.length);
-  const count=Math.min(order.remaining,open,freeStorage);
+  const count=Math.max(0,Math.min(order.remaining,open,freeStorage));
   for(let i=0;i<count;i++){
    const palette=window.AESprites?.paints||[];
    const paint=order.paint==='mixed'?palette[Math.floor(Math.random()*palette.length)]:palette[Number(order.paint)];
-   e.factory.queue.push({model:order.model,kind:order.kind,designId:order.designId,
+   e.factory.queue.push({industrialOrderId:order.id,model:order.model,kind:order.kind,designId:order.designId,
     generation:order.generation,facelift:order.facelift,modelIntroducedDay:order.modelIntroducedDay,
     lifecycleBonus:order.lifecycleBonus,brandParts:order.brandParts?{...order.brandParts}:undefined,
     quality:order.quality,supplier:order.supplier,plantId:order.plantId,
@@ -67,7 +67,8 @@ function updateDay(){
   order.started=(Number(order.started)||0)+count;
   if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
  }
- e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0);
+ // Keep completed contracts for delivery history, bounded to avoid save-file growth.
+ e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0||Number(o.delivered)<Number(o.total)).slice(-100);
  // Variable overhead is charged only for active manufacturing lines.
  // Payroll and equipment upkeep are independent of the prepaid material contract.
  const activeLines=e.factory.queue.length;
@@ -75,7 +76,7 @@ function updateDay(){
   const overhead=Math.round(activeLines*180*Math.max(1,Number(e.inflation)||1));
   s.cash-=overhead;s.profit-=overhead;
   e.factory.overheadSpent=(Number(e.factory.overheadSpent)||0)+overhead;
-  if(s.day%7===0)entry('Custos operacionais industriais',-overhead);
+  entry('Custos operacionais industriais',-overhead);
  }
  // Manufacturing uses real in-game days; never completes while the app is closed.
  for(const job of [...e.factory.queue]){
@@ -92,7 +93,7 @@ function updateDay(){
    const ops=window.AEOperations?.ensure?.();if(ops)ops.defects++;
    note('Controle de qualidade: '+c.name+' exige revisão antes de ser anunciado.');
   }
-  s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
+  s.stock.push(c);e.factory.produced++;if(job.industrialOrderId){const contract=(e.factory.industrialOrders||[]).find(o=>o.id===job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
  }
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
  // Loans are liabilities, not profit: borrowing cannot erase insolvency.
