@@ -1,6 +1,6 @@
 # Auto Empire Tycoon — roadmap para iPhone
 
-Revisão: 22/10/2026. Alvo principal informado: iPhone 17 Pro Max; versão do iOS ainda não informada. Prioridade: tela vertical, Safari e jogo instalado pela tela inicial. A ordem das etapas representa dependências, sem promessa de prazo.
+Revisão: 23/10/2026. Alvo principal informado: iPhone 17 Pro Max; versão do iOS ainda não informada. Prioridade: tela vertical, Safari e jogo instalado pela tela inicial. A ordem das etapas representa dependências, sem promessa de prazo.
 
 ## Objetivo do jogo
 
@@ -22,7 +22,7 @@ A próxima entrega deve tornar esse ciclo confiável e agradável no iPhone. O a
 | Persistência | Importação na campanha ativa, dois formatos de backup e recuperação anterior nos dois menus | Exportação, compartilhamento e restauração pelo sistema de arquivos do iOS |
 | PWA | Cache da interface, atualização e navegação offline | Instalação, retomada, atualização e armazenamento no iOS real |
 
-O Chromium cobre economia, banco, ordenação, campanhas, interface e recarga offline. O WebKit 26.5 passou por 646 verificações de toque emulado, layout, compra, anúncio, persistência, sprites e galeria, em cinco perfis: iPhone 17 Pro Max (viewport 440 × 763; tela 440 × 956) e larguras auxiliares de 320, 375, 390 e 430 pixels. Backups também têm regressões nos dois motores. Isso complementa a validação física; não homologa Safari/iOS.
+O Chromium cobre economia, banco, ordenação, campanhas, interface e recarga offline. O WebKit 26.5 passou por 647 verificações de toque emulado, layout, compra, anúncio, persistência, sprites e galeria, em cinco perfis: iPhone 17 Pro Max (viewport 440 × 763; tela 440 × 956) e larguras auxiliares de 320, 375, 390 e 430 pixels. Backups também têm regressões nos dois motores. Isso complementa a validação física; não homologa Safari/iOS.
 
 A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também em uma página mínima independente com service worker ativo e arquivos em cache. O teste registra uma exclusão explícita desse cenário. O cache do jogo foi verificado, mas navegação offline no WebKit e no iPhone permanece pendente.
 

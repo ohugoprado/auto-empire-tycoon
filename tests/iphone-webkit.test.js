@@ -440,7 +440,8 @@ async function testProfile(base, profile) {
     await assertTouchTarget(page.locator('#close'), label + ' gallery close');
     await page.locator('#close').tap();
     check(!await page.locator('#zoom').isVisible(), label + ': native gallery dialog closes with touch');
-    await page.screenshot({ path: path.join(artifacts, 'gallery-' + label + '.png'), fullPage: true });
+    // Keep the 32-model gallery below WebKit's bitmap limit at device scale 3.
+    await page.screenshot({ path: path.join(artifacts, 'gallery-' + label + '.png'), fullPage: true, scale: 'css' });
     await page.locator('a.back').tap();
     await page.waitForURL(url => /\/preview\/$/.test(url.pathname));
     check(new URL(page.url()).searchParams.get('campaign') === 'main', label + ': gallery returns to the same public campaign');

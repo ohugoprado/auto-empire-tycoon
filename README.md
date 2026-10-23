@@ -19,7 +19,7 @@ A primeira visita exige internet; depois de carregado e armazenado pelo navegado
 
 Execute `python3 -m http.server 8000` nesta pasta e abra http://localhost:8000.
 
-A interface Motor District abre pela página inicial e está em `/preview/`, com showroom e galeria em `/preview/galeria/`. O catálogo tem 32 modelos, cada um com cinco imagens de pintura próprias. A entrada principal usa `?campaign=main` para continuar os salvamentos `autoempire_v02` da versão antiga; a prévia mantém sua campanha separada em `autoempire_preview_v06`. A galeria preserva essa escolha ao voltar ao jogo.
+A interface Motor District abre pela página inicial e está em `/preview/`, com showroom e galeria em `/preview/galeria/`. O catálogo tem 32 modelos, cada um com cinco imagens de pintura próprias; a galeria oferece busca, filtro por categoria e zoom. A entrada principal usa `?campaign=main` para continuar os salvamentos `autoempire_v02` da versão antiga; a prévia mantém sua campanha separada em `autoempire_preview_v06`. A galeria preserva essa escolha ao voltar ao jogo.
 
 Para validar a prévia com Node 20 ou superior (CI usa Node 24):
 
@@ -56,7 +56,9 @@ Os 32 modelos do catálogo têm carrocerias distintas e cinco pinturas: Branco P
 
 `vehicle-appearance.js` mantém modelo e pintura com o veículo durante compra, estoque, negociação e recarga. Os carros antigos recebem uma referência estável, preservando os dados da campanha; modelos personalizados da fábrica usam a carroceria de referência da categoria, identificada como ilustrativa. As 32 carrocerias exclusivas correspondem aos 32 modelos fixos do catálogo, não a qualquer nome criado pelo jogador.
 
-O guia da primeira venda é opcional, pode ser pausado e retomado em Eventos e salva seu progresso na campanha ativa. Preparar/reparar continua opcional; avançar um dia exige uma ação explícita. O painel de progressão mostra oito marcos reais da empresa, sem novas recompensas ou cobrança por ficar offline. O estoque e os diálogos mostram compra, despesas registradas no veículo, investimento e lucro bruto estimado; tributos e despesas da empresa ficam separados.
+O guia da primeira venda é opcional, pode ser pausado e retomado em Eventos e salva seu progresso na campanha ativa. Preparar/reparar continua opcional; avançar um dia exige uma ação explícita. O painel de progressão consulta oito marcos reais da empresa, sem duplicar recompensas; a campanha não avança enquanto está fechada. O estoque e os diálogos mostram compra, despesas registradas no veículo, investimento e lucro bruto estimado; tributos e despesas da empresa ficam separados.
+
+A coleção passou por 1.713 verificações em cada motor (Chromium e WebKit), incluindo pixels dos 160 recortes, cores, enquadramento, filtros, zoom e migração de pinturas antigas. O guia passou por 220 verificações por motor; o comércio integrado, por 163; os backups, por 175. Esses resultados são automatizados.
 
 O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. O formato dos salvamentos foi preservado, incluindo os sistemas de progressão, clientes e indústria adicionados em paralelo.
 
