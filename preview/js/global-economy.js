@@ -57,18 +57,24 @@ function updateDay(){
   const open=Math.max(0,lines-active);
   const warehouse=e.factory.warehouseCars||[];
   const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
-  const freeStorage=Math.max(0,(Number(s.slots)||0)-s.stock.length+warehouseCapacity-warehouse.length-e.factory.queue.length);
+  const availableShowroom=Math.max(0,(Number(s.slots)||0)-s.stock.length);
+  const availableYard=Math.max(0,warehouseCapacity-warehouse.length);
+  const reserved=e.factory.queue.length;
+  const freeStorage=Math.max(0,availableShowroom+availableYard-reserved);
   const count=Math.max(0,Math.min(order.remaining,open,freeStorage));
   for(let i=0;i<count;i++){
    const palette=window.AESprites?.paints||[];
    const fallback=[{name:'Branco Polar',hex:'#e7ebef'},{name:'Azul Oceano',hex:'#287ec5'},{name:'Vermelho Rubi',hex:'#c33d42'},{name:'Grafite',hex:'#52545a'}];
    const colors=palette.length?palette:fallback;
-   const paint=order.paint==='mixed'?colors[Math.floor(Math.random()*colors.length)]:colors[Number(order.paint)%colors.length];
+   const selectedIndex=Number(order.paint);
+   const paint=order.paint==='mixed'?colors[Math.floor(Math.random()*colors.length)]:colors[Number.isInteger(selectedIndex)&&selectedIndex>=0?selectedIndex%colors.length:0];
+   const paintHex=Array.isArray(paint)?paint[1]:paint?.hex;
+   const paintName=Array.isArray(paint)?paint[0]:paint?.name;
    e.factory.queue.push({industrialOrderId:order.id,model:order.model,kind:order.kind,designId:order.designId,
     generation:order.generation,facelift:order.facelift,modelIntroducedDay:order.modelIntroducedDay,
     lifecycleBonus:order.lifecycleBonus,brandParts:order.brandParts?{...order.brandParts}:undefined,
     quality:order.quality,supplier:order.supplier,plantId:order.plantId,
-    color:paint?.hex||'#b6d2e5',colorName:paint?.name||'Prata metálico',
+    color:paintHex||'#b6d2e5',colorName:paintName||'Prata metálico',
     cost:order.cost,value:order.value,due:s.day+Math.max(2,Number(order.cycleDays)||7)});
   }
   order.remaining-=count;
