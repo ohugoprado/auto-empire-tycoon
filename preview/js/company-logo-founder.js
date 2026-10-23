@@ -25,12 +25,25 @@ const style=document.createElement('style');style.textContent=`
 .ae-logo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .ae-logo-actions button{min-height:46px}
 #ae-logo-saved{display:flex;align-items:center;gap:10px;margin:8px 0;padding:8px;border-radius:10px;background:#203b4b;font-size:12px}
-#ae-logo-saved svg{width:60px;height:60px;flex:none}
+#ae-logo-saved svg{width:60px;height:60px;flex:none}#ae-logo-edit{min-height:40px;margin-top:8px;font-size:12px}
 @media(max-width:420px){.ae-logo-fields{grid-template-columns:1fr 1fr}.ae-logo-actions{grid-template-columns:1fr}}
 `;document.head.append(style);
 for(const [id,name] of Object.entries(themes)){const o=document.createElement('option');o.value=id;o.textContent=name;panel.querySelector('#ae-logo-shape').append(o)}
 for(const [id,name] of Object.entries(marks)){const o=document.createElement('option');o.value=id;o.textContent=name;panel.querySelector('#ae-logo-mark').append(o)}
 const field=id=>panel.querySelector('#ae-logo-'+id);
+let editing=false;
+function openEditor(edit){
+ const f=state();editing=!!edit;
+ const logo=f?.logo||{};
+ field('name').value=edit?(f.brand||'Empire Motors'):(f?.brand||'Empire Motors');
+ for(const [id,key] of [['shape','shape'],['mark','mark'],['color','primary'],['accent','accent'],['letters','letters'],['finish','finish']]){
+  if(logo[key]!==undefined)field(id).value=logo[key];
+ }
+ field('name').disabled=editing;
+ panel.querySelector('#ae-logo-confirm').textContent=editing?'Salvar novo emblema':'Fundar com esta marca';
+ panel.querySelector('h3').textContent=editing?'Redesenhar emblema da fabricante':'Crie a identidade da fabricante';
+ panel.hidden=false;refresh();panel.scrollIntoView({block:'start',behavior:'smooth'});
+}
 function values(){return {shape:themes[field('shape').value]?field('shape').value:'shield',mark:marks[field('mark').value]?field('mark').value:'bolt',primary:color(field('color').value),accent:color(field('accent').value),letters:field('letters').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3),finish:field('finish').value}}
 function svg(v){
  const shapes={
@@ -64,14 +77,20 @@ function refresh(){
  field('letters').value=field('letters').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);
  field('name').value=field('name').value.slice(0,24);
  panel.querySelector('#ae-logo-preview').innerHTML=svg(values());
- panel.querySelector('#ae-logo-cost').textContent='Custo de fundação: '+money(cost())+' · Caixa atual: '+money(s.cash);
- panel.querySelector('#ae-logo-confirm').disabled=num(s.cash)<cost()||!!s.empire?.economy?.bankrupt;
+ panel.querySelector('#ae-logo-cost').textContent=editing?'Atualização visual sem custo · O nome da empresa permanece o mesmo.':'Custo de fundação: '+money(cost())+' · Caixa atual: '+money(s.cash);
+ panel.querySelector('#ae-logo-confirm').disabled=(!editing&&num(s.cash)<cost())||!!s.empire?.economy?.bankrupt;
 }
 panel.addEventListener('input',refresh);panel.addEventListener('change',refresh);
 panel.querySelector('#ae-logo-cancel').onclick=()=>{panel.hidden=true};
 panel.querySelector('#ae-logo-confirm').onclick=()=>{
  const f=state(),name=field('name').value.trim().replace(/[<>]/g,'').slice(0,24),price=cost();
- if(!f||f.opened||s.empire?.economy?.bankrupt)return;
+ if(!f||s.empire?.economy?.bankrupt)return;
+ if(editing){
+  if(!f.opened)return;
+  f.logo=values();note('Identidade visual da fabricante atualizada.');
+  panel.hidden=true;save();render();renderSaved();return;
+ }
+ if(f.opened)return;
  if(name.length<2)return toast('O nome deve ter pelo menos 2 caracteres.');
  if(num(s.cash)<price)return toast('Caixa insuficiente para a fundação.');
  if(!confirm('Fundar '+name+' por '+money(price)+' com este emblema?'))return;
@@ -83,14 +102,14 @@ panel.querySelector('#ae-logo-confirm').onclick=()=>{
 host.addEventListener('click',ev=>{
  const btn=ev.target.closest('[data-econ="open"]');if(!btn||state()?.opened)return;
  ev.preventDefault();ev.stopImmediatePropagation();
- field('name').value=state()?.brand||'Empire Motors';
- panel.hidden=false;refresh();panel.scrollIntoView({block:'start',behavior:'smooth'});
+ openEditor(false);
 },true);
 const saved=document.createElement('div');saved.id='ae-logo-saved';saved.hidden=true;host.querySelector('#ae-econ-factory')?.after(saved);
 function renderSaved(){
  const f=state();if(!f?.opened||!f.logo){saved.hidden=true;return}
- saved.hidden=false;saved.innerHTML=svg(f.logo)+'<div><strong>'+safe(f.brand)+'</strong><div>Identidade visual da fabricante</div></div>';
+ saved.hidden=false;saved.innerHTML=svg(f.logo)+'<div><strong>'+safe(f.brand)+'</strong><div>Identidade visual da fabricante</div><button type="button" id="ae-logo-edit">Editar emblema</button></div>';
 }
+saved.addEventListener('click',ev=>{if(ev.target.closest('#ae-logo-edit'))openEditor(true)});
 const previousRender=render;let last='';
 render=function(){previousRender();const f=state(),signature=[f?.opened,f?.brand,JSON.stringify(f?.logo)].join('|');if(signature!==last){last=signature;renderSaved();}};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(renderSaved);
