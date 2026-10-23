@@ -174,7 +174,7 @@
       : '';
     return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-variant="' + spec.id + '" viewBox="' + spec.box + '" preserveAspectRatio="xMidYMid meet" ' +
       (decorative ? 'aria-hidden="true"' : 'role="img" aria-label="' + escape(label) + '"') +
-      '><image href="' + spec.url + '" width="' + spec.width + '" height="' + spec.height + '"/></svg>';
+      '><image href="' + spec.url + '" width="' + spec.width + '" height="' + spec.height + '"/>' + badge + '</svg>';
   }
   window.AEGameBrandLogo = () => window.s?.empire?.economy?.factory?.logo || (typeof s !== 'undefined' ? s?.empire?.economy?.factory?.logo : null);
   window.AESprites = Object.freeze({ category, sprites, models, paints, atlases, modelFor, paintFor, variant, variants, render });
