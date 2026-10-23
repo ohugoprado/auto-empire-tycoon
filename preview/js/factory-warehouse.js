@@ -70,12 +70,15 @@ panel.addEventListener('click',ev=>{
 // Called once per in-game day, after factory deliveries. No real-time timers.
 const previousTick=tickDay;
 tickDay=function(){
+ const dayBefore=s?.day;
  const result=previousTick.apply(this,arguments);
+ // A blocked turn (for example, bankruptcy) must not charge warehouse fees.
+ if(s?.day===dayBefore)return result;
  const f=state();
  if(!f?.opened)return result;
  const storage=Math.round(f.warehouseCars.length*12*Math.max(1,Number(s.empire?.economy?.inflation)||1));
  if(storage>0){s.cash-=storage;s.profit-=storage;f.storageSpent=(Number(f.storageSpent)||0)+storage;entry('Armazenagem industrial',-storage);}
- if(!f.autoDistribution||!f.warehouseCars.length){if(storage>0){save();render();}return result;}
+ if(!f.autoDistribution||!f.warehouseCars.length)return result;
  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
  const stats=fleet(f);
  const affordable=Math.max(0,Math.floor((Number(s.cash)||0)/stats.fee));
@@ -88,8 +91,7 @@ tickDay=function(){
   f.logisticsSpent=(Number(f.logisticsSpent)||0)+fee;
   entry('Logística industrial · '+quantity+' veículo(s)',-fee);
   note('Distribuição automática: '+quantity+' veículo(s) enviados à concessionária.');
-  save();render();
- }else if(storage>0){save();render();}
+ } 
  return result;
 };
 const oldRender=render;let key='';
