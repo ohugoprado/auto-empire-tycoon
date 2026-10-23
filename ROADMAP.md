@@ -12,9 +12,9 @@ A próxima entrega deve tornar esse ciclo confiável e agradável no iPhone. O a
 
 | Área | O que existe | O que ainda falta comprovar |
 | --- | --- | --- |
-| Visual | Novo visual navy/azul/mint, oito carrocerias e cinco pinturas por modelo, showroom e galeria interativa | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
+| Visual | Novo visual navy/azul/mint, 32 carrocerias e cinco pinturas por modelo, showroom e galeria interativa | Legibilidade, toque, teclado e recortes no Safari de aparelhos reais |
 | Comércio | Compra até venda, guia opcional, custos comparáveis e regressão integrada com folha/dívida/tributos | Campanhas longas e experiência completa em iPhone físico |
-| Compradores | Arquétipos, compatibilidade, histórico e fidelidade agregados | Clientes individuais persistentes que retornam com memória |
+| Compradores | Arquétipos, compatibilidade, histórico, fidelidade, clientes e indicações persistidos | Balanceamento de retorno, preferências e indicações em campanhas longas |
 | Banco | Empréstimos, parcelas, amortização, carência e score; regressão dedicada | Integração econômica de longo prazo e uso pelo Safari |
 | Equipe | Quadro único, migração dos dois sistemas antigos e folha mensal única | Balanceamento de campanhas longas e conferência no Safari real |
 | Indústria | Projetos, P&D, fornecedores, fila, produção e previsão de capacidade | Campanha industrial completa, custos e balanceamento |
@@ -61,7 +61,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 - Aprofundar as vistorias com pistas sobre o histórico e custos possíveis; comunicar os riscos antes da confirmação.
 - Oferecer preparações diferentes: reparo essencial, revisão familiar e restauração premium. Cada escolha precisa ter custo, público e retorno próprios.
-- Evoluir os arquétipos atuais para clientes recorrentes com identidade, preferências e histórico persistidos.
+- Validar os clientes recorrentes e indicações já existentes em campanhas longas; aprofundar preferências e memória das negociações.
 - Melhorar as contrapropostas existentes com poucas rodadas, razões compreensíveis e consequências proporcionais para confiança e preço.
 - Transformar o arremate atual em leilões curtos por rodadas, com teto de compra escolhido pelo jogador e rivais fictícios.
 - Criar encomendas opcionais com orçamento e requisitos de carro. Prazos usam dias simulados; ficar offline não deve causar punição.
@@ -73,7 +73,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 **Resultado esperado:** reconhecer a evolução da empresa ao voltar ao jogo.
 
 - Estágios visuais da garagem: espaço inicial, loja de bairro, showroom e rede. Vincular cada mudança a um marco e a uma capacidade útil.
-- Base entregue: oito modelos exclusivos, cinco pinturas por modelo e identidade preservada entre mercado, estoque e ficha. Próximo aprofundamento: estados visuais de conservação e acabamentos, com custos e efeitos claros.
+- Base entregue: 32 modelos exclusivos, cinco pinturas por modelo e identidade preservada entre mercado, estoque e ficha. Próximo aprofundamento: estados visuais de conservação e acabamentos, com custos e efeitos claros.
 - Especializações com vantagens e custos: usados econômicos, utilitários, esportivos ou restauração. Evitar uma escolha claramente superior em todas as campanhas.
 - Treinamento e funções de equipe após a consolidação da etapa 1; mostrar o custo e o efeito de cada contratação.
 - Objetivos alternativos: reputação, eficiência, coleção ou expansão. As conquistas atuais devem ser ampliadas e balanceadas.
@@ -98,7 +98,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 | Ideia | Exemplo de experiência | Primeira versão pequena |
 | --- | --- | --- |
-| Clientes que voltam | Quem comprou um compacto retorna buscando um carro para a família | Poucos clientes com ID, orçamento e uma memória comercial |
+| Clientes que voltam | Quem comprou um compacto retorna buscando um carro para a família | Aprofundar os clientes e indicações já existentes, com orçamento e memória comercial |
 | Carros com história | Uma vistoria revela uso intenso, documentação ou reparo anterior | Uma pista e uma consequência econômica por veículo |
 | Oficina com estratégia | Preparar para economia ou acabamento muda o público interessado | Duas opções de preparação com custos claros |
 | Leilão com limite | O jogador define o máximo que pode pagar e acompanha a disputa | Até três rodadas, um veículo e poucos rivais |
@@ -113,7 +113,7 @@ A recarga offline no WebKit/WPE deste ambiente apresenta um erro interno também
 
 ## Próxima entrega recomendada
 
-Na versão `motor-district-6000`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 40 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
+Na versão `motor-district-9000`, o foco passou a ser uma primeira venda compreensível, progressão visível, layout móvel compacto e catálogo de 160 pinturas. As correções de backup, diálogos e equipe da entrega anterior continuam cobertas por regressões.
 
 A próxima validação externa é executar o roteiro de Safari e tela inicial no iPhone 17 Pro Max real, registrar a versão do iOS e corrigir os bloqueadores encontrados. Em paralelo, completar o cenário industrial e observar novos jogadores antes de ajustar o ritmo ou criar mais mecânicas. A meta de quatro entre cinco jogadores concluindo uma primeira venda ainda não foi medida.
 

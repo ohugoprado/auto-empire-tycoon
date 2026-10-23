@@ -1,4 +1,4 @@
-/* Real browser checks for the 8-model / 5-paint collection and saved appearance. */
+/* Real browser checks for the 32-model / 5-paint collection and saved appearance. */
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -34,16 +34,26 @@ async function gallery(base, width) {
   try {
     await page.goto(base + '/preview/galeria/?campaign=main', { waitUntil: 'networkidle' });
     const registry = await page.evaluate(() => ({
-      models: AESprites.models.map(model => ({ id: model.id, name: model.name, defaultPaint: model.defaultPaint })),
+      models: AESprites.models.map(model => ({ id: model.id, name: model.name, kind: model.kind, defaultPaint: model.defaultPaint })),
       paints: AESprites.paints.map(paint => ({ id: paint.id, name: paint.name })),
-      variants: AESprites.models.flatMap(model => AESprites.variants(model.id)).map(item => ({ id: item.id, box: item.box, url: item.url }))
+      variants: AESprites.models.flatMap(model => AESprites.variants(model.id)).map(item => ({ id: item.id, box: item.box, url: item.url, artworkReady: item.artworkReady }))
     }));
-    check(registry.models.length === 8 && new Set(registry.models.map(model => model.id)).size === 8, 'Eight named model identities exist');
+    check(registry.models.length === 32 && new Set(registry.models.map(model => model.id)).size === 32, 'All thirty-two named catalog model identities exist');
     check(registry.paints.length === 5, 'Every model has five named paints');
-    check(registry.variants.length === 40 && new Set(registry.variants.map(item => item.id)).size === 40, 'Forty independent model/paint identities exist');
-    check(new Set(registry.variants.map(item => item.url + '|' + item.box)).size === 40, 'Every variant selects its own actual artwork crop');
-    check(await page.locator('#collection > article').count() === 8, width + ': all model cards render');
-    check(await page.locator('#collection .vc-paint').count() === 40, width + ': all forty accessible paint choices render');
+    check(registry.variants.length === 160 && new Set(registry.variants.map(item => item.id)).size === 160, '160 independent model/paint identities exist');
+    check(registry.variants.every(item => item.artworkReady), 'Every catalog model has finished artwork instead of an in-review placeholder');
+    check(new Set(registry.variants.map(item => item.url + '|' + item.box)).size === 160, 'Every variant selects its own actual artwork crop');
+    check(await page.evaluate(() => AESprites.models.every(model => AESprites.modelFor({ name: model.name, modelId: 'velox-city' }).id === model.id)),
+      'Every exact model name takes precedence over stale appearance metadata');
+    check(await page.evaluate(() => ['Hatch', 'SUV', 'Sedã', 'Picape', 'Compacto', 'Esportivo'].every(kind => {
+      const reference = AESprites.modelFor({ name: 'Marca própria · Projeto', kind });
+      return AESprites.paints.every(paint => {
+        const spec = AESprites.variant({ name: 'Marca própria · Projeto', kind, modelId: kind === 'Hatch' ? 'altis-sport' : 'velox-city', paintId: paint.id });
+        return spec.model.category === reference.category && spec.paintId === paint.id && spec.reference;
+      });
+    })), 'Custom manufactured names retain all five paints on a clearly labeled reference of the correct vehicle category');
+    check(await page.locator('#collection > article').count() === 32, width + ': all model cards render');
+    check(await page.locator('#collection .vc-paint').count() === 160, width + ': all 160 accessible paint choices render');
     check(await page.locator('button button').count() === 0, 'Paint controls are not nested inside other buttons');
     if (width === 440) {
       const pixels = await page.evaluate(async () => {
@@ -62,10 +72,10 @@ async function gallery(base, width) {
           const counts = { polar: 0, ocean: 0, ruby: 0, graphite: 0, solar: 0 };
           let opaque = 0, edge = 0, fingerprint = 2166136261;
           for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] < 200) continue;
             fingerprint = Math.imul(fingerprint ^ data[i], 16777619);
             fingerprint = Math.imul(fingerprint ^ data[i + 1], 16777619);
             fingerprint = Math.imul(fingerprint ^ data[i + 2], 16777619);
-            if (data[i + 3] < 200) continue;
             opaque++;
             const pixel = i / 4, px = pixel % width, py = Math.floor(pixel / width);
             if (px === 0 || py === 0 || px === width - 1 || py === height - 1) edge++;
@@ -90,7 +100,15 @@ async function gallery(base, width) {
             sample.id + ': the named paint dominates the other chromatic paints');
         }
       }
-      check(new Set(pixels.map(sample => sample.fingerprint)).size === 40, 'All forty images have different visible pixel fingerprints');
+      for (const model of registry.models) {
+        const white = pixels.find(sample => sample.id === model.id + ':polar');
+        const dark = pixels.find(sample => sample.id === model.id + ':graphite');
+        check(white.counts.polar / white.opaque > dark.counts.polar / dark.opaque,
+          model.id + ': white paint has more bright neutral body pixels than graphite');
+        check(dark.counts.graphite / dark.opaque > white.counts.graphite / white.opaque,
+          model.id + ': graphite paint has more dark neutral body pixels than white');
+      }
+      check(new Set(pixels.map(sample => sample.fingerprint)).size === 160, 'All 160 images have different visible pixel fingerprints');
     }
     for (const model of registry.models) {
       const card = page.locator('article[data-model="' + model.id + '"]');
@@ -104,9 +122,23 @@ async function gallery(base, width) {
         check(await card.locator('svg.ae-sprite').getAttribute('data-paint') === paint.id, model.id + ': selecting a paint changes the artwork');
         check(await card.locator('.vc-paint-label').innerText() === paint.name, model.id + ': paint name is visible');
         check(await card.locator('svg.ae-sprite').getAttribute('data-model') === model.id, 'Changing paint preserves the model silhouette identity');
+        check(await card.locator('svg.ae-sprite').evaluate(svg => {
+          const box = svg.viewBox.baseVal, matrix = svg.getScreenCTM(), frame = svg.closest('.vc-art').getBoundingClientRect();
+          return [[box.x, box.y], [box.x + box.width, box.y + box.height]].every(([x, y]) => {
+            const point = new DOMPoint(x, y).matrixTransform(matrix);
+            return point.x >= frame.left - 1 && point.x <= frame.right + 1 && point.y >= frame.top - 1 && point.y <= frame.bottom + 1;
+          });
+        }), model.id + ': the complete painted crop fits inside the displayed artwork frame');
       }
       await card.locator('.vc-paint[data-paint="' + model.defaultPaint + '"]').tap();
     }
+    await page.locator('#vc-model-search').fill('Pulse GT-R');
+    check(await page.locator('#collection > article:visible').count() === 1, 'Searching a 32-model catalog isolates the exact requested model');
+    check(await page.locator('#collection > article:visible').getAttribute('data-model') === 'pulse-gt-r', 'Search results retain the correct model identity');
+    await page.locator('#vc-model-search').fill('');
+    await page.locator('#vc-model-kind').selectOption('SUV');
+    check(await page.locator('#collection > article:visible').count() === registry.models.filter(model => model.kind === 'SUV').length, 'Category filter displays precisely the catalog SUVs');
+    await page.locator('#vc-model-kind').selectOption('all');
     const first = registry.models[0], card = page.locator('article[data-model="' + first.id + '"]');
     await card.locator('.car-button').tap();
     check(await page.locator('#zoom').isVisible(), width + ': the model opens in a native dialog');
@@ -121,7 +153,7 @@ async function gallery(base, width) {
     const layout = await page.evaluate(() => ({ width: innerWidth, content: document.documentElement.scrollWidth }));
     check(layout.content <= layout.width + 1, width + ': collection has no horizontal overflow');
     check(await page.locator('a.back').getAttribute('href') === '../?campaign=main', 'Back navigation preserves the main campaign');
-    await page.screenshot({ path: path.join(artifacts, 'collection-' + width + '.png'), fullPage: true });
+    await page.screenshot({ path: path.join(artifacts, 'collection-' + width + '.png') });
     check(errors.length === 0, 'No gallery JavaScript errors: ' + errors.join('; '));
     check(missing.length === 0, 'No missing gallery resources: ' + missing.join('; '));
   } finally { await context.close(); }
@@ -143,6 +175,8 @@ async function appearance(base) {
       cars: s.market.map(car => ({ id: car.id, name: car.name, paintId: car.paintId, color: car.color, modelId: car.modelId })),
       game: JSON.parse(JSON.stringify(s))
     }));
+    check(await page.evaluate(() => catalog.length === 32 && catalog.every(entry => AESprites.models.some(model => model.name === entry[0]))),
+      'Every fixed model in the actual game catalog has its own artwork family');
     check(new Set(initial.colors).size === 5 && initial.valid, 'The first market of a genuinely fresh campaign already contains all five paints');
     await page.reload({ waitUntil: 'networkidle' });
     check(await page.evaluate(cars => JSON.stringify(s.market.map(car => ({ id: car.id, name: car.name, paintId: car.paintId, color: car.color, modelId: car.modelId }))) === JSON.stringify(cars), initial.cars),
@@ -150,6 +184,17 @@ async function appearance(base) {
     legacy = initial.game;
     for (const car of legacy.market) { delete car.paintId; delete car.modelId; }
     legacy.market[0].color = '#9c5588';
+    delete legacy.market[0].colorName;
+    legacy.market[0].name = 'Velox City GT'; legacy.market[0].kind = 'Hatch'; legacy.market[0].modelId = 'velox-city';
+    const rotated = await page.evaluate(() => {
+      populate(); render(); save();
+      return s.market.map(car => ({ name: car.name, model: AESprites.modelFor(car).name,
+        paint: car.paintId, color: car.color, colorName: car.colorName, actualPaint: AESprites.paintFor(car) }));
+    });
+    check(rotated.every(car => car.model === car.name), 'Real market rotation resolves the renamed model rather than its former modelId');
+    check(rotated.every(car => car.color === car.actualPaint.hex && car.colorName === car.actualPaint.name),
+      'Generated cars retain coherent five-paint artwork, stored color and displayed color name after rotation');
+    check(new Set(rotated.map(car => car.paint)).size === 5, 'A new rotated six-car lot also presents all five actual painted variants');
     await page.locator('.bottom [data-tab="market"]').tap();
     await page.locator('#ae-trade-select-market').selectOption('name');
     const identity = await page.evaluate(() => [...document.querySelectorAll('#listings > .panel')].every(card => {
@@ -186,6 +231,8 @@ async function appearance(base) {
     await page.goto(base + '/preview/?campaign=main', { waitUntil: 'networkidle' });
     check(await page.evaluate(original => s.market.every((car, index) => car.color === original.market[index].color), legacy),
       'Canonical legacy saves keep their original stored paint values during metadata migration');
+    check(await page.evaluate(() => s.market[0].modelId === 'velox-city-gt'),
+      'Legacy metadata for a renamed model is corrected without repainting the saved vehicle');
   } finally { await old.close(); }
 }
 (async () => {

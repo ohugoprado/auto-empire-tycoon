@@ -111,7 +111,7 @@ async function assertSprites(page) {
   }, classes);
   check(atlas.decoded, 'Sprite atlas decodes successfully in Chromium');
   for (const sprite of atlas.sprites) {
-    check(/fleet-models-[ab]\.webp/.test(sprite.source || ''), sprite.kind + ': uses the new sprite atlas');
+    check(/fleet-models-[a-h]\.webp/.test(sprite.source || ''), sprite.kind + ': uses the new sprite atlas');
     check(sprite.crop && sprite.crop.split(/[ ,]+/).map(Number).every(Number.isFinite), sprite.kind + ': has a valid crop');
   }
   check(new Set(atlas.sprites.map(sprite => sprite.source + ':' + sprite.crop)).size === classes.length,

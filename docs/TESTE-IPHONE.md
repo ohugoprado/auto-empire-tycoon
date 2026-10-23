@@ -8,7 +8,7 @@ O app atual é uma PWA. Instalar pela tela inicial não equivale a publicar um a
 
 O usuário informou **iPhone 17 Pro Max**; a versão do iOS ainda não foi informada. Esse é o alvo principal do roteiro físico.
 
-Na versão `motor-district-6000`, o WebKit 26.5 passou por 646 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria de oito modelos. O ciclo de revenda com folha, tributos e dívida passou em 133 verificações por motor. Guia e coleção têm testes adicionais; nenhum resultado automatizado equivale a uma sessão humana no iPhone.
+Na versão `motor-district-9000`, o WebKit 26.5 passou por 646 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites e galeria de 32 modelos. O ciclo de revenda com folha, tributos e dívida tem regressão nos dois motores, incluindo consistência da proposta ao cancelar, reabrir e recarregar. Guia e coleção têm testes adicionais; nenhum resultado automatizado equivale a uma sessão humana no iPhone.
 
 Uma verificação de navegação offline foi excluída explicitamente: o WebKit/WPE deste ambiente falha com erro interno também em uma página mínima independente, já controlada por service worker e com arquivos em cache. O cache do jogo foi conferido; recarga offline continua sem aprovação nesse motor. O teste offline do Chromium permanece obrigatório. Não extrapolar nenhum desses resultados para instalação, teclado, compartilhamento, áreas seguras ou retomada do iOS real.
 
@@ -36,7 +36,7 @@ Registrar modelo exato e versão instalada do iOS. A meta inicial é validar ver
 | ID | Procedimento | Resultado esperado |
 | --- | --- | --- |
 | IP-01 | Abrir, criar empresa e visitar garagem, mercado, finanças e eventos | Sem erro visível, tela vazia ou rolagem horizontal |
-| IP-02 | Ver showroom, oito modelos da galeria, cinco cores de cada um e zoom | Cada modelo e cor têm imagem própria, completa e sem partes de carros vizinhos; o veículo mantém sua pintura após compra e recarga |
+| IP-02 | Ver showroom, 32 modelos da galeria, cinco cores de cada um e zoom | Cada modelo e cor têm imagem própria, completa e sem partes de carros vizinhos; o veículo mantém sua pintura após compra e recarga |
 | IP-03 | Focar todos os campos da criação de empresa e negociação | Campo e ação principal alcançáveis com teclado aberto; sem zoom automático inesperado |
 | IP-04 | Navegar usando apenas toque | Controles essenciais com área de pelo menos 44 × 44 pontos e separados adequadamente |
 | IP-05 | Abrir e rolar diálogos longos | Conteúdo e botão de fechar acessíveis; barra de endereço e indicador Home não encobrem ações |

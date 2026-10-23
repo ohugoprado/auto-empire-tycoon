@@ -265,3 +265,49 @@ body.ae-redesign.ae-next .ae-progression-details p{font-size:12px;color:#52647a!
 /* The guide owns the next action while open; keep milestones within reach. */
 body.ae-redesign.ae-next:has(#ae-first-sale-guide:not([hidden])) #ae-progression-board .ae-progression-main{display:none}
 body.ae-redesign.ae-next:has(#ae-first-sale-guide:not([hidden])) #ae-progression-board{padding-top:12px;padding-bottom:10px}
+/* Business extensions stay in named management areas with the same light surfaces. */
+body.ae-redesign.ae-next .ae-expanded-management{min-width:0;margin:12px 0!important;padding:0 15px!important;background:#fff!important;border:1px solid #c8d6e8!important;border-radius:14px!important;overflow:hidden}
+body.ae-redesign.ae-next .ae-expanded-management>summary{font-size:14px!important;line-height:1.4!important;min-height:54px;padding:17px 0!important;color:#244b78!important;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management>.ae-expanded-note{font-size:12px!important;line-height:1.55!important;margin:0 0 13px!important;color:#52647a!important}
+body.ae-redesign.ae-next .ae-expanded-management>.panel{margin:0 0 14px!important;padding:14px!important;border-radius:12px!important}
+body.ae-redesign.ae-next .ae-expanded-management :is(h3,h4){font-size:15px!important;line-height:1.35!important;color:#244b78!important;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management :is(p,small,label),body.ae-redesign.ae-next #ae-market-dynamics :is(p,small,label){font-size:12px!important;line-height:1.55!important;color:#52647a!important;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-brand-metrics>div,.ae-quality-metric,.ae-plant-card,.ae-id-kpi,.ae-pf-card,.ae-contract,.ae-weekly-card,#ae-level-status,.ae-level-milestone,.ae-opportunity,.ae-rival,#ae-rival-market-status,#ae-competitive-event-body,.ae-achievement,#ae-rare-body,.ae-strategy-card,#ae-loyalty-overview,.ae-loyalty-client,#ae-referral-summary,.ae-referral-client,.ae-plan-kpi,.ae-plan-model,#ae-intel-summary,.ae-intel-line,.ae-intel-color,.ae-ic-stat){min-width:0;background:#edf3fc!important;border-color:#c2d2e7!important;color:#36516e!important;border-radius:10px!important}
+body.ae-redesign.ae-next .ae-expanded-management :is(#ae-weekly-status,#ae-rival-market-feed,#ae-ic-detail,#ae-plant-foot,#ae-brand-regions,#ae-level-milestones,#ae-achievement-overview){font-size:12px!important;line-height:1.55!important;color:#52647a!important;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-contract-meter,.ae-weekly-bar,.ae-level-bar,.ae-rival-bar,.ae-achievement-track,.ae-id-progress){background:#dce6f5!important;overflow:hidden}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-contract-meter,.ae-weekly-bar,.ae-level-bar,.ae-rival-bar,.ae-achievement-track,.ae-id-progress)>:is(i,span){background:#1e8d76!important}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-brand-metrics,#ae-quality-summary,#ae-industrial-kpis,.ae-pf-grid,#ae-plan-kpis,#ae-ic-summary,.ae-id-controls){min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-brand-metrics,#ae-quality-summary,#ae-industrial-kpis,.ae-pf-grid,#ae-plan-kpis,#ae-ic-summary)>*{min-width:0;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-contract-foot,.ae-id-job){gap:10px;flex-wrap:wrap}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-contract-foot,.ae-id-job)>*{min-width:0;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-plant-actions,.ae-rare-actions){display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+body.ae-redesign.ae-next .ae-expanded-management :is(.ae-plant-actions,.ae-rare-actions)>button{flex:1 1 110px;white-space:normal!important}
+body.ae-redesign.ae-next .ae-expanded-management button{min-height:44px!important;max-width:100%;font-size:12px!important;line-height:1.4!important;white-space:normal;overflow-wrap:anywhere}
+body.ae-redesign.ae-next .ae-expanded-management select{width:100%!important;min-width:0!important;font-size:16px!important}
+body.ae-redesign.ae-next #ae-mobile-hub{background:#edf3fc!important;border-color:#c2d2e7!important;border-radius:12px!important;padding:13px!important;margin:0 0 14px!important;min-width:0}
+body.ae-redesign.ae-next #ae-mobile-hub h3{color:#244b78!important;font-size:16px!important}
+body.ae-redesign.ae-next #ae-mobile-hub p{color:#52647a!important;font-size:12px!important}
+body.ae-redesign.ae-next #ae-mobile-hub .ae-hub-nav{max-width:100%;min-width:0;gap:7px;overflow-x:auto!important;overflow-y:hidden;overscroll-behavior-x:contain;padding:3px 1px 9px;scrollbar-width:thin}
+body.ae-redesign.ae-next #ae-mobile-hub .ae-hub-nav button{flex:0 0 auto;min-height:44px!important;padding:9px 12px!important;white-space:nowrap!important;background:#fff!important;border-color:#b4c9e4!important;color:#244b78!important;font-size:12px!important}
+body.ae-redesign.ae-next #ae-mobile-hub .ae-hub-nav button[aria-pressed=true]{background:#326bde!important;border-color:#326bde!important;color:#fff!important}
+body.ae-redesign.ae-next #ae-management-mobile-group>.ae-managed-panel{padding:0!important;margin:9px 0!important;min-width:0;background:#fff!important;border-color:#c8d6e8!important;overflow:hidden}
+body.ae-redesign.ae-next #ae-management-mobile-group .ae-panel-toggle{width:100%;max-width:100%;background:#edf3fc!important;border:0!important;border-radius:0!important;color:#244b78!important;min-height:48px!important;padding:12px 13px!important;font-size:14px!important}
+body.ae-redesign.ae-next #ae-management-mobile-group .ae-panel-toggle[aria-expanded=true]{background:#e2ecfc!important;box-shadow:inset 3px 0 0 #326bde!important}
+body.ae-redesign.ae-next #ae-business-section #ae-management-mobile-group .ae-panel-toggle>span{color:inherit!important}
+body.ae-redesign.ae-next #ae-management-mobile-group .ae-panel-content{padding:13px!important;min-width:0}
+body.ae-redesign.ae-next #ae-management-mobile-group .ae-panel-content[hidden]{display:none!important}
+body.ae-redesign.ae-next #ae-market-dynamics{background:#fff!important;border-color:#c8d6e8!important;color:#36516e!important;padding:14px!important;border-radius:12px!important;margin:0 0 14px!important}
+body.ae-redesign.ae-next #ae-market-dynamics :is(h3,b,strong){color:#244b78!important}
+body.ae-redesign.ae-next #ae-md-current{background:#edf3fc!important;border-color:#c2d2e7!important;color:#36516e!important;border-radius:10px!important}
+body.ae-redesign.ae-next #ae-market-dynamics .ae-md-row{border-color:#d4dfed!important;color:#52647a!important;gap:8px;flex-wrap:wrap}
+body.ae-redesign.ae-next #ae-market-dynamics .ae-md-good{color:#16735e!important}
+body.ae-redesign.ae-next #modalbody .ae-trade-quick-summary{background:#edf3fc!important;border:1px solid #bdcfe5!important;border-radius:11px!important;padding:12px!important;color:#36516e!important}
+body.ae-redesign.ae-next #modalbody .ae-trade-quick-summary :is(b,strong,small,span,p),body.ae-redesign.ae-next #modalbody .ae-trade-quick-hint{color:#52647a!important;font-size:12px!important;line-height:1.5!important}
+body.ae-redesign.ae-next #modalbody .ae-trade-quick-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;min-width:0}
+body.ae-redesign.ae-next #modalbody .ae-trade-quick-grid>div{min-width:0!important;background:#fff!important;border:1px solid #cbd9eb!important;border-radius:8px!important;padding:9px!important;color:#36516e!important;overflow-wrap:anywhere}
+body.ae-redesign.ae-next #modalbody .ae-trade-presets button{min-width:0!important;min-height:44px!important;padding:9px 8px!important;background:#edf3fc!important;border-color:#b4c9e4!important;color:#244b78!important;white-space:normal!important;font-size:12px!important}
+@media(max-width:380px){
+ body.ae-redesign.ae-next .ae-expanded-management{padding:0 12px!important}
+ body.ae-redesign.ae-next .ae-expanded-management :is(.ae-id-controls,.ae-pf-grid){grid-template-columns:minmax(0,1fr)!important}
+ body.ae-redesign.ae-next #ae-mobile-hub{padding:11px!important}
+}

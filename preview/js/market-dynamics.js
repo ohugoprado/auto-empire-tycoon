@@ -56,15 +56,41 @@ tickDay=function(){
  refresh();return result;
 };
 const previousAccept=acceptOffer;
-acceptOffer=function(i){
- const car=(s.stock||[]).find(c=>c.id===modalCar);
- const offer=car?.offers?.[i],f=focus();
- // Customer segment premium applies only to genuine offers, not to posted prices or artificial income.
- if(car&&offer&&car.kind===f.kind&&num(car.condition)>=f.min&&num(offer.amount)>0){
+function prepareOffer(car,offer){
+ if(!car||!offer||num(offer.amount)<=0||offer.marketDemandQuote?.version===1)return false;
+ // The existing seller benefit is part of the baseline quote, as it was when
+ // demand was applied at acceptance. Keep that ordering before freezing it.
+ window.AEStaff?.prepareOffer?.(s,offer);
+ const base=num(offer.amount);
+ const f=focus();
+ let bonus=0;
+ // Freeze the actual buyer quote before it is displayed. Cancellation, reopen,
+ // reload and a later trend cannot compound the same proposal's premium.
+ if(car.kind===f.kind&&num(car.condition)>=f.min){
   const fair=num(car.value)*(.7+num(car.condition)/300);
   const ceiling=Math.max(num(offer.amount),Math.round(fair*(1+f.bonus)/100)*100);
-  const bonus=Math.min(ceiling-num(offer.amount),Math.round(num(offer.amount)*f.bonus/100)*100);
-  if(bonus>0){offer.amount+=bonus;note('Demanda favorável de '+f.name.toLowerCase()+': oferta ajustada em '+money(bonus)+'.');}
+  bonus=Math.min(ceiling-num(offer.amount),Math.round(num(offer.amount)*f.bonus/100)*100);
+  if(bonus>0){offer.amount=num(offer.amount)+bonus;note('Demanda favorável de '+f.name.toLowerCase()+': oferta ajustada em '+money(bonus)+'.');}
+ }
+ offer.marketDemandQuote={version:1,day:s.day,kind:f.kind,base,bonus};
+ return true;
+}
+const previousOffers=offersDialog;
+offersDialog=function(id){
+ const car=(s.stock||[]).find(c=>c.id===id);
+ let changed=false;
+ for(const offer of car?.offers||[])if(prepareOffer(car,offer))changed=true;
+ if(changed)save();
+ return previousOffers.apply(this,arguments);
+};
+acceptOffer=function(i){
+ const car=(s.stock||[]).find(c=>c.id===modalCar),offer=car?.offers?.[i];
+ const before=num(offer?.amount);
+ if(prepareOffer(car,offer)){
+  save();
+  // Wrappers outside this module capture the displayed amount for customer
+  // history. If a caller skipped the quote dialog, show the new quote first.
+  if(num(offer.amount)!==before){offersDialog(car.id);toast('Proposta atualizada pela demanda. Confira o valor antes de aceitar.');return;}
  }
  const result=previousAccept(i);refresh();return result;
 };

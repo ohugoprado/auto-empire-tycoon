@@ -97,7 +97,8 @@ async function reloadCampaign(page, expected, label) {
     page.setDefaultTimeout(15000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    page.on('dialog', dialog => dialog.accept());
+    const acceptDialog = dialog => dialog.accept();
+    page.on('dialog', acceptDialog);
     await page.goto(base + '/preview/?campaign=main', { waitUntil: 'networkidle' });
     let actual = await snapshot(page);
     const openingCash = actual.cash - actual.ledger.reduce((sum, record) => sum + record.amount, 0);
@@ -123,6 +124,9 @@ async function reloadCampaign(page, expected, label) {
     await page.locator('[data-hire="mechanic"]').tap();
     actual = await snapshot(page);
     equal(actual.staff.mechanic, 1, 'One mechanic is hired through the canonical roster UI');
+    await page.locator('[data-hire="seller"]').tap();
+    actual = await snapshot(page);
+    equal(actual.staff.seller, 1, 'One seller is hired to exercise the existing benefit together with market demand');
     reconcile(actual, openingCash, 'Hiring');
 
     await page.locator('.bottom [data-tab="market"]').tap();
@@ -132,6 +136,11 @@ async function reloadCampaign(page, expected, label) {
     });
     check(candidate.ask > 0 && candidate.ask < actual.cash, 'The generated market has an affordable firm seller');
     await page.locator('#listings button[onclick="buyDialog(' + candidate.id + ')"]').tap();
+    equal(await page.locator('#modalbody .ae-trade-presets').count(), 1, 'Purchase has one authoritative group of quick prices');
+    equal(await page.locator('#modalbody .ae-trade-presets button').count(), 3, 'The purchase presets retain the three supported quick prices');
+    equal(await page.locator('#modalbody .ae-neg-quick,#modalbody .ae-bid-presets').count(), 0, 'Duplicate legacy preset controls are consolidated');
+    check(await page.locator('#ae-bid-advisor').count() === 1 && await page.locator('#ae-neg-analysis').count() === 1,
+      'Consolidating presets preserves both existing financial advisors');
     await page.locator('#bid').fill('0');
     const invalidBefore = await snapshot(page);
     await page.locator('#modalbody button[onclick="submitBid()"]').tap();
@@ -170,7 +179,12 @@ async function reloadCampaign(page, expected, label) {
 
     await garage(page);
     await page.locator('#stock button[onclick="listDialog(' + candidate.id + ')"]').tap();
-    const asking = await page.locator('#asking').inputValue();
+    equal(await page.locator('#modalbody .ae-trade-summary').count(), 1, 'The listing uses one canonical vehicle investment summary');
+    equal(await page.locator('#modalbody .ae-trade-quick-summary').count(), 0, 'The quick-price module does not duplicate an existing listing summary');
+    equal(await page.locator('#modalbody .ae-trade-presets').count(), 1, 'The listing has one group of presets');
+    // Intentionally advertise below investment to exercise refusal of a real
+    // loss confirmation after a demand premium, without inventing a proposal.
+    const asking = '5000';
     const listingBefore = await snapshot(page);
     await page.locator('#asking').fill('');
     await page.locator('#modalbody button[onclick="publish()"]').tap();
@@ -183,6 +197,15 @@ async function reloadCampaign(page, expected, label) {
     check(actual.stock[0].listed && actual.stock[0].offers.length === 0, 'Publishing stores the price without inventing a buyer offer');
     equal(actual.stock[0].price, Number(asking), 'The advertised price is the value entered in the real dialog');
 
+    await page.evaluate(() => {
+      const kinds = ['SUV', 'Compacto', 'Hatch', 'Picape', 'Sedã', 'Esportivo'];
+      s.marketDynamics.focus = kinds.indexOf(s.stock[0].kind);
+      s.marketDynamics.expires = 100;
+      save(); render();
+    });
+    check(actual.stock[0].kind === 'Hatch' && actual.stock[0].condition >= 65,
+      'The deterministic repaired car meets the explicitly selected demand segment');
+
     const dayBefore = actual.day;
     await page.evaluate(() => { tickDay(); render(); });
     actual = await snapshot(page);
@@ -194,7 +217,39 @@ async function reloadCampaign(page, expected, label) {
     reconcile(actual, openingCash, 'Offer generation');
 
     await page.locator('#stock button[onclick="offersDialog(' + candidate.id + ')"]').tap();
-    const beforeSale = await snapshot(page);
+    let beforeSale = await snapshot(page);
+    const firstQuote = beforeSale.stock[0].offers[0];
+    check(firstQuote.marketDemandQuote?.version === 1 && firstQuote.marketDemandQuote.bonus > 0,
+      'A genuine matching proposal includes its demand premium before the player sees it');
+    check(firstQuote.staffSellerRate > 0, 'The existing seller benefit is included in the prepared customer quote');
+    equal(firstQuote.amount, firstQuote.marketDemandQuote.base + firstQuote.marketDemandQuote.bonus,
+      'The frozen demand quote adds one premium to the already prepared seller baseline');
+    equal(await page.locator('#modalbody .ae-trade-summary').count(), 1, 'The proposal dialog has one canonical financial comparison');
+    equal(await page.locator('#modalbody .ae-trade-quick-summary').count(), 0, 'The quick-price module does not duplicate the proposal comparison');
+    const quotedOnce = firstQuote.amount;
+    await page.locator('#modalbody .ae-dialog-close').tap();
+    await page.evaluate(() => { s.marketDynamics.focus = 0; save(); render(); });
+    await page.locator('#stock button[onclick="offersDialog(' + candidate.id + ')"]').tap();
+    equal((await snapshot(page)).stock[0].offers[0].amount, quotedOnce, 'Reopening after a trend change keeps the previously shown quote');
+    await page.locator('#modalbody .ae-dialog-close').tap();
+    await reloadCampaign(page, await snapshot(page), 'Prepared demand quote');
+    await garage(page);
+    await page.locator('#stock button[onclick="offersDialog(' + candidate.id + ')"]').tap();
+    equal((await snapshot(page)).stock[0].offers[0].amount, quotedOnce, 'The demand premium is not reapplied after saving and reloading the quote');
+    const dismissed = [];
+    const dismissDialog = async dialog => { dismissed.push(dialog.message()); await dialog.dismiss(); };
+    page.off('dialog', acceptDialog); page.on('dialog', dismissDialog);
+    const beforeCancel = await snapshot(page);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await page.locator('#modalbody button[onclick="acceptOffer(0)"]').tap();
+      const cancelled = await snapshot(page);
+      equal([cancelled.cash, cancelled.sales, cancelled.profit, cancelled.ledger, cancelled.stock[0].offers[0].amount],
+        [beforeCancel.cash, beforeCancel.sales, beforeCancel.profit, beforeCancel.ledger, quotedOnce],
+        'Declining a loss confirmation preserves the displayed demand quote and every financial value');
+    }
+    check(dismissed.length === 2 && dismissed.every(text => /prejuízo/i.test(text)), 'Both cancelled attempts exercise the real loss confirmation');
+    page.off('dialog', dismissDialog); page.on('dialog', acceptDialog);
+    beforeSale = await snapshot(page);
     const quoted = beforeSale.stock[0].offers[0].amount;
     const invested = beforeSale.stock[0].bought + beforeSale.stock[0].spent;
     await page.locator('#modalbody button[onclick="acceptOffer(0)"]').tap();
@@ -211,6 +266,8 @@ async function reloadCampaign(page, expected, label) {
       'The realized accumulator includes the trading basis and tax, excluding borrowing and operating cash');
     equal(actual.buyers.sales[0].price, quoted, 'The persistent customer history matches the accepted receipt');
     equal(actual.buyers.sales[0].profit, quoted - invested, 'Buyer history keeps its gross basis, distinct from post-tax realized result');
+    const loyal = await page.evaluate(name => s.customerLoyalty.clients.find(client => client.name === name), beforeSale.stock[0].offers[0].name);
+    check(loyal && loyal.purchases === 1 && loyal.spent === quoted, 'Customer loyalty records the exact displayed and paid quote, including the premium');
     reconcile(actual, openingCash, 'Sale and taxation');
     await page.evaluate(() => acceptOffer(0));
     const repeated = await snapshot(page);

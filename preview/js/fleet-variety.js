@@ -45,7 +45,16 @@ populate=function(){
  }
  replace(0,cheapest);replace(1,cheapest);replace(2,mid);replace(3,mid);replace(4,premium);
 };
-if(s&&Array.isArray(s.market)){for(const car of s.market){if(!car.colorName){const color=pick(palette);car.color=color[1];car.colorName=color[0];}}save();}
+if(s&&Array.isArray(s.market)){
+ for(const car of s.market){
+  if(car.colorName)continue;
+  // Missing labels in legacy campaigns must never repaint an existing vehicle.
+  if(/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(car.color||''))){
+   car.colorName=palette.find(color=>color[1].toLowerCase()===car.color.toLowerCase())?.[0]||'Cor original';
+  }else{const color=pick(palette);car.color=color[1];car.colorName=color[0];}
+ }
+ save();
+}
 const css=document.createElement('style');css.textContent=`
 .ae-redesign .vehicle{border-left:3px solid var(--ae-car-paint,transparent)}
 .ae-paint-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#c5d5df;margin-top:4px}

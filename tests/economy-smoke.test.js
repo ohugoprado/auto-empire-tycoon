@@ -16,6 +16,11 @@ const scripts=[
  'preview/js/trade-summary.js','preview/js/first-sale-guide.js','preview/js/progression-board.js',
  'preview/js/runtime-performance.js'
 ];
+const html=fs.readFileSync(path.join(root,'preview/index.html'),'utf8');
+// Compile every loaded extension, including parallel gameplay additions.
+for(const match of html.matchAll(/<script\b[^>]*\bsrc="\.\/([^"?]+)(?:\?[^"]*)?"/g)){
+ const file='preview/'+match[1];if(!scripts.includes(file))scripts.push(file);
+}
 let checks=0;
 for(const file of scripts){new vm.Script(fs.readFileSync(path.join(root,file),'utf8'),{filename:file});checks++}
 const context={window:{}};vm.runInNewContext(fs.readFileSync(path.join(root,'preview/js/trade-math.js'),'utf8'),context);
@@ -32,7 +37,6 @@ test('roi computed',Math.abs(t.analyze({bought:10000},12000).roi-20)<1e-8);
 test('empty inventory',t.summary([]).invested===0);
 test('unlisted stock invested but not asking',t.summary([{listed:false,bought:1000,price:2000}]).invested===1000&&t.summary([{listed:false,bought:1000,price:2000}]).asking===0);
 test('listed asking',t.summary([{listed:true,bought:1000,price:2000}]).gross===1000);
-const html=fs.readFileSync(path.join(root,'preview/index.html'),'utf8');
 for(const file of scripts){test('loaded script '+file,html.includes(file.replace('preview/','')))}
 test('persistent save key',html.includes('autoempire_preview_v06'));
 const finance=fs.readFileSync(path.join(root,'preview/js/operations-finance.js'),'utf8');

@@ -87,6 +87,58 @@
     }
     management.append(details);
   }
+  // Later business modules attach beside the economy panel. Give those existing
+  // nodes their own discoverable areas instead of burying every feature in one fold.
+  const hubPanels = ['ae-mobile-hub', 'ae-empire-levels', 'ae-business-opportunities', 'ae-market-rivals',
+    'ae-rival-market-pressure', 'ae-competitive-events', 'ae-strategic-achievements', 'ae-rare-opportunities',
+    'ae-business-strategy', 'ae-customer-loyalty', 'ae-customer-referrals'];
+  const businessAreas = [
+    { id: 'ae-management-mobile-group', label: 'Carreira, mercado e clientes', ids: hubPanels,
+      note: 'Escolha uma área na central. Contratos e eventos usam os dias simulados da campanha.', host: management },
+    { id: 'ae-management-dealer-group', label: 'Metas e contratos da concessionária', ids: ['ae-dealer-progress', 'ae-weekly-challenges'],
+      note: 'Acompanhe os objetivos permanentes e os desafios do período da campanha.', host: management },
+    { id: 'ae-management-industrial-group', label: 'Rede industrial, produção e custos',
+      ids: ['ae-industrial-dashboard', 'ae-industrial-planning', 'ae-industrial-cost-control', 'ae-plant-finance', 'ae-industrial-network'],
+      note: 'Planeje os lotes, acompanhe as fábricas e confira os custos antes de ampliar a operação.',
+      host: document.getElementById('ae-mgmt-view-factory') || management },
+    { id: 'ae-management-brand-group', label: 'Marca, qualidade e pós-venda', ids: ['ae-brand-growth', 'ae-quality-recalls'],
+      note: 'Reconhecimento da fabricante, garantias e veículos que precisam de atenção.',
+      host: document.getElementById('ae-mgmt-view-factory') || management }
+  ];
+  let businessAnchor = document.getElementById('ae-management-nav');
+  for (const area of businessAreas) {
+    const nodes = area.ids.map(id => document.getElementById(id)).filter(Boolean);
+    if (!nodes.length) continue;
+    const details = document.createElement('details');
+    details.id = area.id;
+    details.className = 'ae-management-extra ae-expanded-management';
+    const summary = document.createElement('summary'); summary.textContent = area.label;
+    const note = document.createElement('p'); note.className = 'ae-expanded-note'; note.textContent = area.note;
+    details.append(summary, note);
+    // Move the hub and all its targets together. Existing listeners, selected
+    // panel and aria-expanded values stay attached to their original nodes.
+    for (const node of nodes) details.append(node);
+    if (area.host === management && businessAnchor) { businessAnchor.after(details); businessAnchor = details; }
+    else area.host.append(details);
+  }
+  document.getElementById('ae-management-nav')?.addEventListener('click', event => {
+    if (!event.target.closest('[role="tab"]')) return;
+    // A chosen main area should stay immediately below its tabs, rather than
+    // below an unrelated, previously expanded business collection.
+    for (const id of ['ae-management-mobile-group', 'ae-management-dealer-group']) {
+      const details = document.getElementById(id);
+      if (details) details.open = false;
+    }
+  });
+  // Future garage extensions also belong to management; keep the main workspace
+  // bounded without deleting an extension or replacing any of its controls.
+  const garage = document.getElementById('garage');
+  const toolArea = document.getElementById('ae-tools')?.closest('details');
+  const extras = [...garage.children].filter(node => node !== overview && node !== management && node.id !== 'ae-workspace-nav');
+  if (extras.length) {
+    const destination = toolArea || management;
+    for (const node of extras) destination.append(node);
+  }
   // Superseded visual/debug summaries remain available to old refreshers, hidden.
   for (const child of [...overview.children]) {
     if (child === showroom || child === grid) continue;
@@ -101,7 +153,7 @@
   const marketAnalysis = document.createElement('details');
   marketAnalysis.className = 'ae-management-extra ae-market-analysis';
   marketAnalysis.innerHTML = '<summary>Análise e tendências de mercado</summary>';
-  for (const id of ['ae-intel', 'ae-economy-tip', 'ae-demand']) {
+  for (const id of ['ae-market-dynamics', 'ae-intel', 'ae-economy-tip', 'ae-demand']) {
     const node = document.getElementById(id);
     if (node) marketAnalysis.append(node);
   }

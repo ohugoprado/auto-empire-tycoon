@@ -29,7 +29,7 @@ function getCost(d,p){
  return p.id==='main'?Math.max(1000,Math.round(num(d.cost))):Math.round(Math.max(1000,num(d.cost))*inflation*(1-Math.min(.12,(p.level-1)*.04+p.staff*.004)));
 }
 function getDays(d,p){return p.id==='main'?Math.max(2,Math.round(num(d.days)||7)):Math.max(2,Math.round(num(d.days)||7)-p.level+1-Math.floor(p.staff/4));}
-const paints=[['Branco pérola','#e8e9e6'],['Preto ônix','#252a33'],['Prata metálico','#a8b3be'],['Cinza grafite','#5a6874'],['Vermelho rubi','#c94a4e'],['Azul oceano','#337ab7'],['Verde oliva','#66856a'],['Amarelo solar','#e3b948'],['Laranja cobre','#bd7046'],['Violeta urbano','#8272a6']];
+const paints=window.AESprites?.paints.map(paint=>[paint.name,paint.hex])||[['Branco Polar','#e7ebef'],['Azul Oceano','#287ec5'],['Vermelho Rubi','#c33d42'],['Grafite','#333d4a'],['Amarelo Solar','#e9b847']];
 function showOrder(id){
  const {designs,f}=state(),d=designs.find(x=>String(x.id)===String(id));
  if(!d)return toast('Projeto não encontrado');

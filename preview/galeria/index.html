@@ -4,20 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#15263b">
-<title>Oito modelos, quarenta variações · Auto Empire Tycoon</title>
-<link rel="stylesheet" href="../css/vehicle-collection.css?v=6000">
+<title>32 modelos, 160 variações · Auto Empire Tycoon</title>
+<link rel="stylesheet" href="../css/vehicle-collection.css?v=9000">
 </head>
 <body class="ae-collection-page">
 <main>
 <header class="vc-top"><div class="vc-brand"><span class="vc-monogram" aria-hidden="true">AE</span><div><strong>AUTO EMPIRE</strong><small>Catálogo da concessionária</small></div></div><a class="back vc-back" href="../"><span aria-hidden="true">←</span> Voltar ao jogo</a></header>
-<section class="vc-intro" aria-labelledby="collection-title"><div class="vc-eyebrow">Escolha sua próxima conquista</div><h1 id="collection-title">Um modelo.<br><em>Cinco personalidades.</em></h1><p>Oito carrocerias com identidade própria. Explore as cinco pinturas de cada modelo e veja os detalhes antes de voltar ao mercado.</p><div class="vc-totals"><span><b>8</b> modelos</span><span><b>40</b> imagens</span><span><b>5</b> cores por modelo</span></div></section>
+<section class="vc-intro" aria-labelledby="collection-title"><div class="vc-eyebrow">Escolha sua próxima conquista</div><h1 id="collection-title">Um modelo.<br><em>Cinco personalidades.</em></h1><p>Trinta e duas carrocerias com identidade própria. Explore as cinco pinturas de cada modelo e veja os detalhes antes de voltar ao mercado.</p><div class="vc-totals"><span><b>32</b> modelos</span><span><b>160</b> imagens</span><span><b>5</b> cores por modelo</span></div></section>
 <div class="vc-section-head"><h2>Encontre o seu estilo</h2><span>COLEÇÃO ORIGINAL</span></div>
-<section class="grid vc-grid" id="collection" aria-label="Oito modelos com cinco cores cada"></section>
+<form class="vc-filters" role="search" onsubmit="return false"><label>Buscar modelo<input id="vc-model-search" type="search" placeholder="Nome do modelo" autocomplete="off"></label><label>Categoria<select id="vc-model-kind"><option value="all">Todas as categorias</option><option value="Hatch">Hatch</option><option value="SUV">SUV</option><option value="Sedã">Sedã</option><option value="Picape">Picape</option><option value="Compacto">Compacto</option><option value="Esportivo">Esportivo</option></select></label></form>
+<p class="vc-results" id="vc-results-count" role="status" aria-live="polite"></p>
+<section class="grid vc-grid" id="collection" aria-label="Trinta e dois modelos com cinco cores cada"></section>
+<p class="vc-note" id="vc-no-results" hidden>Nenhum modelo encontrado. Tente outro nome ou categoria.</p>
 <p class="vc-note">As cores desta página servem para explorar o catálogo. No jogo, cada veículo mantém sua própria pintura ao passar pelo mercado, estoque e negociação.</p>
 <footer><span>Auto Empire Tycoon · modelos fictícios</span><span>Seu progresso permanece salvo.</span></footer>
 </main>
 <dialog id="zoom" aria-labelledby="zoom-name" aria-describedby="zoom-desc"><div class="vc-zoom-top"><p>Detalhe do modelo</p><button class="vc-close" type="button" id="close">Fechar <span aria-hidden="true">×</span></button></div><div class="art vc-art" id="zoom-art"></div><div class="vc-zoom-copy"><h2 id="zoom-name"></h2><p id="zoom-model"></p><p id="zoom-desc"></p><div id="zoom-paints"></div><p class="vc-paint-label" id="zoom-paint-label" aria-live="polite"></p></div></dialog>
-<script src="../js/vehicle-sprites.js?v=6000"></script>
+<script src="../js/vehicle-sprites.js?v=9000"></script>
 <script>
 (() => {
   'use strict';
@@ -93,6 +96,20 @@
     paintArea.append(palette(model, 'card'), paintLabel);
     card.append(open, paintArea); cards.set(model.id, card); collection.append(card); updateCard(model);
   }
+  const search = document.getElementById('vc-model-search'), kind = document.getElementById('vc-model-kind');
+  const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+  function filter() {
+    const query = normalize(search.value.trim());
+    let visible = 0;
+    for (const model of artwork.models) {
+      const shown = (kind.value === 'all' || kind.value === model.kind) && normalize(model.name).includes(query);
+      cards.get(model.id).hidden = !shown;
+      if (shown) visible++;
+    }
+    document.getElementById('vc-results-count').textContent = visible + ' modelo(s) · ' + visible * artwork.paints.length + ' imagens';
+    document.getElementById('vc-no-results').hidden = visible !== 0;
+  }
+  search.addEventListener('input', filter); kind.addEventListener('change', filter); filter();
   document.getElementById('close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => { openedModel = null; });
   dialog.addEventListener('click', event => {

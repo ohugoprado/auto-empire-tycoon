@@ -19,7 +19,7 @@ A primeira visita exige internet; depois de carregado e armazenado pelo navegado
 
 Execute `python3 -m http.server 8000` nesta pasta e abra http://localhost:8000.
 
-A interface Motor District abre pela página inicial e está em `/preview/`, com showroom e galeria em `/preview/galeria/`. O catálogo tem oito modelos, cada um com cinco imagens de pintura próprias. A entrada principal usa `?campaign=main` para continuar os salvamentos `autoempire_v02` da versão antiga; a prévia mantém sua campanha separada em `autoempire_preview_v06`. A galeria preserva essa escolha ao voltar ao jogo.
+A interface Motor District abre pela página inicial e está em `/preview/`, com showroom e galeria em `/preview/galeria/`. O catálogo tem 32 modelos, cada um com cinco imagens de pintura próprias. A entrada principal usa `?campaign=main` para continuar os salvamentos `autoempire_v02` da versão antiga; a prévia mantém sua campanha separada em `autoempire_preview_v06`. A galeria preserva essa escolha ao voltar ao jogo.
 
 Para validar a prévia com Node 20 ou superior (CI usa Node 24):
 
@@ -52,15 +52,15 @@ Eventos e Ferramentas usam `save-backups.js` para exportar/importar na campanha 
 
 A equipe usa apenas `s.empire.staff`. A migração soma as contratações dos dois sistemas antigos sem cobrar novamente, mantém benefícios comprados e preserva funcionários acima do limite atual de cinco por função. A folha única é mensal, a cada 30 dias simulados; descontos e bônus de vendedor não acumulam a mesma vantagem duas vezes.
 
-Os oito modelos do catálogo têm carrocerias distintas e cinco pinturas: Branco Polar, Azul Oceano, Vermelho Rubi, Grafite e Amarelo Solar. São 40 imagens geradas, reunidas nos atlases WebP sem perda `fleet-models-a.webp` e `fleet-models-b.webp` (pasta `preview/assets/`). A conversão preserva os pixels dos PNGs originais e evita 40 downloads separados. Os recortes e nomes acessíveis ficam em `preview/js/vehicle-sprites.js`, compartilhado pelo jogo e pela galeria. Não são filtros de cor sobre uma imagem única. A interface não depende de fontes ou imagens externas.
+Os 32 modelos do catálogo têm carrocerias distintas e cinco pinturas: Branco Polar, Azul Oceano, Vermelho Rubi, Grafite e Amarelo Solar. São 160 imagens geradas, reunidas nos atlases WebP sem perda `fleet-models-a.webp` até `fleet-models-h.webp` (pasta `preview/assets/`). A conversão preserva os pixels dos PNGs originais e evita 160 downloads separados. Os recortes e nomes acessíveis ficam em `preview/js/vehicle-sprites.js`, compartilhado pelo jogo e pela galeria. Não são filtros de cor sobre uma imagem única. A interface não depende de fontes ou imagens externas.
 
-`vehicle-appearance.js` mantém modelo e pintura com o veículo durante compra, estoque, negociação e recarga. Os carros antigos recebem uma referência estável, preservando os dados da campanha; modelos personalizados da fábrica usam a carroceria de referência da categoria, identificada como ilustrativa. As oito carrocerias exclusivas correspondem aos oito modelos fixos do catálogo, não a qualquer nome criado pelo jogador.
+`vehicle-appearance.js` mantém modelo e pintura com o veículo durante compra, estoque, negociação e recarga. Os carros antigos recebem uma referência estável, preservando os dados da campanha; modelos personalizados da fábrica usam a carroceria de referência da categoria, identificada como ilustrativa. As 32 carrocerias exclusivas correspondem aos 32 modelos fixos do catálogo, não a qualquer nome criado pelo jogador.
 
 O guia da primeira venda é opcional, pode ser pausado e retomado em Eventos e salva seu progresso na campanha ativa. Preparar/reparar continua opcional; avançar um dia exige uma ação explícita. O painel de progressão mostra oito marcos reais da empresa, sem novas recompensas ou cobrança por ficar offline. O estoque e os diálogos mostram compra, despesas registradas no veículo, investimento e lucro bruto estimado; tributos e despesas da empresa ficam separados.
 
-O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. A economia e o formato dos salvamentos foram preservados.
+O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. O formato dos salvamentos foi preservado, incluindo os sistemas de progressão, clientes e indústria adicionados em paralelo.
 
-O service worker registra a versão `motor-district-6000`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo guia, progressão e as 40 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O service worker registra a versão `motor-district-9000`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Limitações
 
