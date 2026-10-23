@@ -16,6 +16,19 @@ body{overflow-x:hidden}
 body:has(.modalbg:not(.hide)) #ae-end-day{visibility:hidden;pointer-events:none}
 body:has(#ae-turn-overlay:not([hidden])) #ae-end-day{visibility:hidden;pointer-events:none}
 #ae-end-day:focus-visible{outline:3px solid #fff;outline-offset:3px}
+/* Compact, touch-friendly bottom navigation and readable stat panels. */
+.navinner button{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1.25}
+.navinner button b{font-size:19px;line-height:1.15}
+.navinner button:focus-visible{outline:2px solid #f7bc48;outline-offset:-2px}
+.stats .panel{min-width:0;overflow-wrap:anywhere}
+.stats .num{font-variant-numeric:tabular-nums}
+@media(max-width:380px){
+ .navinner{gap:2px}
+ .navinner button{padding:8px 2px;font-size:10px}
+ .stats{gap:6px}
+ .stats .panel{padding:10px 7px}
+ .stats .num{font-size:clamp(12px,3.4vw,17px)}
+}
 /* Keep the primary turn action above the real bottom navigation height. */
 :root{--ae-bottom-nav-height:80px}
 #ae-end-day{bottom:calc(var(--ae-bottom-nav-height) + 12px)!important}
@@ -986,10 +999,10 @@ scene();
 </script><script id="alpha108-polish">
 (function(){
 'use strict';
-const VERSION='Alpha 13.7',BUILD='13700';
+const VERSION='Alpha 13.8',BUILD='13800';
 document.title='Auto Empire Tycoon — '+VERSION;
 const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 13.7 · POR TURNOS';
+const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 13.8 · POR TURNOS';
 const css=document.createElement('style');
 css.textContent=`
 /* Stage 1: visual hierarchy and responsive readability */
