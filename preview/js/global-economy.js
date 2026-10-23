@@ -95,6 +95,15 @@ function updateDay(){
   }
   s.stock.push(c);e.factory.produced++;if(job.industrialOrderId){const contract=(e.factory.industrialOrders||[]).find(o=>o.id===job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
  }
+ // Archive fulfilled contracts only after actual deliveries; keep a bounded summary.
+ const finished=(e.factory.industrialOrders||[]).filter(o=>Number(o.remaining)<=0&&Number(o.delivered)>=Number(o.total));
+ if(finished.length){
+  if(!Array.isArray(e.factory.completedIndustrialOrders))e.factory.completedIndustrialOrders=[];
+  e.factory.completedIndustrialOrders.push(...finished.map(o=>({model:o.model,total:o.total,delivered:o.delivered,completedDay:s.day,investment:(Number(o.total)||0)*(Number(o.cost)||0)})));
+  e.factory.completedIndustrialOrders=e.factory.completedIndustrialOrders.slice(-30);
+  e.factory.industrialOrders=e.factory.industrialOrders.filter(o=>!finished.includes(o));
+  for(const o of finished)note('Contrato industrial concluído: '+o.total+' unidades de '+o.model+'.');
+ }
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
  // Loans are liabilities, not profit: borrowing cannot erase insolvency.
  const liabilities=(Array.isArray(s.empire?.bank?.loans)?s.empire.bank.loans:[]).reduce((a,l)=>a+Math.max(0,Number(l.balance)||0),0);
