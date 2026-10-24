@@ -77,12 +77,12 @@ async function assertSprites(page) {
 
 async function assertOffline(context, page, expectedCar) {
   const worker = await page.evaluate(() => new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(Error('Offline worker was not ready within 15 seconds')), 15000);
+    const timeout = setTimeout(() => reject(Error('Offline worker was not ready within 15 seconds')), 15001);
     navigator.serviceWorker.ready.then(registration => {
       async function inspect() {
         if (!navigator.serviceWorker.controller) return;
         try {
-          const cache = await caches.open('auto-empire-motor-district-15000');
+          const cache = await caches.open('auto-empire-motor-district-15001');
           const keys = await cache.keys();
           clearTimeout(timeout);
           resolve({
@@ -107,7 +107,7 @@ async function assertOffline(context, page, expectedCar) {
   const onlineBackground = await page.locator('body').evaluate(body => getComputedStyle(body).backgroundColor);
   await context.setOffline(true);
   try {
-    await page.reload({ waitUntil: 'networkidle', timeout: 15000 });
+    await page.reload({ waitUntil: 'networkidle', timeout: 15001 });
     const stylesheet = await page.evaluate(() => {
       const sheet = [...document.styleSheets].find(sheet => sheet.href?.includes('visual-redesign.css'));
       return { rules: sheet?.cssRules.length || 0, background: getComputedStyle(document.body).backgroundColor };
@@ -139,7 +139,7 @@ async function assertOffline(context, page, expectedCar) {
 async function run(base) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(15001);
   const errors = [];
   const broken = [];
   page.on('pageerror', error => errors.push(error.message));

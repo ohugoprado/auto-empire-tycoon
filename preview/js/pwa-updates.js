@@ -3,10 +3,13 @@
   'use strict';
   if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
   const worker = new URL('../../sw.js', document.currentScript.src);
-  const hadController = Boolean(navigator.serviceWorker.controller);
+  const initialController = navigator.serviceWorker.controller;
   let refreshed = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || refreshed) return;
+    // A first-install claim can already be visible when this script starts,
+    // while its controllerchange event is still queued. Only a replacement
+    // worker calls for a reload; reloading the same controller interrupts boot.
+    if (!initialController || navigator.serviceWorker.controller === initialController || refreshed) return;
     refreshed = true;
     if (typeof save === 'function') save();
     location.reload();

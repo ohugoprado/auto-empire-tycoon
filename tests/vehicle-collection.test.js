@@ -234,7 +234,7 @@ async function appearance(base) {
     });
     check(rotated.every(car => car.model === car.name), 'Real market rotation resolves the renamed model rather than its former modelId');
     check(rotated.every(car => car.color === car.actualPaint.hex && car.colorName === car.actualPaint.name),
-      'Generated cars retain coherent five-paint artwork, stored color and displayed color name after rotation');
+      'Generated cars retain coherent five-paint artwork, stored color and displayed color name after rotation: ' + JSON.stringify(rotated));
     check(new Set(rotated.map(car => car.paint)).size === 5, 'A new rotated six-car lot also presents all five actual painted variants');
     await page.locator('.bottom [data-tab="market"]').tap();
     await assertFraming(page, '#listings .carart>svg.ae-sprite', '.carart', 'Market');

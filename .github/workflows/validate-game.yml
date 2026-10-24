@@ -37,6 +37,7 @@ jobs:
       - name: Check game logic and workflows
         run: |
           node tests/local-resources.test.js
+          node tests/pwa-update.test.js
           node tests/auction-turns.test.js
           node tests/industrial-workforce-batch.test.js
           node tests/economy-smoke.test.js
