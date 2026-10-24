@@ -10,6 +10,33 @@ const root = path.resolve(__dirname, '..');
 const artifacts = process.env.AE_VEHICLE_REVIEW_DIR || '/tmp/auto-empire-vehicle-collection';
 let browser, server, checks = 0;
 const check = (value, message) => { assert.ok(value, message); checks++; };
+async function assertFraming(page, selector, frameSelector, label) {
+  const frames = await page.locator(selector).evaluateAll((images, frameSelector) => images.map(svg => {
+    const frame = svg.closest(frameSelector), rect = frame?.getBoundingClientRect();
+    const box = svg.viewBox.baseVal, matrix = svg.getScreenCTM();
+    const spec = AESprites.variant({ modelId: svg.dataset.model, paintId: svg.dataset.paint });
+    const source = svg.querySelector(':scope > svg');
+    const sourceBox = spec.sourceBox?.split(/\s+/).map(Number) || [];
+    const sourceViewport = source ? ['x', 'y', 'width', 'height'].map(name => Number(source.getAttribute(name))) : [];
+    const projected = matrix ? [[box.x, box.y], [box.x + box.width, box.y + box.height]].map(([x, y]) => {
+      const point = new DOMPoint(x, y).matrixTransform(matrix); return { x: point.x, y: point.y };
+    }) : [];
+    return {
+      id: svg.dataset.variant, width: rect?.width || 0, height: rect?.height || 0,
+      meets: svg.getAttribute('preserveAspectRatio') === 'xMidYMid meet',
+      clipped: Boolean(source && getComputedStyle(source).overflow === 'hidden' && source.querySelector('image')),
+      sourceMatches: sourceBox.length === 4 && sourceBox.every((value, index) => value === sourceViewport[index]) && source?.getAttribute('viewBox') === spec.sourceBox,
+      fits: Boolean(rect && projected.length === 2 && projected.every(point => point.x >= rect.left - 1 && point.x <= rect.right + 1 && point.y >= rect.top - 1 && point.y <= rect.bottom + 1))
+    };
+  }), frameSelector);
+  check(frames.length > 0, label + ': framed vehicle artwork exists');
+  for (const frame of frames) {
+    check(frame.width >= 70 && frame.height > 0 && Math.abs(frame.width / frame.height - 1.5) < .04,
+      label + ': ' + frame.id + ' has a useful, stable3:2 image frame');
+    check(frame.meets && frame.fits, label + ': ' + frame.id + ' fits completely without stretching or cover cropping');
+    check(frame.clipped && frame.sourceMatches, label + ': ' + frame.id + ' isolates its own source so virtual padding cannot reveal neighboring cars');
+  }
+}
 async function startServer() {
   if (process.env.AE_TEST_BASE_URL) return process.env.AE_TEST_BASE_URL.replace(/\/$/, '');
   const probe = net.createServer();
@@ -36,7 +63,7 @@ async function gallery(base, width) {
     const registry = await page.evaluate(() => ({
       models: AESprites.models.map(model => ({ id: model.id, name: model.name, kind: model.kind, defaultPaint: model.defaultPaint })),
       paints: AESprites.paints.map(paint => ({ id: paint.id, name: paint.name })),
-      variants: AESprites.models.flatMap(model => AESprites.variants(model.id)).map(item => ({ id: item.id, box: item.box, url: item.url, artworkReady: item.artworkReady }))
+      variants: AESprites.models.flatMap(model => AESprites.variants(model.id)).map(item => ({ id: item.id, box: item.box, sourceBox: item.sourceBox, contentBounds: item.contentBounds, url: item.url, artworkReady: item.artworkReady }))
     }));
     check(registry.models.length === 32 && new Set(registry.models.map(model => model.id)).size === 32, 'All thirty-two named catalog model identities exist');
     check(registry.paints.length === 5, 'Every model has five named paints');
@@ -55,6 +82,7 @@ async function gallery(base, width) {
     check(await page.locator('#collection > article').count() === 32, width + ': all model cards render');
     check(await page.locator('#collection .vc-paint').count() === 160, width + ': all 160 accessible paint choices render');
     check(await page.locator('button button').count() === 0, 'Paint controls are not nested inside other buttons');
+    await assertFraming(page, '#collection svg.ae-sprite', '.vc-art', width + ' collection');
     if (width === 440) {
       const pixels = await page.evaluate(async () => {
         const images = new Map();
@@ -64,13 +92,15 @@ async function gallery(base, width) {
         }
         const output = [];
         for (const model of AESprites.models) for (const spec of AESprites.variants(model.id)) {
-          const [x, y, width, height] = spec.box.split(' ').map(Number);
+          const [x, y, width, height] = spec.sourceBox.split(' ').map(Number);
+          const [vx, vy, viewportWidth, viewportHeight] = spec.box.split(' ').map(Number);
           const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           ctx.drawImage(images.get(spec.url), x, y, width, height, 0, 0, width, height);
           const data = ctx.getImageData(0, 0, width, height).data;
           const counts = { polar: 0, ocean: 0, ruby: 0, graphite: 0, solar: 0 };
           let opaque = 0, edge = 0, fingerprint = 2166136261;
+          let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
           for (let i = 0; i < data.length; i += 4) {
             if (data[i + 3] < 200) continue;
             fingerprint = Math.imul(fingerprint ^ data[i], 16777619);
@@ -78,6 +108,8 @@ async function gallery(base, width) {
             fingerprint = Math.imul(fingerprint ^ data[i + 2], 16777619);
             opaque++;
             const pixel = i / 4, px = pixel % width, py = Math.floor(pixel / width);
+            left = Math.min(left, px + x); right = Math.max(right, px + x);
+            top = Math.min(top, py + y); bottom = Math.max(bottom, py + y);
             if (px === 0 || py === 0 || px === width - 1 || py === height - 1) edge++;
             const r = data[i], g = data[i + 1], b = data[i + 2], range = Math.max(r, g, b) - Math.min(r, g, b);
             if (Math.min(r, g, b) > 120 && range < 50) counts.polar++;
@@ -87,6 +119,10 @@ async function gallery(base, width) {
             if (r > 140 && g > 80 && b < Math.min(r, g) * .85) counts.solar++;
           }
           output.push({ id: spec.id, paint: spec.paintId, opaque, edge, counts, fingerprint: fingerprint >>> 0,
+            sourceInside: x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= spec.width && y + height <= spec.height,
+            viewportRatio: viewportWidth / viewportHeight,
+            margins: [(left - vx) / viewportWidth, (top - vy) / viewportHeight, (vx + viewportWidth - right - 1) / viewportWidth, (vy + viewportHeight - bottom - 1) / viewportHeight],
+            boundsMatch: JSON.stringify([left, top, right - left + 1, bottom - top + 1]) === JSON.stringify(spec.contentBounds),
             decoded: images.get(spec.url).naturalWidth === spec.width && images.get(spec.url).naturalHeight === spec.height });
         }
         return output;
@@ -94,6 +130,10 @@ async function gallery(base, width) {
       for (const sample of pixels) {
         check(sample.decoded && sample.opaque > 10000, sample.id + ': a substantial decoded vehicle is visible');
         check(sample.edge === 0, sample.id + ': opaque vehicle body is not clipped at the crop border');
+        check(sample.sourceInside, sample.id + ': the physical source crop stays within the actual atlas');
+        check(sample.boundsMatch, sample.id + ': framing metadata follows the visible opaque body pixels');
+        check(Math.abs(sample.viewportRatio - 1.5) < .01 && sample.margins.every(margin => margin >= .035),
+          sample.id + ': the normalized3:2 frame leaves safe breathing room on all sides');
         check(sample.counts[sample.paint] > 800, sample.id + ': the actual painted pixels match the named color');
         if (['ocean', 'ruby', 'solar'].includes(sample.paint)) {
           check(['ocean', 'ruby', 'solar'].filter(paint => paint !== sample.paint).every(paint => sample.counts[sample.paint] > sample.counts[paint]),
@@ -142,6 +182,7 @@ async function gallery(base, width) {
     const first = registry.models[0], card = page.locator('article[data-model="' + first.id + '"]');
     await card.locator('.car-button').tap();
     check(await page.locator('#zoom').isVisible(), width + ': the model opens in a native dialog');
+    await assertFraming(page, '#zoom-art svg.ae-sprite', '.vc-art', width + ' zoom');
     for (const paint of registry.paints) {
       await page.locator('#zoom-paints [data-paint="' + paint.id + '"]').tap();
       check(await page.locator('#zoom-art svg').getAttribute('data-paint') === paint.id, 'Zoom uses the selected actual painted image');
@@ -196,6 +237,7 @@ async function appearance(base) {
       'Generated cars retain coherent five-paint artwork, stored color and displayed color name after rotation');
     check(new Set(rotated.map(car => car.paint)).size === 5, 'A new rotated six-car lot also presents all five actual painted variants');
     await page.locator('.bottom [data-tab="market"]').tap();
+    await assertFraming(page, '#listings .carart>svg.ae-sprite', '.carart', 'Market');
     await page.locator('#ae-trade-select-market').selectOption('name');
     const identity = await page.evaluate(() => [...document.querySelectorAll('#listings > .panel')].every(card => {
       const row = card.querySelector('.vehicle'), car = s.market.find(item => String(item.id) === row?.dataset.carId), image = row?.querySelector('svg');
@@ -207,6 +249,7 @@ async function appearance(base) {
       return { id: car.id, ask: car.ask, paint: car.paintId, model: car.modelId, color: car.color, cash: s.cash };
     });
     await page.locator('#listings button[onclick="buyDialog(' + target.id + ')"]').tap();
+    await assertFraming(page, '#modalbody .carart>svg.ae-sprite', '.carart', 'Negotiation');
     await page.locator('#bid').fill(String(target.ask));
     check(await page.locator('#modalbody svg.ae-sprite').getAttribute('data-paint') === target.paint, 'Negotiation retains the actual vehicle paint');
     await page.locator('#modalbody button[onclick="submitBid()"]').tap();
@@ -217,6 +260,7 @@ async function appearance(base) {
     }, target), 'A real purchase preserves paint/model and charges the entered price');
     await page.reload({ waitUntil: 'networkidle' });
     const stock = page.locator('#stock svg.ae-sprite');
+    await assertFraming(page, '#stock .carart>svg.ae-sprite', '.carart', 'Inventory');
     check(await stock.getAttribute('data-paint') === target.paint && await stock.getAttribute('data-model') === target.model,
       'Purchased appearance survives reload in inventory');
     check(errors.length === 0, 'Appearance flows have no JavaScript errors: ' + errors.join('; '));

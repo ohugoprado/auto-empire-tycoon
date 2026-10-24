@@ -1,0 +1,22 @@
+/* One reachable shortcut menu; controls stay clear of the fixed tabs and keyboard. */
+body.ae-redesign.ae-next .content{padding-bottom:max(calc(104px + env(safe-area-inset-bottom,0px)),calc(var(--ae-quick-nav-height,72px) + 66px))!important}
+body.ae-redesign.ae-next #ae-quick-nav-button{position:fixed!important;right:max(14px,calc((100vw - 1194px)/2));bottom:var(--ae-quick-nav-bottom,calc(84px + env(safe-area-inset-bottom,0px)));z-index:110;display:inline-flex!important;align-items:center;justify-content:center;gap:8px;min-height:46px!important;min-width:46px;padding:10px 15px!important;border:1px solid #acc4e7!important;border-radius:24px!important;background:#152e4b!important;color:#fff!important;font-size:13px!important;line-height:1.2;font-weight:750!important;box-shadow:0 4px 15px #15263b30!important;touch-action:manipulation}
+body.ae-redesign.ae-next #ae-quick-nav-button[hidden]{display:none!important}
+#ae-quick-nav-button svg,#ae-quick-nav svg{width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+body.ae-redesign.ae-next #ae-quick-nav{width:min(500px,calc(100% - 20px));max-width:500px;max-height:calc(100dvh - 30px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));box-sizing:border-box;margin:auto auto max(10px,env(safe-area-inset-bottom,0px));padding:20px;border:1px solid #b5c8df;border-radius:21px;background:#f8fafd;color:#15263b;box-shadow:0 18px 70px #08142366;overflow:auto;overscroll-behavior:contain}
+#ae-quick-nav::backdrop{background:#0c1c32b8;backdrop-filter:blur(4px)}
+.ae-quick-nav-head{position:sticky;top:-20px;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:-20px;margin-bottom:17px;padding-top:20px;background:#f8fafd}
+body.ae-redesign.ae-next #ae-quick-nav h2{margin:0 0 6px!important;font-size:22px!important;line-height:1.2;letter-spacing:-.5px;color:#15263b!important}
+body.ae-redesign.ae-next #ae-quick-nav p{font-size:12px!important;line-height:1.5;color:#52647a!important;margin:0}
+body.ae-redesign.ae-next #ae-quick-nav #ae-quick-nav-close{flex:none;min-width:62px;min-height:44px!important;padding:9px 10px!important;background:#e9f0fa!important;border:1px solid #c2d2e8!important;color:#244b78!important;border-radius:10px!important;font-size:12px!important}
+.ae-quick-nav-links{display:flex;flex-direction:column;gap:8px}
+body.ae-redesign.ae-next #ae-quick-nav [data-quick-nav]{display:flex!important;align-items:center;justify-content:flex-start;gap:12px;min-width:0;width:100%;min-height:68px!important;padding:12px!important;text-align:left;white-space:normal;background:#fff!important;border:1px solid #d2deec!important;border-radius:12px!important;color:#254f83!important;box-shadow:none!important}
+#ae-quick-nav [data-quick-nav]>span{min-width:0;flex:1}
+body.ae-redesign.ae-next #ae-quick-nav strong{display:block;font-size:14px!important;font-weight:750!important;line-height:1.4;color:#1b3c67!important}
+body.ae-redesign.ae-next #ae-quick-nav small{display:block;font-size:12px!important;font-weight:450!important;line-height:1.45;color:#52647a!important;margin-top:3px;overflow-wrap:anywhere}
+#ae-quick-nav [data-quick-nav]>svg:last-child{width:17px;height:17px;opacity:.65}
+body.ae-redesign.ae-next #ae-quick-nav .ae-quick-nav-hint{margin-top:14px!important;font-size:11px!important}
+#ae-quick-nav-button:focus-visible,#ae-quick-nav button:focus-visible{outline:3px solid #326bde!important;outline-offset:3px!important}
+body.ae-redesign.ae-next #ae-quick-nav [data-quick-nav]:disabled{opacity:.6;cursor:default}
+@media(max-width:350px){body.ae-redesign.ae-next #ae-quick-nav{padding:15px}body.ae-redesign.ae-next #ae-quick-nav h2{font-size:20px!important}.ae-quick-nav-head{gap:9px;top:-15px;margin-top:-15px;padding-top:15px}body.ae-redesign.ae-next #ae-quick-nav-button{right:12px;padding:10px 12px!important}body.ae-redesign.ae-next #ae-quick-nav [data-quick-nav]{gap:9px;padding:11px!important}}
+@media(prefers-reduced-motion:reduce){#ae-quick-nav,#ae-quick-nav-button{scroll-behavior:auto!important;transition:none!important}}

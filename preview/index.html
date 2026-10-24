@@ -821,132 +821,10 @@ style.textContent=`
 #garage>.scene-wrap .scene-label{display:none!important}
 @media(max-width:420px){#garage>#ae-visual-stats{grid-template-columns:repeat(3,minmax(0,1fr))}#garage>#ae-visual-stats b{font-size:clamp(10px,3.2vw,16px)}}
 `;document.head.appendChild(style);
-const canvas=document.getElementById('scene');
-if(!canvas)return;
-const spots=[[171,142],[224,121],[278,143],[139,181],[192,161],[246,181]];
-const poly=(c,p,f)=>{c.beginPath();c.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)c.lineTo(p[i][0],p[i][1]);c.closePath();c.fillStyle=f;c.fill()};
-const box=(c,x,y,w,h,f)=>{c.fillStyle=f;c.fillRect(x,y,w,h)};
-const aeAtlas=new Image();let aeAtlasReady=false;
-aeAtlas.onload=()=>{aeAtlasReady=true;requestAnimationFrame(()=>drawScene())};
-aeAtlas.onerror=()=>{aeAtlasReady=false};
-aeAtlas.src='./assets/car-sprites-v2.svg?v=1700';
-function vehicleSprite(ctx,car,x,y){
- const order=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
- const index=Math.max(0,order.indexOf(car.kind||'Hatch'));
- if(aeAtlasReady){
-  const widths=[58,66,65,69,54,62],w=widths[index],h=Math.round(w*130/180);
-  ctx.save();ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(aeAtlas,index*180,0,180,130,x-w/2,y-h*.65,w,h);
-  ctx.restore();return
- }
- ctx.fillStyle=car.color||'#8db6c6';
- ctx.fillRect(x-20,y-7,40,12);
- ctx.fillStyle='#b4d7df';ctx.fillRect(x-9,y-12,19,7);
-}
-const aeDealership=new Image();let aeDealershipReady=false;
-aeDealership.onload=()=>{aeDealershipReady=true;requestAnimationFrame(()=>drawScene())};
-aeDealership.onerror=()=>{aeDealershipReady=false};
-aeDealership.src='./assets/dealership-scene.svg?v=1700';
-function scene(){
- const c=canvas.getContext('2d');if(!c)return;
- c.imageSmoothingEnabled=false;
- if(aeDealershipReady){c.save();c.imageSmoothingEnabled=true;c.drawImage(aeDealership,0,0,384,250);c.restore();}
- else{
-  box(c,0,0,384,250,'#365a6c');
-  poly(c,[[0,120],[190,40],[384,122],[190,225]],'#607e83');
-  poly(c,[[12,85],[108,38],[211,83],[108,133]],'#254859');
-  poly(c,[[12,85],[108,133],[108,173],[12,126]],'#386779');
-  poly(c,[[108,133],[211,83],[211,125],[108,173]],'#548493');
- }
- const active=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
- const chosen=active?Number(active.dataset.aeSlot):0;
- // Draw back-to-front so vehicles and markers overlap in a consistent isometric order.
- const visible=spots.slice(0,Math.min(6,s.slots)).map(([x,y],i)=>({x,y,i})).sort((a,b)=>a.y-b.y||a.x-b.x);
- for(const {x,y,i} of visible){
-  const selected=i===chosen,car=s.stock[i];
-  // Subtle parking pad and contact shadow beneath the vehicle.
-  poly(c,[[x-30,y],[x,y-14],[x+30,y],[x,y+14]],selected?'#d6ad59':'#587984');
-  c.strokeStyle=selected?'#ffe4a0':'#b4cbc9';c.lineWidth=selected?2:1;
-  c.beginPath();c.moveTo(x-29,y);c.lineTo(x,y-13);c.lineTo(x+29,y);c.lineTo(x,y+13);c.closePath();c.stroke();
-  if(selected){
-   c.save();c.strokeStyle='rgba(255,225,146,.72)';c.lineWidth=1.4;
-   c.beginPath();c.ellipse(x,y+4,34,18,-.22,0,Math.PI*2);c.stroke();c.restore();
-  }
-  if(car){
-   c.fillStyle='rgba(11,29,37,.26)';c.beginPath();c.ellipse(x,y+6,23,7,-.25,0,Math.PI*2);c.fill();
-   vehicleSprite(c,car,x,y-5);
-   if(car.listed){box(c,x+17,y-16,17,9,'#173f40');c.fillStyle='#bdf1cf';c.font='bold 6px sans-serif';c.fillText('VENDA',x+18,y-10)}
-  }else{
-   c.fillStyle='rgba(15,36,45,.3)';c.font='bold 7px sans-serif';c.fillText('LIVRE',x-11,y+2);
-  }
-  if(selected&&car){
-   const kind=String(car.kind||'VEÍCULO').toUpperCase();
-   c.font='bold 8px sans-serif';const w=Math.max(37,Math.ceil(c.measureText(kind).width)+12);
-   const px=Math.min(384-w-5,Math.max(5,x-w/2)),py=Math.max(6,y-43);
-   box(c,px,py,w,14,'rgba(18,45,58,.94)');
-   c.fillStyle='#ffe4a2';c.fillText(kind,px+6,py+10);
-  }
-  box(c,x-7,y+15,14,11,selected?'#ffda83':'#dbe9e7');
-  c.fillStyle='#243843';c.font='bold 9px monospace';c.fillText(String(i+1),x-3,y+23);
- }
- // Alpha 1.4.9: visual activity reflects actual inventory, offers and business hours.
- const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- const phase=reduceMotion?0:((Date.now()/1000)%24);
- const listedCars=s.stock.filter(car=>car.listed);
- const offersCount=s.stock.reduce((total,car)=>total+(Array.isArray(car.offers)?car.offers.length:0),0);
- const businessHour=Math.floor(s.minute/60);
- const open=businessHour>=8&&businessHour<19;
- const activityCount=open?Math.min(3,listedCars.length+(offersCount>0?1:0)):0;
- function pedestrian(px,py,coat,offset){
-  const bob=reduceMotion?0:Math.sin(phase*7+offset)*.8;
-  c.save();c.fillStyle='rgba(8,25,35,.22)';c.beginPath();c.ellipse(px+2,py+2,5,2,0,0,Math.PI*2);c.fill();
-  c.strokeStyle='#203644';c.lineWidth=1.5;c.lineCap='round';
-  c.beginPath();c.moveTo(px,py-3+bob);c.lineTo(px-2,py+1);c.moveTo(px,py-3+bob);c.lineTo(px+2,py+1);c.stroke();
-  c.fillStyle=coat;c.fillRect(px-2,py-11+bob,4,8);
-  c.fillStyle='#f3c69f';c.beginPath();c.arc(px,py-13+bob,2.4,0,Math.PI*2);c.fill();
-  c.strokeStyle='#e0bc94';c.lineWidth=1;c.beginPath();c.moveTo(px-2,py-9+bob);c.lineTo(px-4,py-5+bob);c.moveTo(px+2,py-9+bob);c.lineTo(px+4,py-5+bob);c.stroke();c.restore();
- }
- if(activityCount>0){
-  const walkerX=reduceMotion?70:54+((phase*4)%56);
-  pedestrian(walkerX,216-walkerX*.09,'#d6ac63',0);
- }
- if(activityCount>1)pedestrian(333,186,'#75b4a9',1.6);
- if(activityCount>2)pedestrian(300,202,'#bb85a7',2.4);
- // Status is tied to gameplay state; visitors remain an illustrative proxy.
- c.save();c.fillStyle='rgba(14,38,48,.92)';c.fillRect(7,8,145,17);
- c.fillStyle=open?'#9de1bc':'#d8a8a8';c.beginPath();c.arc(16,16,3,0,Math.PI*2);c.fill();
- c.fillStyle='#e2f1ed';c.font='bold 8px sans-serif';
- c.fillText(open?(listedCars.length+' ANÚNCIOS · '+offersCount+' PROPOSTAS'):'SHOWROOM FECHADO',24,19);c.restore();
- // Alpha 1.6: architectural scene atmosphere follows simulation time.
- const clockHour=Math.floor(s.minute/60);
- c.save();
- if(clockHour>=19||clockHour<6){
-  c.fillStyle='rgba(7,18,40,.34)';c.fillRect(0,0,384,234);
-  const glow=c.createRadialGradient(110,150,3,110,150,92);
-  glow.addColorStop(0,'rgba(255,209,129,.28)');glow.addColorStop(1,'rgba(255,209,129,0)');
-  c.fillStyle=glow;c.fillRect(0,40,230,194);
-  c.fillStyle='#ffdfa1';c.fillRect(116,143,3,3);c.fillRect(193,108,3,3);
- }else if(clockHour>=16){
-  c.fillStyle='rgba(244,161,95,.085)';c.fillRect(0,0,384,234);
- }else if(clockHour<9){
-  c.fillStyle='rgba(124,186,208,.10)';c.fillRect(0,0,384,234);
- }
- c.restore();
- box(c,0,234,384,16,'#183440');c.fillStyle='#d4e8e9';c.font='bold 10px monospace';c.fillText('SÃO PAULO · SHOWROOM',10,245);c.fillStyle='#f7d791';c.fillText(s.stock.length+'/'+s.slots+' VAGAS',305,245);
-}
-// Stage 2: only the final scene renderer is used for painting after initialization.
-drawScene=scene;
-const buttons=document.getElementById('ae-garage-buttons');
-if(buttons)buttons.addEventListener('click',()=>requestAnimationFrame(scene));
-canvas.addEventListener('click',()=>requestAnimationFrame(scene));
-// Stage 3: prevent repeated scene paints on every DOM refresh; paint once per animation frame.
+// The prototype canvas renderer has been retired; keep the shared UI dispatcher.
+drawScene=function(){};
 const oldRender=render;
-let scheduled=false,rendering=false,queued=false;
-function requestScenePaint(){
- if(scheduled)return;
- scheduled=true;
- requestAnimationFrame(()=>{scheduled=false;drawScene()});
-}
+let rendering=false,queued=false;
 render=function(){
  if(rendering){queued=true;return}
  rendering=true;
@@ -956,14 +834,9 @@ render=function(){
   for(const refresh of (window.aeUiRefreshers||[])){
    try{refresh()}catch(error){console.error('AE panel refresh failed',error)}
   }
-  requestScenePaint();
  }finally{rendering=false}
  if(queued){queued=false;queueMicrotask(()=>render())}
 };
-scene();
-if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
- window.setInterval(()=>{if(document.visibilityState==='visible'&&document.getElementById('scene'))drawScene()},350);
-}
 })();
 </script><script id="alpha108-polish">
 (function(){
@@ -1206,69 +1079,6 @@ css.textContent=`
 `;document.head.appendChild(css);
 requestAnimationFrame(()=>drawScene());
 })();
-</script><script id="alpha121-refactor-release">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.2.1';
-const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.1 · BUILD 1210';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.1 · SPRITES E ESTABILIDADE';
-const style=document.createElement('style');
-style.textContent=`
-#garage>.scene-wrap{border-radius:14px;overflow:hidden}
-#garage>#ae-garage-buttons button{min-height:45px}
-#garage>#ae-garage-buttons button:focus-visible{outline:3px solid #ffdf8b}
-#ae-camera-controls button.active{background:#f3cb77;color:#152a36}
-#garage>#ae-slot-status{margin-top:0}
-#garage>#ae-test-bar{order:12!important}
-`;document.head.appendChild(style);
-const events=document.getElementById('events');
-if(events){
- const details=document.createElement('details');details.className='panel';details.id='ae-art-check';
- details.innerHTML='<summary style="cursor:pointer;font-weight:800">🎨 Biblioteca de sprites · 1.2.1</summary><p class="tiny">Seis modelos isométricos: Hatch, SUV, Sedã, Picape, Compacto e Esportivo.</p><img src="./assets/car-sprites.svg" alt="Seis veículos isométricos do jogo" style="display:block;width:100%;max-width:720px;background:#263f4a;border-radius:9px;padding:8px"><p class="tiny">Se a imagem não aparecer, a biblioteca de arte não carregou corretamente.</p>';
- events.appendChild(details);
-}
-const canvas=document.getElementById('scene');
-if(canvas&&typeof drawScene==='function')requestAnimationFrame(()=>drawScene());
-})();
-</script><script id="alpha122-quality">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.2.2';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.2 · BUILD 1220';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.2 · QUALIDADE E SPRITES';
-const css=document.createElement('style');
-css.textContent='#garage>.scene-wrap{border:1px solid #678b9a!important;box-shadow:0 12px 24px #0007}#garage>#ae-garage-buttons{gap:6px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-slot-status{background:#1a303e}#ae-art-status{padding:8px 10px;margin-top:6px;border-radius:8px;background:#1b3542;color:#d1e7eb;font-size:12px}';
-document.head.appendChild(css);
-const art=document.getElementById('ae-art-check');
-if(art){
- const status=document.createElement('div');status.id='ae-art-status';status.setAttribute('role','status');status.textContent='Verificando biblioteca de sprites…';art.appendChild(status);
- const image=art.querySelector('img');
- function check(){const ready=!!(image&&image.complete&&image.naturalWidth>0);status.textContent=ready?'✓ Biblioteca de veículos carregada':'⚠ A biblioteca de veículos não carregou. Atualize a página.';}
- if(image){image.addEventListener('load',check);image.addEventListener('error',check);if(image.complete)check()}
-}
-const garage=document.getElementById('garage');
-if(garage){for(const node of garage.querySelectorAll('.panel')){if(node.textContent.includes('Novidades da Alpha 0.8.0'))node.remove()}}
-})();
-</script><script id="alpha123-refactor">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.2.3';
-const version=document.getElementById('ae-version');
-if(version)version.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.3 · BUILD 1230';
-const tag=document.querySelector('.top .tag');
-if(tag)tag.textContent='ALPHA 1.2.3 · MOTOR DE INTERFACE';
-const style=document.createElement('style');
-style.textContent=`
-#garage>#ae-test-bar{order:12!important}
-#garage>.scene-wrap{border:1px solid #698e9d!important}
-#garage>#ae-garage-buttons button{min-height:46px}
-#garage>#ae-garage-detail:not(.ae-open){display:none!important}
-.content{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important}
-`;
-document.head.appendChild(style);
-const art=document.getElementById('ae-art-check');
-if(art){const heading=art.querySelector('summary');if(heading)heading.textContent='🎨 Biblioteca de sprites · Alpha 1.2.3'}
-})();
 </script><script id="alpha124-quality">
 (function(){
 'use strict';
@@ -1331,97 +1141,12 @@ const style=document.createElement('style');
 style.textContent='#garage>.scene-wrap{overflow:hidden;border-radius:14px}#garage>#ae-garage-buttons button{min-height:46px}#garage>#ae-test-bar{order:12!important}';
 document.head.appendChild(style);
 })();
-</script><script id="alpha129-art-rebuild">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.2.9';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.2.9 · BUILD 1290';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.2.9 · CONCESSIONÁRIA RECONSTRUÍDA';
-const css=document.createElement('style');
-css.textContent='#garage>.scene-wrap{background:#234454!important;border:1px solid #78929b!important;border-radius:15px;overflow:hidden;box-shadow:0 12px 30px #0006}#scene{display:block;width:100%;image-rendering:auto}#garage>#ae-garage-buttons button{min-height:46px}';
-document.head.appendChild(css);
-const art=document.getElementById('ae-art-check');
-if(art){const img=document.createElement('img');img.src='./assets/dealership-scene.svg';img.alt='Ilustração isométrica da concessionária São Paulo';img.style.cssText='display:block;width:100%;border-radius:9px;margin-top:12px;background:#234454';art.appendChild(img)}
-})();
-</script><script id="alpha130-visual">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.3.0';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.0 · BUILD 1300';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.0 · SHOWROOM ISOMÉTRICO';
-const style=document.createElement('style');
-style.textContent='#garage>.scene-wrap{border:1px solid #8da6a9!important;border-radius:15px!important;overflow:hidden;box-shadow:0 15px 32px #0007}#garage>#ae-garage-buttons button{min-height:48px}#garage>#ae-slot-status{border-radius:11px}#garage>#ae-scene-header strong{letter-spacing:.2px}';
-document.head.appendChild(style);
-const art=document.getElementById('ae-art-check');if(art){const title=art.querySelector('summary');if(title)title.textContent='🎨 Galeria de arte · Alpha 1.3.0'}
-})();
-</script><script id="alpha131-vehicle-art">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.3.1';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.1 · BUILD 1310';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.1 · VEÍCULOS REDESENHADOS';
-const gallery=document.getElementById('ae-art-check');
-if(gallery){
- const heading=document.createElement('div');heading.className='tiny';heading.textContent='Sprites atualizados: Hatch, SUV, Sedã, Picape, Compacto e Esportivo.';
- gallery.appendChild(heading);
- const image=document.createElement('img');image.src='./assets/car-sprites.svg?v=1310';image.alt='Seis novos perfis de veículos isométricos';image.loading='lazy';image.style.cssText='display:block;width:100%;height:auto;margin-top:10px;border-radius:10px;background:#284653';gallery.appendChild(image);
-}
-})();
-</script><script id="alpha132-concept-cars">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.3.2';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.2 · BUILD 1320';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.2 · NOVA FROTA ISOMÉTRICA';
-const gallery=document.getElementById('ae-art-check');
-if(gallery){
- const images=gallery.querySelectorAll('img[src*="car-sprites.svg"]');
- images.forEach(img=>{img.src='./assets/car-sprites-v2.svg?v=1700';img.style.background='#dce8e8'});
-}
-})();
-</script><script id="alpha133-mobile-gallery">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.3.3';
-const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.3 · BUILD 1330';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.3 · SHOWROOM MOBILE';
-const garage=document.getElementById('garage'),heading=document.getElementById('ae-scene-header');
-if(garage&&heading&&!document.getElementById('ae-fleet-gallery')){
- const panel=document.createElement('details');
- panel.id='ae-fleet-gallery';panel.className='panel';
- panel.innerHTML='<summary style="cursor:pointer;font-weight:800">🚘 Conheça a frota · 6 carrocerias</summary><div class="tiny" style="margin:8px 0">Amplie os veículos e compare os formatos. As imagens são arte do jogo, não fotografias.</div><div class="ae-fleet-grid"></div>';
- const models=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
- const grid=panel.querySelector('.ae-fleet-grid');
- models.forEach((model,index)=>{
-  const item=document.createElement('div');item.className='ae-fleet-item';
-  const windowEl=document.createElement('div');windowEl.className='ae-fleet-viewport';
-  const img=document.createElement('img');img.src='./assets/car-sprites-v2.svg?v=1700';img.alt='Carroceria '+model;img.loading='lazy';
-  img.style.left=(-index*180)+'px';
-  windowEl.appendChild(img);
-  const name=document.createElement('strong');name.textContent=model;
-  item.appendChild(windowEl);item.appendChild(name);grid.appendChild(item);
- });
- const camera=document.getElementById('ae-camera-controls');
- if(camera&&camera.parentNode)camera.parentNode.insertBefore(panel,camera.nextSibling);
- else heading.appendChild(panel);
-}
-const css=document.createElement('style');
-css.textContent='#ae-fleet-gallery{margin-top:10px;background:#1b3442;border:1px solid #4d6c7a;color:#e7f2f2;border-radius:12px;padding:10px}#ae-fleet-gallery summary{list-style-position:inside}#ae-fleet-gallery .ae-fleet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#ae-fleet-gallery .ae-fleet-item{background:#294756;border-radius:9px;padding:8px 4px;text-align:center;min-width:0}#ae-fleet-gallery .ae-fleet-viewport{position:relative;width:180px;height:130px;overflow:hidden;margin:auto;max-width:100%}#ae-fleet-gallery .ae-fleet-viewport img{position:absolute;top:0;width:1080px;height:130px;max-width:none}#ae-fleet-gallery .ae-fleet-item strong{display:block;font-size:12px}#scene{image-rendering:auto}';
-document.head.appendChild(css);
-})();
 </script><script id="alpha134-showroom-readability">
 (function(){
 'use strict';
 document.title='Auto Empire Tycoon — Alpha 1.3.4';
 const label=document.getElementById('ae-version');if(label)label.textContent='AUTO EMPIRE TYCOON · ALPHA 1.3.4 · BUILD 1340';
 const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.3.4 · VAGAS MAIS LEGÍVEIS';
-const gallery=document.getElementById('ae-fleet-gallery');
-if(gallery){
- gallery.querySelectorAll('.ae-fleet-viewport').forEach(viewport=>{
-  viewport.style.width='180px';viewport.style.flexShrink='0';
- });
- gallery.querySelectorAll('.ae-fleet-item').forEach(item=>item.style.overflow='hidden');
-}
 const heading=document.getElementById('ae-scene-header');
 if(heading&&!document.getElementById('ae-active-vehicle')){
  const readout=document.createElement('div');readout.id='ae-active-vehicle';
@@ -1441,80 +1166,7 @@ if(heading&&!document.getElementById('ae-active-vehicle')){
  refresh();
 }
 const css=document.createElement('style');
-css.textContent='#ae-active-vehicle{margin-top:8px;padding:9px 11px;border:1px solid #5b8290;background:#203f4c;color:#f3e1b8;border-radius:9px;font-size:12px;font-weight:700}#garage>.scene-wrap canvas{touch-action:manipulation}#ae-fleet-gallery .ae-fleet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:340px){#ae-fleet-gallery .ae-fleet-grid{grid-template-columns:1fr}}';
-document.head.appendChild(css);
-})();
-</script><script id="alpha135-vehicle-spotlight">
-(function(){
-'use strict';
-document.title='Auto Empire Tycoon — Alpha 1.4.9';
-const badge=document.getElementById('ae-version');if(badge)badge.textContent='AUTO EMPIRE TYCOON · ALPHA 1.4.9 · BUILD 1490';
-const tag=document.querySelector('.top .tag');if(tag)tag.textContent='ALPHA 1.4.9 · ATIVIDADE COMERCIAL';
-const galleryLink=document.createElement('a');galleryLink.href='./galeria/';galleryLink.textContent='🖼️ Ver frota em tela cheia';galleryLink.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;margin:8px 0;border:1px solid #7394a7;border-radius:12px;background:#203c4b;color:#e6f7ff;font-weight:800;text-decoration:none';const galleryHeading=document.getElementById('ae-scene-header');if(galleryHeading&&!document.getElementById('ae-gallery-link')){galleryLink.id='ae-gallery-link';galleryHeading.insertAdjacentElement('afterend',galleryLink);}
-const garage=document.getElementById('garage'),heading=document.getElementById('ae-scene-header');
-if(!garage||!heading||document.getElementById('ae-vehicle-spotlight'))return;
-const panel=document.createElement('section');
-panel.id='ae-vehicle-spotlight';panel.setAttribute('aria-label','Visualização ampliada do veículo selecionado');
-const image=document.createElement('canvas');image.width=240;image.height=160;image.setAttribute('aria-label','Veículo em vista isométrica ampliada');image.setAttribute('role','img');
-const details=document.createElement('div');details.className='ae-spotlight-info';
-const kicker=document.createElement('span');kicker.className='ae-spotlight-kicker';kicker.textContent='EM DESTAQUE';
-const name=document.createElement('strong');name.className='ae-spotlight-name';
-const meta=document.createElement('span');meta.className='ae-spotlight-meta';
-const facts=document.createElement('div');facts.className='ae-spotlight-facts';
-const status=document.createElement('span');status.className='ae-spotlight-status';
-details.appendChild(kicker);details.appendChild(name);details.appendChild(meta);details.appendChild(facts);details.appendChild(status);
-panel.appendChild(image);panel.appendChild(details);
-const scene=garage.querySelector('.scene-wrap');
-if(scene)scene.insertAdjacentElement('afterend',panel);
-else heading.appendChild(panel);
-const atlas=new Image();let ready=false;
-atlas.onload=()=>{ready=true;refresh()};atlas.onerror=()=>{ready=false;refresh()};
-atlas.src='./assets/car-sprites-v2.svg?v=1700';
-const categories=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
-let previous='';
-function refresh(){
- const active=document.querySelector('#ae-garage-buttons button[data-ae-slot]:not(.ghost)');
- const index=active?Number(active.dataset.aeSlot):0;
- const car=s.stock[index];
- const key=[index,car&&car.id,car&&car.kind,car&&car.name,car&&car.listed,car&&car.condition,car&&car.year,car&&car.km,car&&car.ask,car&&car.price,ready].join(':');
- if(key===previous)return;previous=key;
- const ctx=image.getContext('2d');if(!ctx)return;
- ctx.clearRect(0,0,240,160);
- ctx.fillStyle='#1d3a48';ctx.fillRect(0,0,240,160);
- ctx.fillStyle='#304f5d';ctx.beginPath();ctx.moveTo(18,115);ctx.lineTo(119,66);ctx.lineTo(225,115);ctx.lineTo(119,155);ctx.closePath();ctx.fill();
- ctx.strokeStyle='#8cabb0';ctx.lineWidth=2;ctx.stroke();
- if(car){
-  const kind=String(car.kind||'Hatch');
-  const sprite=Math.max(0,categories.indexOf(kind));
-  if(ready){ctx.imageSmoothingEnabled=true;ctx.drawImage(atlas,sprite*180,0,180,130,24,17,192,133)}
-  else{ctx.fillStyle='#c8dce0';ctx.font='bold 18px sans-serif';ctx.fillText('Carregando arte...',29,79)}
-  name.textContent=car.name||kind;
-  meta.textContent=kind+' · '+(car.listed?'Anunciado para venda':'No estoque');
-  const fields=[];
-  if(Number.isFinite(Number(car.year))&&Number(car.year)>1900)fields.push(String(car.year));
-  if(Number.isFinite(Number(car.km)))fields.push(Math.round(Number(car.km)).toLocaleString('pt-BR')+' km');
-  const value=Number(car.ask||car.price||0);
-  if(value>0)fields.push(fmt(value));
-  facts.textContent=fields.join(' · ');
-  const condition=Number(car.condition);
-  status.textContent=Number.isFinite(condition)?'Conservação: '+Math.max(0,Math.min(100,Math.round(condition)))+'%':'Veículo disponível para inspeção';
-  image.setAttribute('aria-label','Visualização ampliada de '+(car.name||kind));
- }else{
-  ctx.strokeStyle='#7d9ca6';ctx.setLineDash([7,6]);ctx.strokeRect(52,45,136,72);ctx.setLineDash([]);
-  ctx.fillStyle='#c5d8da';ctx.font='bold 15px sans-serif';ctx.fillText('VAGA LIVRE',70,85);
-  name.textContent='Vaga '+(index+1)+' disponível';
-  meta.textContent='Compre um veículo no mercado para ocupar esta vaga.';
-  facts.textContent='';status.textContent='Sem veículo';
-  image.setAttribute('aria-label','Vaga vazia');
- }
-}
-(window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
-const buttons=document.getElementById('ae-garage-buttons');
-if(buttons)buttons.addEventListener('click',()=>requestAnimationFrame(refresh));
-refresh();
-const css=document.createElement('style');
-css.textContent='#ae-vehicle-spotlight{display:flex;align-items:center;gap:10px;padding:10px;border-radius:13px;border:1px solid #527988;background:linear-gradient(135deg,#213d4b,#162c39);min-width:0;order:1!important}#ae-vehicle-spotlight canvas{display:block;width:46%;height:auto;max-width:180px;flex-shrink:0;border-radius:9px;background:#1d3a48}#ae-vehicle-spotlight .ae-spotlight-info{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}#ae-vehicle-spotlight .ae-spotlight-kicker{font-size:9px;letter-spacing:1px;font-weight:900;color:#f5ce83}#ae-vehicle-spotlight .ae-spotlight-name{font-size:15px;line-height:1.2;overflow-wrap:anywhere;color:#f3f6f4}#ae-vehicle-spotlight .ae-spotlight-meta{font-size:11px;color:#b6d2d9;line-height:1.35}#garage>#ae-garage-buttons{order:2!important}#garage>#ae-slot-status{order:3!important}@media(max-width:350px){#ae-vehicle-spotlight canvas{width:40%}#ae-vehicle-spotlight .ae-spotlight-name{font-size:13px}}';
-css.textContent+="#ae-vehicle-spotlight .ae-spotlight-facts{font-size:11px;color:#f1e1bc;font-weight:700;line-height:1.4}#ae-vehicle-spotlight .ae-spotlight-status{font-size:10px;color:#a5d5c3;line-height:1.3}";
+css.textContent='#ae-active-vehicle{margin-top:8px;padding:9px 11px;border:1px solid #5b8290;background:#203f4c;color:#f3e1b8;border-radius:9px;font-size:12px;font-weight:700}#garage>.scene-wrap canvas{touch-action:manipulation}';
 document.head.appendChild(css);
 })();
 </script><script id="alpha150-operations">
@@ -1676,7 +1328,6 @@ button.ghost{background:#2c485a;color:#e1f0f2;border:1px solid #547182}
 #ae-ops .ops-item{background:linear-gradient(125deg,#1a3645,#112735)!important;border-color:#456877!important}
 #ae-ops .ops-item-head strong{color:#f6d48d}
 #ae-vehicle-spotlight{border:1px solid #658797!important;background:linear-gradient(135deg,#244456,#102634)!important;box-shadow:0 8px 22px #0005}
-#ae-fleet-gallery{background:linear-gradient(160deg,#1c3544,#0d2533)!important}
 .vehicle{align-items:center}
 .carart{width:110px;min-width:110px;height:80px;background:radial-gradient(ellipse at 50% 45%,#476c7c,#183140 75%);border:1px solid #5a7a87;border-radius:12px;overflow:hidden}
 .carart:after{width:72px;bottom:11px;opacity:.6}
@@ -1699,12 +1350,9 @@ const sceneWrap=document.querySelector('#garage .scene-wrap');
 if(sceneWrap&&!document.getElementById('ae-art-signature')){
  const ribbon=document.createElement('div');ribbon.id='ae-art-signature';ribbon.innerHTML='<span>✦ SÃO PAULO MOTOR DISTRICT</span><b>SHOWROOM · ISOMÉTRICO</b>';sceneWrap.insertAdjacentElement('beforebegin',ribbon);
 }
-// Reuse the real six-class atlas for every inventory and marketplace card.
-const classes=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'];
+// Inline fallback while the current model artwork module loads.
 carSvg=function(car){
- const idx=Math.max(0,classes.indexOf(car.kind||'Hatch'));
- const bg=-idx*100;
- return '<div class="ae-car-thumb" role="img" aria-label="Ilustração de '+esc(car.kind||'Hatch')+'" style="background-image:url(./assets/car-sprites-v2.svg?v=1700);background-size:600px 72.222px;background-position:'+bg+'px 0"></div>';
+ return '<svg viewBox="0 0 150 90" role="img" aria-label="'+esc(car.kind||'Veículo')+'"><path d="M21 56l14-25h63l23 25v14H21z" fill="'+esc(car.color||'#6c91b0')+'"/><path d="M44 35h48l15 19H34z" fill="#dcebf5"/><circle cx="43" cy="69" r="10" fill="#263b50"/><circle cx="103" cy="69" r="10" fill="#263b50"/></svg>';
 };
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(()=>{
  const ribbon=document.getElementById('ae-art-signature');if(!ribbon)return;

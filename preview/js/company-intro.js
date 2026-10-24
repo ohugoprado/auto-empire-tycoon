@@ -10,7 +10,7 @@ const text=(v,max)=>String(v||'').trim().replace(/\s+/g,' ').slice(0,max);
 const valid=(v)=>v.length>=2&&/[\p{L}\p{N}]/u.test(v);
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const readProfile=()=>{
- try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty),headquarters:foundingCities.some(c=>c[0]===v.headquarters)?v.headquarters :'saopaulo'}:null}catch(e){return null}
+ try{const v=JSON.parse(localStorage.getItem(profileKey));return v&&valid(text(v.company,42))&&valid(text(v.owner,42))?{...v,company:text(v.company,42),owner:text(v.owner,42),difficulty:difficultyOf(v.difficulty),headquarters:foundingCities.some(c=>c[0]===v.headquarters)?v.headquarters :'saopaulo'}:null}catch(e){return null}
 };
 let profile=readProfile();
 const style=document.createElement('style');
@@ -52,7 +52,7 @@ const renderIdentity=()=>{
 };
 const show=(required)=>{
  screen.classList.add('is-open');document.body.style.overflow='hidden';
- company.value=profile?.company||'';owner.value=profile?.owner||'';difficulty.value=difficultyOf(s?.difficulty||profile?.difficulty);difficulty.disabled=!!profile&&!creatingNew;explain();
+ company.value=profile?.company||'';owner.value=profile?.owner||'';difficulty.value=difficultyOf(s?.difficulty||profile?.difficulty);difficulty.disabled=!!profile&&!creatingNew;headquarters.value=profile?.headquarters||'saopaulo';headquarters.disabled=!!profile&&!creatingNew;explain();
  screen.querySelector('#ae-company-error').textContent='';
  cancel.hidden=!!required;
  screen.querySelector('#ae-company-submit').textContent=required?'Fundar concessionária →':'Salvar identidade';
@@ -63,10 +63,10 @@ const hide=()=>{screen.classList.remove('is-open');document.body.style.overflow=
 cancel.addEventListener('click',hide);
 form.addEventListener('submit',e=>{
  e.preventDefault();
- const next={company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty),headquarters:creatingNew||!profile?headquarters.value:profile.headquarters};
+ const next={...(readProfile()||profile||{}),company:text(company.value,42),owner:text(owner.value,42),difficulty:difficultyOf(creatingNew||!profile?difficulty.value:profile.difficulty),headquarters:creatingNew||!profile?headquarters.value:profile.headquarters};
  if(!valid(next.company)||!valid(next.owner)){screen.querySelector('#ae-company-error').textContent='Informe nomes com pelo menos dois caracteres válidos.';return}
  try{localStorage.setItem(profileKey,JSON.stringify(next))}catch(err){screen.querySelector('#ae-company-error').textContent='Não foi possível salvar. Verifique o armazenamento do navegador.';return}
- const firstProfile=!profile;profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else{if(s&&!s.difficulty)s.difficulty=next.difficulty;if(firstProfile&&s?.day===1&&s?.sales===0&&s?.stock?.length===0){s.empire=s.empire||{};s.empire.world={owned:[next.headquarters],hq:next.headquarters,active:next.headquarters,founded:next.headquarters}}save()}renderIdentity();hide();if(typeof render==='function')render();
+ const firstProfile=!profile;profile=next;if(creatingNew){seed();paused=true;creatingNew=false;showTab()}else{if(s&&!s.difficulty)s.difficulty=next.difficulty;if(firstProfile&&!campaignLoaded&&s?.day===1&&s?.sales===0&&s?.stock?.length===0){s.difficulty=next.difficulty;s.cash=difficulties[next.difficulty].cash;s.empire=s.empire||{};s.empire.world={owned:[next.headquarters],hq:next.headquarters,active:next.headquarters,founded:next.headquarters}}save()}renderIdentity();hide();if(typeof render==='function')render();
  if(typeof toast==='function')toast('Bem-vindo à '+next.company+'!');
 });
 renderIdentity();
@@ -75,13 +75,22 @@ const previousSeed=seed;
 seed=function(){previousSeed();const mode=difficultyOf(profile?.difficulty||difficulty.value);s.difficulty=mode;s.cash=difficulties[mode].cash;save()};
 const previousTickDay=tickDay;
 tickDay=function(){const day=s.day;previousTickDay();if(s.day!==day&&s.day%30===0){const mode=difficulties[difficultyOf(s.difficulty)];s.cash+=1200-mode.rent;save()}};
-newGame=function(){
- if(!confirm('Iniciar uma nova campanha? O estoque e o dinheiro atuais serão substituídos.'))return;
+function startNewCampaign(selected,requireConfirmation){
+ if(requireConfirmation&&!confirm('Iniciar uma nova campanha? O estoque e o dinheiro atuais serão substituídos.'))return false;
  creatingNew=true;show(false);difficulty.disabled=false;headquarters.disabled=false;
+ if(selected!==undefined){difficulty.value=difficultyOf(selected);explain()}
  screen.querySelector('#ae-company-submit').textContent='Criar nova campanha →';
  screen.querySelector('#ae-company-footnote').textContent='A nova campanha substitui o progresso atual ao confirmar. Escolha a dificuldade.';
-};
+ return true;
+}
+newGame=function(){return startNewCampaign(undefined,true)};
 cancel.addEventListener('click',()=>{creatingNew=false});
+window.AECompanyProfile=Object.freeze({
+ hasProfile:()=>!!profile,
+ edit:()=>{creatingNew=false;show(!profile)},
+ startNew:selected=>startNewCampaign(selected,!!profile||campaignLoaded||s?.day>1||s?.stock?.length>0||s?.sales>0),
+ difficulties:Object.freeze(Object.fromEntries(Object.entries(difficulties).map(([id,value])=>[id,Object.freeze({...value})])))
+});
 function showTab(){if(typeof window.show==='function')window.show('garage');else if(typeof render==='function')render()}
 document.title='Auto Empire Tycoon — '+VERSION;
 const banner=document.getElementById('ae-version');if(banner)banner.textContent='AUTO EMPIRE TYCOON · '+VERSION+' · BUILD '+BUILD;

@@ -1,0 +1,50 @@
+/* The game's front door, with one illustration and real campaign controls. */
+body.ae-redesign.ae-next #ae-game-menu{width:min(540px,100%);height:auto;max-width:540px;max-height:100dvh;box-sizing:border-box;margin:auto;padding:0;border:0;border-radius:24px;background:#f4f7fb;color:#15263b;overflow:auto;overscroll-behavior:contain;box-shadow:0 26px 100px #08142399}
+#ae-game-menu::backdrop{background:#0b192deb;backdrop-filter:blur(7px)}
+#ae-game-menu *{box-sizing:border-box}
+.ae-game-menu-hero{position:relative;isolation:isolate;min-height:300px;overflow:hidden;background:#15263b}
+.ae-game-menu-hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 35%;z-index:-2}
+.ae-game-menu-hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#06172d22 10%,#0a1f37dd 78%,#0c223cf5),linear-gradient(90deg,#0b203a7a,transparent)}
+body.ae-redesign.ae-next #ae-game-menu #ae-game-menu-close{position:absolute;right:16px;top:calc(14px + env(safe-area-inset-top,0px));min-height:44px!important;padding:10px 12px!important;border:1px solid #ffffff77!important;border-radius:10px!important;background:#0b203ab8!important;color:#fff!important;font-size:12px!important;z-index:1}
+.ae-game-menu-brand{padding:116px 26px 25px}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-brand>p:first-child{margin:0 0 12px!important;color:#b7f1dc!important;font-size:10px!important;font-weight:800!important;letter-spacing:2.3px!important}
+body.ae-redesign.ae-next #ae-game-menu h1{margin:0!important;font-size:41px!important;line-height:.98!important;letter-spacing:-2.1px!important;font-weight:850!important;color:#fff!important;text-shadow:0 2px 15px #06152a77}
+body.ae-redesign.ae-next #ae-game-menu h1>span{color:#80e3c1!important}
+body.ae-redesign.ae-next #ae-game-menu h1>small{display:block!important;font-size:17px!important;letter-spacing:9px!important;line-height:1.5!important;margin:9px 0 12px!important;color:#e4edf9!important;font-weight:700!important}
+body.ae-redesign.ae-next #ae-game-menu #ae-game-menu-intro{max-width:300px;color:#e5eef9!important;font-size:13px!important;line-height:1.6!important;margin:0!important}
+.ae-game-menu-body{padding:24px 26px calc(26px + env(safe-area-inset-bottom,0px))}
+#ae-game-menu [hidden]{display:none!important}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-kicker{font-size:9px!important;font-weight:850!important;letter-spacing:1.3px!important;color:#386b9e!important;margin:0 0 8px!important}
+body.ae-redesign.ae-next #ae-game-menu #ae-game-menu-campaign{font-size:14px!important;font-weight:650!important;color:#254361!important;margin:0 0 19px!important;line-height:1.5!important;overflow-wrap:anywhere}
+.ae-game-menu-actions{display:flex;flex-direction:column;gap:9px}
+.ae-game-menu-secondary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+body.ae-redesign.ae-next #ae-game-menu button{min-height:46px!important;max-width:100%;min-width:0;border-radius:12px!important;padding:12px 15px!important;font-size:14px!important;font-weight:750!important;line-height:1.4!important;white-space:normal!important;touch-action:manipulation}
+body.ae-redesign.ae-next #ae-game-menu button:not(.ghost){background:#2e66db!important;border:1px solid #2e66db!important;color:#fff!important}
+body.ae-redesign.ae-next #ae-game-menu button.ghost{background:#eaf0fa!important;border:1px solid #c1d0e6!important;color:#244d7e!important;box-shadow:none!important}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-local{margin:17px 0 0!important;color:#52647a!important;font-size:11px!important;line-height:1.65!important}
+body.ae-redesign.ae-next #ae-game-menu h2{font-size:25px!important;line-height:1.2!important;letter-spacing:-.8px!important;color:#15263b!important;margin:17px 0 8px!important}
+body.ae-redesign.ae-next #ae-game-menu section>p{font-size:13px!important;line-height:1.6!important;color:#52647a!important;margin:0 0 14px!important}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-back{font-size:12px!important;padding:9px 12px!important;min-height:44px!important}
+#ae-game-menu-difficulties{border:0;padding:0;margin:18px 0;min-width:0;display:flex;flex-direction:column;gap:8px}
+#ae-game-menu-difficulties legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ae-game-menu-difficulty{display:flex;align-items:flex-start;gap:12px;min-height:85px;padding:14px;border:1px solid #c9d7e8;border-radius:13px;background:#fff;cursor:pointer}
+.ae-game-menu-difficulty:has(input:checked){border-color:#326bde;background:#edf3ff;box-shadow:inset 0 0 0 1px #326bde}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-difficulty input{appearance:auto!important;position:static!important;flex:none;width:20px!important;height:20px!important;min-height:20px!important;margin:1px 0 0!important;padding:0!important;accent-color:#326bde;transform:none!important}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-difficulty strong{display:block!important;color:#183d68!important;font-size:15px!important;line-height:1.4!important;margin-bottom:4px}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-difficulty small{display:block!important;color:#52647a!important;font-size:12px!important;line-height:1.5!important}
+.ae-game-menu-difficulty-numbers{display:block;color:#365e8a;font-size:10px;line-height:1.6;font-weight:650;margin-top:7px}
+body.ae-redesign.ae-next #ae-game-menu [data-menu-action=create],body.ae-redesign.ae-next #ae-game-menu [data-menu-view=help]>button:last-child{width:100%}
+.ae-game-menu-option-list{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-option-list button{text-align:left!important;padding:14px!important;background:#fff!important}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-option-list strong{display:block;font-size:14px!important;color:#244d7e!important;margin-bottom:4px}
+body.ae-redesign.ae-next #ae-game-menu .ae-game-menu-option-list small{display:block;font-size:12px!important;color:#52647a!important;line-height:1.5!important;font-weight:450!important}
+#ae-game-menu .ae-game-menu-option-list button:disabled{opacity:.5;cursor:default}
+.ae-game-menu-help{padding:0;margin:20px 0;list-style:none;counter-reset:menu-step;display:flex;flex-direction:column;gap:15px}
+.ae-game-menu-help li{position:relative;padding-left:37px;counter-increment:menu-step}
+.ae-game-menu-help li:before{content:counter(menu-step);position:absolute;left:0;top:0;width:25px;height:25px;background:#dfeafc;color:#2e66db;display:grid;place-items:center;border-radius:50%;font-size:12px;font-weight:800}
+.ae-game-menu-help strong{display:block;color:#254361;font-size:13px;line-height:1.5;margin-bottom:3px}
+.ae-game-menu-help span{display:block;color:#52647a;font-size:12px;line-height:1.6}
+#ae-game-menu :is(button,input):focus-visible{outline:3px solid #79a6ff!important;outline-offset:3px!important}
+@media(max-width:540px){body.ae-redesign.ae-next #ae-game-menu{height:100dvh;max-height:100dvh;width:100%;border-radius:0}.ae-game-menu-hero{min-height:282px}.ae-game-menu-brand{padding-top:107px}}
+@media(max-width:350px){.ae-game-menu-hero{min-height:260px}.ae-game-menu-brand{padding:105px 20px 20px}body.ae-redesign.ae-next #ae-game-menu h1{font-size:33px!important}.ae-game-menu-body{padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px))}.ae-game-menu-difficulty{padding:12px;gap:10px}body.ae-redesign.ae-next #ae-game-menu button{font-size:13px!important}}
+@media(prefers-reduced-motion:reduce){#ae-game-menu,#ae-game-menu *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

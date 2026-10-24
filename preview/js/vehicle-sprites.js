@@ -105,6 +105,59 @@
       { columns: [0, 317, 619, 918, 1215, 1536], y: 765, height: 205 }
     ].map(Object.freeze))
   });
+  // Measured alpha >= 200 body bounds for every actual model/paint. A shared
+  // row crop left some cars 1px from an edge while others had 40px of air.
+  // Keep the physical isolation below separate from the padded display frame.
+  const bodyBounds = Object.freeze({
+    a: Object.freeze([
+      [[14,66,287,163],[320,65,287,163],[628,65,288,163],[940,64,287,163],[1247,65,276,162]],
+      [[12,295,293,189],[320,293,295,191],[632,293,294,191],[940,293,293,191],[1248,295,282,189]],
+      [[11,559,298,156],[317,559,298,158],[625,559,302,158],[936,559,299,158],[1242,559,286,156]],
+      [[11,769,300,183],[317,770,301,183],[624,770,302,183],[933,770,300,183],[1240,770,290,182]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    b: Object.freeze([
+      [[22,57,278,200],[326,49,281,209],[628,58,279,200],[931,56,280,202],[1237,49,279,209]],
+      [[15,331,299,152],[319,331,298,150],[623,331,300,151],[928,331,299,151],[1233,331,293,151]],
+      [[16,553,301,172],[324,553,298,172],[626,553,298,172],[929,553,298,172],[1231,553,296,172]],
+      [[16,784,299,178],[321,783,297,179],[624,783,295,179],[926,784,297,178],[1230,783,294,179]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    c: Object.freeze([
+      [[58,84,234,140],[353,82,242,144],[649,80,242,145],[952,81,245,144],[1255,80,236,145]],
+      [[51,311,250,157],[351,311,253,157],[648,310,251,157],[949,310,253,159],[1253,309,250,160]],
+      [[47,535,252,175],[352,535,253,175],[650,535,254,176],[952,535,258,176],[1255,535,249,176]],
+      [[46,787,257,164],[344,786,261,166],[641,784,263,168],[942,784,271,169],[1247,786,256,167]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    d: Object.freeze([
+      [[16,76,301,162],[322,76,298,162],[626,76,299,162],[931,76,298,162],[1234,76,293,162]],
+      [[15,314,297,167],[320,314,297,167],[624,314,297,167],[928,314,297,167],[1233,314,293,167]],
+      [[11,548,303,173],[318,549,300,172],[620,546,302,175],[924,547,301,173],[1228,549,299,172]],
+      [[14,772,298,196],[320,772,297,196],[624,772,298,197],[928,772,298,196],[1233,772,295,197]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    e: Object.freeze([
+      [[49,88,226,172],[347,88,223,171],[657,90,226,169],[965,93,226,166],[1270,87,229,173]],
+      [[43,332,238,175],[347,332,239,175],[652,332,238,175],[958,332,242,175],[1265,333,238,174]],
+      [[30,585,262,152],[332,583,269,153],[638,584,266,153],[944,584,267,154],[1251,583,263,153]],
+      [[31,806,259,152],[331,805,258,149],[636,804,263,152],[946,805,262,152],[1249,804,260,151]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    f: Object.freeze([
+      [[34,83,242,151],[338,84,248,150],[648,85,242,149],[955,83,250,152],[1256,82,243,152]],
+      [[21,336,264,152],[330,336,270,152],[641,336,267,152],[947,336,272,152],[1260,336,257,152]],
+      [[29,568,244,159],[332,566,257,162],[642,566,253,162],[949,565,259,163],[1256,565,250,163]],
+      [[35,824,249,140],[328,823,265,142],[642,823,255,141],[942,823,265,142],[1249,824,257,140]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    g: Object.freeze([
+      [[13,64,300,173],[320,64,300,173],[624,64,300,173],[931,64,300,173],[1234,64,295,173]],
+      [[12,299,301,189],[320,299,301,190],[626,299,299,190],[931,298,300,191],[1234,299,294,190]],
+      [[35,527,265,203],[343,527,264,203],[647,527,263,203],[953,527,264,203],[1253,527,256,203]],
+      [[26,764,276,208],[332,764,277,209],[638,765,276,207],[944,765,278,207],[1248,765,272,207]]
+    ].map(row => Object.freeze(row.map(Object.freeze)))),
+    h: Object.freeze([
+      [[43,88,265,159],[348,86,264,161],[643,87,263,160],[942,86,264,161],[1240,84,262,163]],
+      [[48,324,263,171],[355,322,257,173],[650,323,263,172],[953,322,260,173],[1249,324,253,171]],
+      [[41,578,273,141],[341,577,273,142],[636,578,272,143],[932,578,276,143],[1228,578,275,142]],
+      [[30,787,281,158],[325,787,286,159],[628,787,282,159],[926,787,281,159],[1225,785,278,161]]
+    ].map(row => Object.freeze(row.map(Object.freeze))))
+  });
   const normalized = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const sprites = Object.freeze({
@@ -151,10 +204,19 @@
   function variant(car = {}) {
     const model = modelFor(car), paint = paintFor(car), atlas = atlases[model.atlas];
     const column = paints.indexOf(paint), crop = crops[model.atlas]?.[model.row];
-    const box = crop ? [crop.columns[column], crop.y, crop.columns[column + 1] - crop.columns[column], crop.height].join(' ') : '0 0 300 200';
+    const source = crop ? Object.freeze([crop.columns[column], crop.y, crop.columns[column + 1] - crop.columns[column], crop.height]) : Object.freeze([0, 0, 300, 200]);
+    const contentBounds = bodyBounds[model.atlas]?.[model.row]?.[column] || source;
+    const [x, y, width, height] = contentBounds;
+    // All frames use 3:2 and the same proportional breathing room. Expanding a
+    // frame beyond its atlas cell is safe: the nested SVG clips to sourceBox.
+    const top = Math.max(10, Math.ceil(height * .07)), bottom = Math.max(20, Math.ceil(height * .15));
+    const frameWidth = Math.ceil(Math.max(width * 1.14, (height + top + bottom) * 1.5) / 3) * 3;
+    const frameHeight = frameWidth * 2 / 3;
+    const frame = [Math.floor(x + width / 2 - frameWidth / 2), Math.floor(y - top - (frameHeight - height - top - bottom) / 2), frameWidth, frameHeight];
+    const sourceBox = source.join(' '), box = frame.join(' ');
     return Object.freeze({ id: model.id + ':' + paint.id, modelId: model.id, paintId: paint.id,
       model, paint, url: atlas.url, width: atlas.width, height: atlas.height,
-      box, artworkReady: !!crop,
+      box, sourceBox, contentBounds, artworkReady: !!crop,
       reference: !!car.name && normalized(car.name) !== normalized(model.name) });
   }
   function variants(modelId) {
@@ -167,7 +229,7 @@
     if (!spec.artworkReady) return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-artwork-ready="false" viewBox="0 0 300 200" role="img" aria-label="Imagem de ' + escape(name) + ' em revisão"><text x="150" y="100" text-anchor="middle" fill="currentColor" font-size="15">Arte em revisão</text></svg>';
     return '<svg class="ae-sprite" data-sprite="' + key + '" data-model="' + spec.modelId + '" data-paint="' + spec.paintId + '" data-variant="' + spec.id + '" viewBox="' + spec.box + '" preserveAspectRatio="xMidYMid meet" ' +
       (decorative ? 'aria-hidden="true"' : 'role="img" aria-label="' + escape(label) + '"') +
-      '><image href="' + spec.url + '" width="' + spec.width + '" height="' + spec.height + '"/></svg>';
+      '><svg x="' + spec.sourceBox.split(' ')[0] + '" y="' + spec.sourceBox.split(' ')[1] + '" width="' + spec.sourceBox.split(' ')[2] + '" height="' + spec.sourceBox.split(' ')[3] + '" viewBox="' + spec.sourceBox + '" preserveAspectRatio="none" overflow="hidden"><image href="' + spec.url + '" width="' + spec.width + '" height="' + spec.height + '"/></svg></svg>';
   }
   window.AESprites = Object.freeze({ category, sprites, models, paints, atlases, modelFor, paintFor, variant, variants, render });
 })();

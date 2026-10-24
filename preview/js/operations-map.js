@@ -4,9 +4,13 @@
   const host = document.getElementById('ae-showroom');
   if (!host) return;
   const art = Object.freeze({
-    url: new URL('../assets/district-buildings.webp', document.currentScript.src).href,
-    width: 1536, height: 1024,
-    boxes: Object.freeze({ garage: '99 384 389 282', factory: '582 370 390 308', projects: '1079 397 377 276' })
+    url: new URL('../assets/district-campus.webp', document.currentScript.src).href,
+    width: 1024, height: 1536,
+    zones: Object.freeze({
+      garage: Object.freeze([.0537, .3320, .4688, .2930]),
+      factory: Object.freeze([.4004, .0586, .5615, .3320]),
+      projects: Object.freeze([.4443, .5697, .5225, .3125])
+    })
   });
   const amount = value => Number.isFinite(Number(value)) ? Number(value) : 0;
   const positive = value => Math.max(0, amount(value));
@@ -48,21 +52,27 @@
   }
   host.classList.add('ae-map-host');
   host.setAttribute('aria-labelledby', 'ae-map-title');
-  host.innerHTML = '<div id="ae-operations-map"><div class="ae-map-heading"><span class="ae-map-kicker">SUA EMPRESA, EM MOVIMENTO</span><h1 id="ae-map-title">Seu distrito automotivo</h1><p>Toque em uma construção para cuidar do negócio.</p></div>' +
-    '<div class="ae-district-board"><svg class="ae-district-roads" viewBox="0 0 320 380" preserveAspectRatio="none" aria-hidden="true"><path class="ae-road-edge" d="M75 100 160 195 245 100M160 195v130"/><path class="ae-road" d="M75 100 160 195 245 100M160 195v130"/><path class="ae-road-marking" d="M75 100 160 195 245 100M160 195v130"/></svg></div>' +
+  host.innerHTML = '<div id="ae-operations-map"><div class="ae-map-heading"><span class="ae-map-kicker">SEU IMPÉRIO AUTOMOTIVO</span><h1 id="ae-map-title">O seu distrito</h1><p>Explore o mapa. Toque nos prédios para administrar.</p></div>' +
+    '<div class="ae-district-board"><img class="ae-campus-scene" src="' + art.url + '" width="' + art.width + '" height="' + art.height + '" alt="Distrito automotivo com garagem, fábrica e centro de projetos ligados por ruas" decoding="async" fetchpriority="high"/></div>' +
+    '<div class="ae-map-readout" aria-label="Situação da empresa"></div>' +
     '<p id="ae-map-simulation" class="ae-map-simulation"></p><p id="ae-map-network" class="ae-map-network" hidden></p>' +
     '<div class="ae-map-actions"><button id="ae-explore-market" type="button">Explorar mercado <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10"/></svg></button><a class="ae-gallery-link">Modelos e cores</a></div></div>';
   const board = host.querySelector('.ae-district-board');
+  const readout = host.querySelector('.ae-map-readout');
   const nodes = new Map();
-  for (const [id, label] of [['garage', 'Garagem'], ['factory', 'Fabricante'], ['projects', 'Projetos']]) {
+  for (const [id, label] of [['garage', 'Garagem'], ['factory', 'Fabricante'], ['projects', 'Projetos e P&D']]) {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'ghost ae-map-node ae-map-' + id; button.dataset.mapNode = id;
     button.setAttribute('aria-labelledby', 'ae-map-name-' + id);
     button.setAttribute('aria-describedby', 'ae-map-status-' + id + ' ae-map-detail-' + id);
-    button.innerHTML = '<span class="ae-district-art-wrap"><svg class="ae-district-art" viewBox="' + art.boxes[id] + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><image href="' + art.url + '" width="' + art.width + '" height="' + art.height + '"/></svg><span class="ae-map-node-arrow" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 15 15 5M5 5h10v10"/></svg></span></span><span class="ae-map-node-name" id="ae-map-name-' + id + '">' + label + '</span><span class="ae-map-node-status" data-map-status id="ae-map-status-' + id + '"></span><span class="ae-map-node-detail" data-map-detail id="ae-map-detail-' + id + '"></span>';
-    button.addEventListener('click', () => visit(id));
-    board.append(button);
-    nodes.set(id, { button, status: button.querySelector('[data-map-status]'), detail: button.querySelector('[data-map-detail]') });
+    const [x, y, width, height] = art.zones[id];
+    button.style.left = x * 100 + '%'; button.style.top = y * 100 + '%';
+    button.style.width = width * 100 + '%'; button.style.height = height * 100 + '%';
+    button.innerHTML = '<span class="ae-map-place"><span class="ae-map-place-dot" aria-hidden="true"></span><span id="ae-map-name-' + id + '">' + label + '</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10"/></svg></span>';
+    const row = document.createElement('div'); row.className = 'ae-map-readout-row'; row.dataset.mapReadout = id;
+    row.innerHTML = '<strong>' + label + '</strong><span data-map-status id="ae-map-status-' + id + '"></span><small data-map-detail id="ae-map-detail-' + id + '"></small>';
+    button.addEventListener('click', () => visit(id)); board.append(button); readout.append(row);
+    nodes.set(id, { button, row, status: row.querySelector('[data-map-status]'), detail: row.querySelector('[data-map-detail]') });
   }
   const gallery = host.querySelector('.ae-gallery-link');
   gallery.href = new URLSearchParams(location.search).get('campaign') === 'main' ? './galeria/?campaign=main' : './galeria/';
@@ -77,6 +87,7 @@
     for (const [id, value] of [['garage', garage], ['factory', factory], ['projects', projects]]) {
       const node = nodes.get(id);
       if (node.button.dataset.state !== value.status) node.button.dataset.state = value.status;
+      if (node.row.dataset.state !== value.status) node.row.dataset.state = value.status;
     }
     setText(nodes.get('garage').status, garage.offers ? plural(garage.offers, 'proposta', 'propostas') : garage.status === 'full' ? 'Estoque cheio' : garage.status === 'reserved' ? 'Vagas reservadas' : 'Seu estoque');
     setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'reserva', 'reservas') : ''));
@@ -116,6 +127,6 @@
   const previousRender = render;
   render = function () { const result = previousRender.apply(this, arguments); refresh(); return result; };
   (window.aeUiRefreshers || (window.aeUiRefreshers = [])).push(refresh);
-  window.AEOperationsMap = Object.freeze({ snapshot, refresh, art });
+  window.AEOperationsMap = Object.freeze({ snapshot, refresh, art, visit });
   refresh();
 })();

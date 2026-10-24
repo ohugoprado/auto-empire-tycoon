@@ -32,6 +32,7 @@ function ensureWorld(){
  if(!w.owned.length)w.owned=['saopaulo'];
  // Existing campaigns migrated from Solara retain their free founding branch.
  if(w.founded==='solara')w.founded='saopaulo';
+ if(!byId(w.founded)||!w.owned.includes(w.founded))w.founded=w.owned[0];
  if(w.hq==='solara')w.hq='saopaulo';if(!byId(w.hq)||!w.owned.includes(w.hq))w.hq=w.owned[0];
  if(w.active==='solara')w.active='saopaulo';if(!byId(w.active)||!w.owned.includes(w.active))w.active=w.owned[0];
  if(!Number.isFinite(Number(w.totalUpkeep)))w.totalUpkeep=0;
@@ -39,56 +40,79 @@ function ensureWorld(){
  if(!Array.isArray(w.history))w.history=[];
  return w;
 }
-const styles=document.createElement('style');styles.textContent=`
-#ae-world{margin:12px 0;padding:14px;background:#102a38;border:1px solid #456678;border-radius:13px}
-#ae-world h3{margin:0;color:#f2d08c;font-size:15px}
-.ae-world-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.ae-world-top small{color:#b9cbd2}
-.ae-world-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
-.ae-world-toolbar select{width:100%;min-width:0;padding:10px;background:#0b1e2a;border:1px solid #577383;border-radius:8px;color:#f1f5f5;font-size:13px}
-.ae-world-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.ae-world-city{padding:12px;background:#1a3644;border:1px solid #486777;border-radius:11px;display:flex;flex-direction:column;gap:5px}
-.ae-world-city.owned{border-color:#b89b5e}
-.ae-world-city strong{font-size:14px}
-.ae-world-city small{font-size:11px;color:#c4d5dc;line-height:1.45}
-.ae-world-city button{margin-top:auto;min-height:40px;font-size:12px}
-.ae-world-kpi{font-size:11px;color:#e6d199;margin:8px 0}
-@media(max-width:390px){.ae-world-grid{grid-template-columns:1fr}}
-`;document.head.appendChild(styles);
-const panel=document.createElement('section');panel.id='ae-world';panel.innerHTML='<div class="ae-world-top"><h3>🌍 Rede internacional</h3><small id="ae-world-count"></small></div><p class="tiny">Escolha sua sede e adquira subsidiárias em mercados com especializações diferentes. Cada unidade adiciona vagas e custos mensais.</p><div class="ae-world-toolbar"><label class="tiny">Sede global<select id="ae-world-hq"></select></label><label class="tiny">Mercado ativo<select id="ae-world-active"></select></label></div><div class="ae-world-kpi" id="ae-world-kpi"></div><div class="ae-world-grid" id="ae-world-cities"></div>';
+const panel=document.createElement('section');panel.id='ae-world';
+panel.setAttribute('aria-labelledby','ae-world-title');
+panel.innerHTML='<div class="ae-world-top"><h3 id="ae-world-title">Sua rede de subsidiárias</h3><small id="ae-world-count"></small></div>'+
+ '<p class="tiny ae-world-shared">Uma operação compartilhada: estoque, vagas, equipe e produção são administrados juntos. Troque de mercado com um toque, sem visitar cada filial para repetir tarefas.</p>'+
+ '<div class="ae-world-summary" id="ae-world-summary"></div><p class="ae-world-kpi" id="ae-world-kpi"></p>'+
+ '<section aria-labelledby="ae-world-owned-title"><div class="ae-world-section-head"><h4 id="ae-world-owned-title" tabindex="-1">Suas unidades</h4><span id="ae-world-active-label"></span></div><div id="ae-world-owned" class="ae-world-owned"></div></section>'+
+ '<details id="ae-world-settings" class="ae-world-details"><summary>Sede e seleção de mercado</summary><p class="tiny">Mudar o mercado ativo é gratuito. A sede pode ser transferida entre suas unidades, com confirmação.</p><div class="ae-world-toolbar"><label for="ae-world-hq">Sede global<select id="ae-world-hq"></select></label><label for="ae-world-active">Mercado ativo<select id="ae-world-active"></select></label></div></details>'+
+ '<details id="ae-world-expansion" class="ae-world-details"><summary>Expandir a rede <span id="ae-world-expansion-count"></span></summary><p class="tiny">Aquisições adicionam vagas ao estoque compartilhado e despesas a cada 30 dias. O resumo da rede já considera o desconto de 10% nos custos internacionais.</p><label class="ae-world-search" for="ae-world-search">Encontrar cidade ou especialidade<input id="ae-world-search" type="search" placeholder="Cidade, país ou categoria" autocomplete="off"></label><p id="ae-world-search-results" class="tiny" aria-live="polite"></p><div class="ae-world-grid" id="ae-world-cities"></div></details>';
 const garage=document.getElementById('garage');if(garage)garage.append(panel);
+const cityList=panel.querySelector('#ae-world-cities'),ownedList=panel.querySelector('#ae-world-owned');
+const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function monthlyCost(w){return Math.round(w.owned.reduce((sum,id)=>sum+byId(id).upkeep,0)*.9)}
+function renderExpansion(w){
+ const query=normalize(panel.querySelector('#ae-world-search').value);
+ const available=cities.filter(c=>!w.owned.includes(c.id));
+ const found=available.filter(c=>normalize([c.name,c.country,c.kind,c.special].join(' ')).includes(query));
+ panel.querySelector('#ae-world-expansion-count').textContent=available.length?'· '+available.length+' destinos':'· rede completa';
+ panel.querySelector('#ae-world-search-results').textContent=found.length+' de '+available.length+' destinos disponíveis';
+ cityList.innerHTML=found.length?found.map(c=>'<article class="ae-world-city" data-world-destination="'+c.id+'"><strong>'+escape(c.name)+'</strong><small>'+escape(c.country)+' · '+escape(c.kind)+' · demanda +'+Math.round((c.demand-1)*100)+'%</small><p>'+escape(c.detail)+'</p><dl><div><dt>Aquisição</dt><dd>'+cash(c.cost)+'</dd></div><div><dt>Custo base /30 dias</dt><dd>'+cash(c.upkeep)+'</dd></div><div><dt>Vagas na rede</dt><dd>+'+c.slots+'</dd></div></dl>'+(s.cash<c.cost?'<small class="ae-world-funds">Faltam '+cash(c.cost-s.cash)+' para adquirir.</small>':'')+'<button type="button" data-world-city="'+c.id+'" aria-label="Adquirir subsidiária em '+escape(c.name)+'">Adquirir subsidiária</button></article>').join(''):'<p class="tiny ae-world-no-results">'+(available.length?'Nenhum destino combina com a busca.':'Todas as cidades disponíveis fazem parte da sua rede.')+'</p>';
+}
 let lastWorldSignature='';
 function renderWorld(){
  if(!s)return;const w=ensureWorld(),hq=byId(w.hq),active=byId(w.active);
- const signature=[w.hq,w.active,w.owned.join(','),Math.floor(s.cash/100),s.day].join('|');if(signature===lastWorldSignature)return;lastWorldSignature=signature;
- document.getElementById('ae-world-count').textContent=w.owned.length+' mercados · '+new Set(w.owned.map(id=>byId(id).country)).size+' países';
- document.getElementById('ae-world-kpi').textContent='Sede: '+hq.name+', '+hq.country+' · Operando: '+active.name+' · Custo internacional (sede -10%): '+cash(Math.round(w.owned.reduce((n,id)=>n+byId(id).upkeep,0)*.9))+'/30 dias';
- const options=cities.map(c=>'<option value="'+c.id+'" '+(!w.owned.includes(c.id)?'disabled':'')+'> '+c.flag+' '+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
- const hqSel=document.getElementById('ae-world-hq');hqSel.innerHTML=options;hqSel.value=w.hq;
- const activeSel=document.getElementById('ae-world-active');activeSel.innerHTML=cities.filter(c=>w.owned.includes(c.id)).map(c=>'<option value="'+c.id+'">'+c.flag+' '+escape(c.name)+'</option>').join('');activeSel.value=w.active;
- document.getElementById('ae-world-cities').innerHTML=cities.map(c=>{
- const owned=w.owned.includes(c.id),active=c.id===w.active;
- return '<article class="ae-world-city '+(owned?'owned':'')+'"><strong>'+c.flag+' '+escape(c.name)+'</strong><small>'+escape(c.country)+' · '+escape(c.special)+'</small><small>'+escape(c.detail)+'</small><small>Especialidade: '+escape(c.kind)+' · demanda '+Math.round((c.demand-1)*100)+'% · custo '+cash(c.upkeep)+'/mês</small><small>'+(owned?'Subsidiária própria · +'+c.slots+' vagas':'Aquisição: '+cash(c.cost)+' · +'+c.slots+' vagas')+'</small><button type="button" data-world-city="'+c.id+'" '+(active?'disabled':'')+'>'+(active?'Mercado ativo':owned?'Operar nesta cidade':'Adquirir subsidiária')+'</button></article>';
+ const reserved=Array.isArray(s.empire?.economy?.factory?.queue)?s.empire.economy.factory.queue.length:0;
+ const signature=JSON.stringify([w.hq,w.active,w.owned,s.cash,s.slots,s.stock?.length||0,reserved]);
+ if(signature===lastWorldSignature)return;lastWorldSignature=signature;
+ panel.querySelector('#ae-world-count').textContent=w.owned.length+' '+(w.owned.length===1?'unidade':'unidades')+' · '+new Set(w.owned.map(id=>byId(id).country)).size+' '+(new Set(w.owned.map(id=>byId(id).country)).size===1?'país':'países');
+ panel.querySelector('#ae-world-summary').innerHTML='<div><small>Unidades próprias</small><strong>'+w.owned.length+'</strong></div><div><small>Custo da rede /30 dias</small><strong>'+cash(monthlyCost(w))+'</strong></div><div><small>Estoque compartilhado</small><strong>'+(s.stock?.length||0)+'/'+s.slots+'</strong><small>'+reserved+' vaga(s) reservada(s)</small></div>';
+ panel.querySelector('#ae-world-kpi').textContent='Sede: '+hq.name+' · Mercado ativo: '+active.name+'. Trocar de mercado não altera propostas já recebidas.';
+ panel.querySelector('#ae-world-active-label').textContent='Operando em '+active.name;
+ const options=cities.filter(c=>w.owned.includes(c.id)).map(c=>'<option value="'+c.id+'">'+escape(c.name)+' · '+escape(c.country)+'</option>').join('');
+ const hqSel=panel.querySelector('#ae-world-hq'),activeSel=panel.querySelector('#ae-world-active');
+ hqSel.innerHTML=options;hqSel.value=w.hq;activeSel.innerHTML=options;activeSel.value=w.active;
+ ownedList.innerHTML=w.owned.map(id=>{
+  const c=byId(id),isActive=id===w.active;
+  return '<article class="ae-world-owned-city" data-world-owned="'+c.id+'"><div><h5>'+escape(c.name)+(id===w.hq?'<span class="ae-world-badge">Sede</span>':'')+'</h5><p>'+escape(c.country)+' · '+escape(c.kind)+' · demanda +'+Math.round((c.demand-1)*100)+'%</p><small>Custo base: '+cash(c.upkeep)+'/30 dias · '+(id===w.founded?'Unidade inicial':('+'+c.slots+' vagas adquiridas'))+'</small></div><button type="button" data-world-city="'+c.id+'" aria-pressed="'+isActive+'" aria-label="'+(isActive?'Mercado ativo: ':'Operar em ')+escape(c.name)+'"'+(isActive?' disabled':'')+'>'+(isActive?'Mercado ativo':'Operar aqui')+'</button></article>';
  }).join('');
+ renderExpansion(w);
 }
+function switchMarket(c,w){
+ if(w.active===c.id)return;
+ w.active=c.id;note('Mercado ativo: '+c.name);save();render();
+}
+panel.querySelector('#ae-world-search').addEventListener('input',()=>renderExpansion(ensureWorld()));
 panel.addEventListener('click',ev=>{
- const btn=ev.target.closest('[data-world-city]');if(!btn)return;
+ const btn=ev.target.closest('[data-world-city]');if(!btn||!panel.contains(btn)||btn.disabled)return;
  const c=byId(btn.dataset.worldCity),w=ensureWorld();if(!c)return;
- if(w.owned.includes(c.id)){w.active=c.id;note('Mercado ativo: '+c.name);save();render();return}
+ if(w.owned.includes(c.id)){switchMarket(c,w);return}
+ if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência');
  if(s.cash<c.cost)return toast('Capital insuficiente para '+c.name);
- if(!confirm('Adquirir subsidiária em '+c.name+' por '+cash(c.cost)+'? Custo fixo adicional: '+cash(c.upkeep)+'/30 dias.'))return;
- s.cash-=c.cost;s.slots+=c.slots;w.owned.push(c.id);w.active=c.id;w.acquisitions++;
- w.history.unshift({day:s.day,city:c.id,cost:c.cost});w.history=w.history.slice(0,30);
+ if(!confirm('Adquirir subsidiária em '+c.name+' por '+cash(c.cost)+'? Custo base adicional: '+cash(c.upkeep)+'/30 dias, com desconto de 10% no total da rede.'))return;
+ // Revalidate after confirmation: stale/repeated controls cannot acquire twice.
+ const current=ensureWorld();
+ if(current.owned.includes(c.id)){render();return}
+ if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência');
+ if(s.cash<c.cost)return toast('Capital insuficiente para '+c.name);
+ s.cash-=c.cost;s.slots+=c.slots;current.owned.push(c.id);current.active=c.id;current.acquisitions++;
+ current.history.unshift({day:s.day,city:c.id,cost:c.cost});current.history=current.history.slice(0,30);
  entry('Subsidiária · '+c.name,-c.cost);note('Subsidiária inaugurada em '+c.name+'!');save();render();toast('Nova subsidiária: '+c.name);
+ panel.querySelector('#ae-world-owned-title').focus({preventScroll:true});
 });
-document.getElementById('ae-world-hq').addEventListener('change',ev=>{
- const c=byId(ev.target.value),w=ensureWorld();if(!c)return;
- if(!w.owned.includes(c.id)){toast('Adquira uma subsidiária nesta cidade antes de transferir a sede.');renderWorld();return}
+panel.querySelector('#ae-world-hq').addEventListener('change',ev=>{
+ const c=byId(ev.target.value),w=ensureWorld();
+ if(!c||!w.owned.includes(c.id)){ev.target.value=w.hq;return toast('Adquira uma subsidiária nesta cidade antes de transferir a sede.')}
  if(w.hq===c.id)return;
- if(!confirm('Transferir a sede global para '+c.name+', '+c.country+'?')){renderWorld();return}
+ if(!confirm('Transferir a sede global para '+c.name+', '+c.country+'?')){ev.target.value=w.hq;return}
  w.hq=c.id;note('Sede global transferida para '+c.name+', '+c.country);save();render();toast('Sede transferida');
 });
-document.getElementById('ae-world-active').addEventListener('change',ev=>{const w=ensureWorld(),c=byId(ev.target.value);if(!c||!w.owned.includes(c.id))return;w.active=c.id;note('Mercado ativo: '+c.name);save();render()});
+panel.querySelector('#ae-world-active').addEventListener('change',ev=>{
+ const w=ensureWorld(),c=byId(ev.target.value);
+ if(!c||!w.owned.includes(c.id)){ev.target.value=w.active;return}
+ switchMarket(c,w);
+});
 const prevSeed=seed;
 seed=function(){prevSeed();ensureWorld();save()};
 const prevTick=tickDay;
