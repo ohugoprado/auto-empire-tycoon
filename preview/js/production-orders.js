@@ -33,13 +33,14 @@ const paints=window.AESprites?.paints.map(paint=>[paint.name,paint.hex])||[['Bra
 function showOrder(id){
  const {designs,f,e}=state(),d=designs.find(x=>String(x.id)===String(id));
  if(!d)return toast('Projeto não encontrado');
+ if(d.retired)return toast('Projeto retirado de linha. Reative no painel de inteligência de mercado.');
  if(!f?.opened){window.AEManagement?.openArea('factory','fold-ae-economy');return toast('Abra sua fabricante na seção Fundação e gestão da fabricante. Seu projeto homologado continua salvo.');}
  if(e?.bankrupt)return toast('Produção indisponível: empresa falida.');
  const plants=options(d);
  if(!plants.length)return toast('Nenhuma fábrica compatível com o projeto');
  let box=document.getElementById('ae-production-dialog');if(box)box.remove();
  box=document.createElement('div');box.id='ae-production-dialog';
- box.innerHTML='<h4>Ordem de produção · '+esc(d.name)+'</h4><label>Fábrica<select id="ae-order-plant">'+plants.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Pintura<select id="ae-order-paint"><option value="mixed">Cores variadas no lote</option>'+paints.map((p,i)=>'<option value="'+i+'">'+esc(p[0])+'</option>').join('')+'</select></label><div class="ae-paint-preview" id="ae-order-paint-preview"></div><label>Quantidade<input id="ae-order-quantity" type="number" inputmode="numeric" min="1" max="20" value="1"></label><div class="ae-production-summary" id="ae-order-summary"></div><p class="ae-production-error" id="ae-order-error" role="status"></p><button type="button" id="ae-order-confirm">Confirmar produção</button><button type="button" id="ae-order-cancel">Cancelar</button>';
+ box.innerHTML='<h4>Ordem de produção · '+esc(d.name)+'</h4><label>Fábrica<select id="ae-order-plant">'+plants.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')+'</select></label><label>Pintura<select id="ae-order-paint"><option value="mixed">Cores variadas no lote</option>'+paints.map((p,i)=>'<option value="'+i+'">'+esc(p[0])+'</option>').join('')+'</select></label><div class="ae-paint-preview" id="ae-order-paint-preview"></div><label>Quantidade<input id="ae-order-quantity" type="number" inputmode="numeric" min="1" max="1000" value="20"></label><div class="ae-production-summary" id="ae-order-summary"></div><p class="ae-production-error" id="ae-order-error" role="status"></p><button type="button" id="ae-order-confirm">Confirmar produção</button><button type="button" id="ae-order-cancel">Cancelar</button>';
  const saved=studio.querySelector('#ae-studio-saved');saved?.parentNode.insertBefore(box,saved);
  const select=box.querySelector('#ae-order-plant'),quantity=box.querySelector('#ae-order-quantity'),paint=box.querySelector('#ae-order-paint');
  function quote(){
@@ -49,13 +50,19 @@ function showOrder(id){
   const q=Number(quantity.value);
   const {f,e}=state(),queue=f?.queue||[];
   const used=queue.filter(j=>p.id==='main'?!j.plantId:String(j.plantId)===p.id).length;
-  const capacity=p.level*2,free=Math.max(0,capacity-used);
-  const storage=Math.max(0,num(s.slots)-s.stock.length-queue.length);
-  const valid=Number.isInteger(q)&&q>=1&&q<=20;
+  const plantRef=p.id==='main'?f:(e?.plantNetwork?.plants||[]).find(x=>String(x.id)===p.id);
+  const shifts=plantRef?.workforce?.shift===2?2:1;
+  const staff=plantRef?.workforce?Math.max(0,Number(plantRef.workforce.staff)||0):p.level*6;
+  const capacity=Math.min(p.level*4,Math.floor(staff/(3*shifts))*shifts),free=Math.max(0,capacity-used);
+  const yardCapacity=Math.max(20,Number(f?.warehouseCapacity)||20);
+  const yardUsed=Array.isArray(f?.warehouseCars)?f.warehouseCars.length:0;
+  const storage=Math.max(0,Math.max(0,num(s.slots)-s.stock.length)+Math.max(0,yardCapacity-yardUsed)-queue.length);
+  const valid=Number.isInteger(q)&&q>=1&&q<=1000;
+  const industrial=(f?.industrialOrders||[]).some(o=>o.remaining>0&&(p.id==='main'?!o.plantId:String(o.plantId)===p.id));
   const cost=getCost(d,p),days=getDays(d,p);
   const crisis=window.AEEconomy?.crisisFor?.(s.empire.world?.active);
-  const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 20 unidades.':q>free?'A fábrica tem apenas '+free+' linha(s) disponível(is).':q>storage?'Estoque suporta apenas '+storage+' unidade(s) adicional(is).':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
-  box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Total: '+money(q*cost)+' · Prazo: '+days+' dias · Linhas livres: '+free+' · Vagas disponíveis: '+storage;
+  const error=e?.bankrupt?'Produção indisponível: empresa falida.':!f?.opened?'Abra sua fabricante antes de produzir.':crisis?.id==='war'||crisis?.id==='supply'?'Produção bloqueada: '+crisis.name:!valid?'Escolha de 1 a 1.000 unidades.':industrial?'Já existe um lote industrial ativo nesta fábrica.':capacity<1?'Contrate funcionários para habilitar linhas de produção.':free<1?'Nenhuma linha de produção disponível.':storage<1?'Sem vagas de estoque para receber o primeiro veículo.':q*cost>s.cash?'Caixa insuficiente para esta quantidade.':'';
+  box.querySelector('#ae-order-summary').textContent='Custo unitário: '+money(cost)+' · Investimento antecipado: '+money(q*cost)+' · Primeiro ciclo: '+days+' dias · Ritmo: até '+capacity+' carros/ciclo · Vagas atuais: '+storage+' (entregas pausam se lotar). Custos operacionais diários cobrados à parte.';
   box.querySelector('#ae-order-error').textContent=error;
   box.querySelector('#ae-order-confirm').disabled=!!error;
   return {p,q,cost,days,error};
@@ -70,8 +77,18 @@ function showOrder(id){
   const {f,e}=state();if(!f?.opened||s.cash<q*cost)return toast('Produção indisponível');
   s.cash-=q*cost;entry('Lote de produção · '+d.name+' · '+p.name,-q*cost);
   const supplier=window.AEOperations?.getSupplier?.().id||'standard';
-  for(let i=0;i<q;i++){const chosen=paints[paint.value==='mixed'?(i+Math.floor(Math.random()*paints.length))%paints.length:Number(paint.value)]||paints[0];f.queue.push({color:chosen[1],colorName:chosen[0],...(p.id==='main'?{}:{plantId:p.id}),model:d.name,kind:d.kind,cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),due:s.day+days,designId:d.id,quality:d.quality,supplier});}
-  f.model=d.name;note('Produção iniciada: '+q+' unidade(s) de '+d.name+' em '+p.name+'.');save();render();box.remove();toast('Lote enviado para produção!');
+  // Industrial order stays compact in the save file and feeds the existing production queue.
+  const chosenPaint=paint.value==='mixed'?'mixed':Number(paint.value);
+  f.industrialOrders=f.industrialOrders||[];
+  f.industrialOrders.push({id:'batch-'+s.day+'-'+Date.now(),model:d.name,kind:d.kind,
+   designId:d.id,generation:d.generation||1,facelift:d.facelift||0,
+   modelIntroducedDay:d.introducedDay||s.day,lifecycleBonus:(d.lifecycleBonus||0)+(d.mediaBonus||0),
+   brandParts:d.brandParts?{...d.brandParts}:undefined,quality:d.quality,supplier,
+   ...(p.id==='main'?{}:{plantId:p.id}),paint:chosenPaint,remaining:q,total:q,delivered:0,started:0,
+   cost,value:p.id==='main'?num(d.value):Math.max(cost,Math.round(num(d.value)*Math.max(1,num(e.inflation)))),
+   cycleDays:days,createdDay:s.day});
+
+  f.model=d.name;note('Pedido industrial: '+q+' unidade(s) de '+d.name+' em '+p.name+'. Entregas escalonadas conforme capacidade.');save();render();box.remove();toast('Lote enviado para produção!');
  });
  quote();box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }

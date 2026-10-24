@@ -41,12 +41,80 @@ function updateDay(){
   e.crisis={...type,end:s.day+type.duration,region:type.id==='war'||type.id==='political'?country:null};
   e.lastCrisisDay=s.day;note('ALERTA ECONÔMICO: '+type.name+' em '+(e.crisis.region||'diversos mercados')+'. '+type.description);
  }
+
+ // Index active jobs once per day instead of scanning the entire queue for each contract.
+ const activeJobsByPlant=new Map();
+ for(const job of e.factory.queue){
+  const key=job.plantId==null?'main':String(job.plantId);
+  activeJobsByPlant.set(key,(activeJobsByPlant.get(key)||0)+1);
+ }
+ // Feed existing vehicle production queue from compact industrial contracts.
+ // Each plant has finite parallel lines; finished cars wait when storage is full.
+ for(const order of (e.factory.industrialOrders||[])){
+  if(!order||order.remaining<=0)continue;
+  const plant=order.plantId?(e.plantNetwork?.plants||[]).find(p=>String(p.id)===String(order.plantId)):e.factory;
+  if(!plant)continue;
+  const level=Math.max(1,Number(plant.level)||1),baseLines=level*2;
+  const workforce=plant.workforce||{staff:baseLines*3,shift:1};
+  const shifts=Number(workforce.shift)===2?2:1;
+  const staffedLines=Math.floor(Math.max(0,Number(workforce.staff)||0)/(3*shifts))*shifts;
+  const lines=Math.min(baseLines*2,staffedLines);
+  const plantKey=order.plantId==null?'main':String(order.plantId);
+  const active=activeJobsByPlant.get(plantKey)||0;
+  const open=Math.max(0,lines-active);
+  const warehouse=e.factory.warehouseCars||[];
+  const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
+  const availableShowroom=Math.max(0,(Number(s.slots)||0)-s.stock.length);
+  const availableYard=Math.max(0,warehouseCapacity-warehouse.length);
+  const reserved=e.factory.queue.length;
+  const freeStorage=Math.max(0,availableShowroom+availableYard-reserved);
+  const count=Math.max(0,Math.min(order.remaining,open,freeStorage));
+  for(let i=0;i<count;i++){
+   const palette=window.AESprites?.paints||[];
+   const fallback=[{name:'Branco Polar',hex:'#e7ebef'},{name:'Azul Oceano',hex:'#287ec5'},{name:'Vermelho Rubi',hex:'#c33d42'},{name:'Grafite',hex:'#52545a'}];
+   const colors=palette.length?palette:fallback;
+   const selectedIndex=Number(order.paint);
+   const paint=order.paint==='mixed'?colors[Math.floor(Math.random()*colors.length)]:colors[Number.isInteger(selectedIndex)&&selectedIndex>=0?selectedIndex%colors.length:0];
+   const paintHex=Array.isArray(paint)?paint[1]:paint?.hex;
+   const paintName=Array.isArray(paint)?paint[0]:paint?.name;
+   e.factory.queue.push({industrialOrderId:order.id,model:order.model,kind:order.kind,designId:order.designId,
+    generation:order.generation,facelift:order.facelift,modelIntroducedDay:order.modelIntroducedDay,
+    lifecycleBonus:order.lifecycleBonus,brandParts:order.brandParts?{...order.brandParts}:undefined,
+    quality:order.quality,supplier:order.supplier,plantId:order.plantId,
+    color:paintHex||'#b6d2e5',colorName:paintName||'Prata metálico',
+    cost:order.cost,value:order.value,due:s.day+Math.max(2,Number(order.cycleDays)||7)});
+  }
+  activeJobsByPlant.set(plantKey,active+count);
+  order.remaining-=count;
+  order.started=(Number(order.started)||0)+count;
+  if(count>0)note('Linha industrial: '+count+' unidade(s) de '+order.model+' iniciadas. Restam '+order.remaining+'.');
+ }
+ // Keep completed contracts for delivery history, bounded to avoid save-file growth.
+ e.factory.industrialOrders=(e.factory.industrialOrders||[]).filter(o=>o.remaining>0||Number(o.delivered)<Number(o.total));
+ // Variable overhead is charged only for active manufacturing lines.
+ // Payroll and equipment upkeep are independent of the prepaid material contract.
+ const activeLines=e.factory.queue.length;
+ // Payroll for managed factory workforces, independent of materials and line overhead.
+ const allPlants=[e.factory,...(e.plantNetwork?.plants||[])];
+ let payroll=0;
+ for(const plant of allPlants){if(!plant.workforce)continue;const w=plant.workforce;payroll+=Math.round(Math.max(0,Number(w.staff)||0)*(Number(w.shift)===2?115:90)*Math.max(1,Number(e.inflation)||1));}
+ if(payroll){s.cash-=payroll;s.profit-=payroll;e.factory.workforceSpent=(Number(e.factory.workforceSpent)||0)+payroll;entry('Folha diária de funcionários industriais',-payroll);}
+
+ if(activeLines>0){
+  const overhead=Math.round(activeLines*180*Math.max(1,Number(e.inflation)||1));
+  s.cash-=overhead;s.profit-=overhead;
+  e.factory.overheadSpent=(Number(e.factory.overheadSpent)||0)+overhead;
+  entry('Custos operacionais industriais',-overhead);
+ }
  // Manufacturing uses real in-game days; never completes while the app is closed.
+ const industrialOrdersById=new Map((e.factory.industrialOrders||[]).map(o=>[o.id,o]));
  for(const job of [...e.factory.queue]){
   if(job.due>s.day)continue;
   const disruption=crisisFor(s.empire.world?.active);if(disruption.id==='war'||disruption.id==='supply'){job.due=s.day+1;continue}
-  if(s.stock.length>=s.slots){job.due=s.day+1;continue}
-  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,plantId:job.plantId??null};
+  const warehouse=e.factory.warehouseCars||(e.factory.warehouseCars=[]);
+  const warehouseCapacity=Math.max(20,Number(e.factory.warehouseCapacity)||20);
+  if(s.stock.length>=s.slots&&warehouse.length>=warehouseCapacity){job.due=s.day+1;continue}
+  const c={id:s.nextId++,name:e.factory.brand+' '+job.model,color:job.color||'#b6d2e5',colorName:job.colorName||'Prata metálico',kind:job.kind,year:2026,km:0,condition:100,value:job.value,repair:0,ask:0,listed:false,price:0,days:0,interested:false,offers:[],spent:0,bought:job.cost,originCity:s.empire.world?.active||'saopaulo',manufactured:true,designQuality:job.quality||null,designId:job.designId||null,generation:job.generation||1,facelift:job.facelift||0,modelIntroducedDay:job.modelIntroducedDay||s.day,lifecycleBonus:job.lifecycleBonus||0,brandParts:job.brandParts?{...job.brandParts}:undefined,plantId:job.plantId??null};
   const supplier=job.supplier||'standard';
   const defectRate=supplier==='economy'?.07:supplier==='premium'?.012:.03;
   if(Math.random()<defectRate){
@@ -56,7 +124,17 @@ function updateDay(){
    const ops=window.AEOperations?.ensure?.();if(ops)ops.defects++;
    note('Controle de qualidade: '+c.name+' exige revisão antes de ser anunciado.');
   }
-  s.stock.push(c);e.factory.produced++;e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+'. Veículo adicionado ao estoque.');
+  if(s.stock.length<s.slots)s.stock.push(c);else warehouse.push(c);
+  e.factory.produced++;if(job.industrialOrderId){const contract=industrialOrdersById.get(job.industrialOrderId);if(contract)contract.delivered=(Number(contract.delivered)||0)+1;}e.factory.queue.splice(e.factory.queue.indexOf(job),1);note('Produção concluída: '+c.name+(s.stock.includes(c)?'. Entregue à concessionária.':'. Armazenado no pátio industrial.'));
+ }
+ // Archive fulfilled contracts only after actual deliveries; keep a bounded summary.
+ const finished=(e.factory.industrialOrders||[]).filter(o=>Number(o.remaining)<=0&&Number(o.delivered)>=Number(o.total));
+ if(finished.length){
+  if(!Array.isArray(e.factory.completedIndustrialOrders))e.factory.completedIndustrialOrders=[];
+  e.factory.completedIndustrialOrders.push(...finished.map(o=>({model:o.model,total:o.total,delivered:o.delivered,completedDay:s.day,investment:(Number(o.total)||0)*(Number(o.cost)||0)})));
+  e.factory.completedIndustrialOrders=e.factory.completedIndustrialOrders.slice(-30);
+  e.factory.industrialOrders=e.factory.industrialOrders.filter(o=>!finished.includes(o));
+  for(const o of finished)note('Contrato industrial concluído: '+o.total+' unidades de '+o.model+'.');
  }
  const liquidation=s.stock.reduce((a,c)=>a+Math.max(0,Number(c.value)||0)*.5,0);
  // Loans are liabilities, not profit: borrowing cannot erase insolvency.
@@ -151,7 +229,7 @@ tickDay=function(){
  if(s.day===previousDay)return;
  const e=init();
  // A crisis affects new proposals only, never retroactively changes an accepted offer.
- for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const demand=factor(car.originCity||s.empire.world?.active);for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}const designBoost=car.manufactured&&Number.isFinite(Number(car.designQuality))?1+Math.max(0,Number(car.designQuality)-65)*.002:1;offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)*designBoost/100)*100)}car.interested=offers.length>0}
+ for(const car of s.stock){const offers=car.offers||[];const old=before.get(car.id)||0;const marketDemand=factor(car.originCity||s.empire.world?.active);const age=car.manufactured?Math.max(0,s.day-(Number(car.modelIntroducedDay)||s.day)):0;const freshness=car.manufactured?Math.max(.7,1-Math.max(0,age-45)*.0015):1;const lifecycle=car.manufactured?Math.min(1.2,Math.max(.8,freshness+Math.min(.2,Math.max(0,Number(car.lifecycleBonus)||0)))):1;const demand=Math.min(1,marketDemand*lifecycle);for(let i=offers.length-1;i>=old;i--){if(Math.random()>demand){offers.splice(i,1);continue}const designBoost=car.manufactured&&Number.isFinite(Number(car.designQuality))?1+Math.max(0,Number(car.designQuality)-65)*.002:1;offers[i].amount=Math.max(100,Math.round(offers[i].amount*(.92+.08*demand)*designBoost/100)*100)}car.interested=offers.length>0}
  updateDay();save();
 };
 const previousSubmit=submitBid;
