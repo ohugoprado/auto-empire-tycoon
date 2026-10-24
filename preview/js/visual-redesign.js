@@ -194,9 +194,11 @@
       button.setAttribute('aria-current', button.classList.contains('active') ? 'page' : 'false');
     }
     const pause = document.getElementById('pause');
+    if (pause) {
     pause.setAttribute('aria-label', paused ? 'Continuar simulação' : 'Pausar simulação');
     pause.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true">' +
       (paused ? '<path d="m6 3 11 7-11 7z"/>' : '<path d="M5 3h4v14H5zM12 3h4v14h-4z"/>') + '</svg>';
+    }
     const count = document.getElementById('ae-inventory-count');
     if (count) count.textContent = String(s.stock.length);
     for (const id of ['ae-stock-filters', 'ae-trade-stock', 'ae-trade-stock-summary']) {

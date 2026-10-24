@@ -1,7 +1,7 @@
 /* Auto Empire Tycoon — Alpha 13.2 turn summary and accounting audit */
 (function(){
 'use strict';
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(Number(n)||0).toLocaleString('pt-BR');
 const overlay=document.createElement('div');overlay.id='ae-turn-overlay';overlay.hidden=true;
 overlay.innerHTML='<section class="ae-turn-card" role="dialog" aria-modal="true" aria-labelledby="ae-turn-title"><div class="ae-turn-top"><div><p class="ae-turn-eyebrow">RELATÓRIO DIÁRIO</p><h2 id="ae-turn-title">Dia concluído</h2></div><button type="button" id="ae-turn-close" aria-label="Fechar resumo">✕</button></div><div id="ae-turn-metrics"></div><h3>Lançamentos financeiros</h3><div id="ae-turn-ledger"></div><h3>Acontecimentos do dia</h3><div id="ae-turn-events"></div><button type="button" id="ae-turn-continue">Continuar jogando</button></section>';

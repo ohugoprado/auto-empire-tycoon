@@ -39,7 +39,7 @@ async function startServer() {
     if (startupError) throw startupError;
     if (server.exitCode !== null) throw Error('HTTP server exited: ' + output);
     try {
-      const response = await fetch(base + '/preview/');
+      const response = await fetch(base + '/preview/', { method: 'HEAD' });
       if (response.ok) return base;
     } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -82,7 +82,7 @@ async function assertOffline(context, page, expectedCar) {
       async function inspect() {
         if (!navigator.serviceWorker.controller) return;
         try {
-          const cache = await caches.open('auto-empire-motor-district-9100');
+          const cache = await caches.open('auto-empire-motor-district-15000');
           const keys = await cache.keys();
           clearTimeout(timeout);
           resolve({
@@ -101,7 +101,7 @@ async function assertOffline(context, page, expectedCar) {
   check(worker.assets.some(asset => asset.endsWith('/visual-redesign.css')) && [...'abcdefgh'].every(letter => worker.assets.some(asset => asset.endsWith('/fleet-models-' + letter + '.webp'))),
     'The offline shell contains the new stylesheet and sprite artwork');
   check(worker.assets.some(asset => /\/preview\/galeria\/$/.test(asset)), 'The offline shell includes the vehicle gallery');
-  check(worker.assets.some(asset => asset.endsWith('/district-buildings.webp')), 'The offline shell includes the interactive district artwork');
+  check(worker.assets.some(asset => asset.endsWith('/district-campus.webp')), 'The offline shell includes the interactive district artwork');
   const loadedResources = await page.evaluate(() => [...document.querySelectorAll('script[src],link[rel="stylesheet"][href]')].map(node => new URL(node.src || node.href).pathname));
   check(loadedResources.every(resource => worker.assets.includes(resource)), 'Every loaded game extension and stylesheet is available in the offline cache');
   const onlineBackground = await page.locator('body').evaluate(body => getComputedStyle(body).backgroundColor);
@@ -188,6 +188,7 @@ async function run(base) {
     await page.goto(base + '/', { waitUntil: 'networkidle' });
     await page.waitForURL(url => /\/preview\/$/.test(url.pathname) && url.searchParams.get('campaign') === 'main');
     check(new URL(page.url()).searchParams.get('campaign') === 'main', 'The public root selects the existing main campaign');
+    await page.locator('#ae-game-menu [data-menu-action="continue"]').click();
     const main = await activeCampaign(page);
     check(main.key === 'autoempire_v02', 'The main entry uses the original public save key');
     check(main.cash === 123456 && main.day === 7, 'The existing public cash balance and day are preserved (cash=' + main.cash + ', day=' + main.day + ')');

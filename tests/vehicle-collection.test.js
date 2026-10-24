@@ -47,7 +47,7 @@ async function startServer() {
   const base = 'http://127.0.0.1:' + port;
   for (let i = 0; i < 60; i++) {
     if (server.exitCode !== null) throw Error('HTTP server exited');
-    try { if ((await fetch(base + '/preview/galeria/')).ok) return base; } catch (_) {}
+    try { if ((await fetch(base + '/preview/galeria/', { method: 'HEAD' })).ok) return base; } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw Error('HTTP server did not start');
@@ -185,9 +185,9 @@ async function gallery(base, width) {
     await assertFraming(page, '#zoom-art svg.ae-sprite', '.vc-art', width + ' zoom');
     for (const paint of registry.paints) {
       await page.locator('#zoom-paints [data-paint="' + paint.id + '"]').tap();
-      check(await page.locator('#zoom-art svg').getAttribute('data-paint') === paint.id, 'Zoom uses the selected actual painted image');
+      check(await page.locator('#zoom-art > svg.ae-sprite').getAttribute('data-paint') === paint.id, 'Zoom uses the selected actual painted image');
       check((await page.locator('#zoom-model').innerText()).includes(paint.name), 'Zoom names the selected paint');
-      check(await card.locator('svg').getAttribute('data-paint') === paint.id, 'Zoom and collection agree on the same selected paint');
+      check(await card.locator('svg.ae-sprite').getAttribute('data-paint') === paint.id, 'Zoom and collection agree on the same selected paint');
     }
     await page.locator('#close').tap();
     check(!await page.locator('#zoom').isVisible(), 'The native dialog closes by touch');

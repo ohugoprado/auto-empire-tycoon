@@ -53,3 +53,7 @@ body.ae-redesign svg.ae-sprite,.ae-collection-page svg.ae-sprite{
 body.ae-redesign svg.ae-sprite image,.ae-collection-page svg.ae-sprite image{
   image-rendering:auto!important;
 }
+
+body.ae-redesign.ae-next #ae-production-dialog button{min-height:48px!important}
+
+body.ae-redesign.ae-next #ae-logo-confirm,body.ae-redesign.ae-next #ae-logo-cancel{min-height:48px!important}

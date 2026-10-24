@@ -26,7 +26,7 @@
     const main = jobs.filter(job => !job.plantId);
     const day = Math.max(1, Math.floor(positive(game.day)));
     const capacity = Math.max(0, Math.floor(positive(game.slots)));
-    const free = Math.max(0, capacity - stock.length - jobs.length);
+    const free = Math.max(0, capacity - stock.length);
     const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
     const dueDates = main.map(job => Number(job.due)).filter(Number.isFinite);
     const dueDay = dueDates.length ? Math.min(...dueDates) : null;
@@ -35,14 +35,22 @@
     const applies = rawCrisis.id && rawCrisis.id !== 'stable' && day < amount(rawCrisis.end) && (!rawCrisis.region || rawCrisis.region === city?.country);
     const crisis = applies ? { id: rawCrisis.id, name: String(rawCrisis.name || 'Crise regional') } : { id: 'stable', name: 'Estabilidade' };
     const opened = Boolean(factory.opened);
+    const warehouseStock = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
+    const warehouseCapacity = Math.max(20, positive(factory.warehouseCapacity) || 20);
+    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - jobs.length);
+    const level = Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1));
+    const shifts = factory.workforce?.shift === 2 ? 2 : 1;
+    const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
+    const lines = Math.min(level * 4, Math.floor(staff / (3 * shifts)) * shifts);
+    const pendingUnits = (Array.isArray(factory.industrialOrders) ? factory.industrialOrders : []).filter(order => order && !order.plantId).reduce((sum, order) => sum + positive(order.remaining), 0);
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
-    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : main.length && stock.length >= capacity ? 'storage-full' : main.length ? 'working' : 'ready';
+    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (main.length || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : main.length ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
       garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: jobs.length, free,
         status: offers ? 'offers' : stock.length >= capacity ? 'full' : !free ? 'reserved' : 'ready' }),
       factory: Object.freeze({ opened, mainJobs: main.length, totalJobs: jobs.length,
-        capacity: Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1)) * 2,
+        capacity: lines, warehouseStock, warehouseCapacity, industrialFree, pendingUnits,
         etaDays: dueDay === null ? null : Math.max(0, Math.ceil(dueDay - day)), dueDay,
         status, cost, missing: opened ? 0 : Math.max(0, cost - amount(game.cash)), brand: String(factory.brand || '') }),
       projects: Object.freeze({ count: Array.isArray(studio.designs) ? studio.designs.length : 0,
@@ -71,6 +79,7 @@
     button.innerHTML = '<span class="ae-map-place"><span class="ae-map-place-dot" aria-hidden="true"></span><span id="ae-map-name-' + id + '">' + label + '</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10"/></svg></span>';
     const row = document.createElement('div'); row.className = 'ae-map-readout-row'; row.dataset.mapReadout = id;
     row.innerHTML = '<strong>' + label + '</strong><span data-map-status id="ae-map-status-' + id + '"></span><small data-map-detail id="ae-map-detail-' + id + '"></small>';
+    button.style.touchAction = 'manipulation';
     button.addEventListener('click', () => visit(id)); board.append(button); readout.append(row);
     nodes.set(id, { button, row, status: row.querySelector('[data-map-status]'), detail: row.querySelector('[data-map-detail]') });
   }
@@ -91,18 +100,21 @@
     }
     setText(nodes.get('garage').status, garage.offers ? plural(garage.offers, 'proposta', 'propostas') : garage.status === 'full' ? 'Estoque cheio' : garage.status === 'reserved' ? 'Vagas reservadas' : 'Seu estoque');
     setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'reserva', 'reservas') : ''));
-    const labels = { unbuilt: 'Falta fundar', ready: 'Sem ordens na fila', working: plural(factory.mainJobs, 'ordem na fila', 'ordens na fila'), 'storage-full': 'Estoque cheio', crisis: 'Produção suspensa', bankrupt: 'Campanha encerrada' };
+    const labels = { unbuilt: 'Falta fundar', ready: 'Sem ordens na fila', working: plural(factory.mainJobs, 'ordem na fila', 'ordens na fila'), 'storage-full': 'Estoque e pátio cheios', 'waiting-staff': 'Equipe insuficiente', queued: 'Lote aguardando início', crisis: 'Produção suspensa', bankrupt: 'Campanha encerrada' };
     setText(nodes.get('factory').status, labels[factory.status]);
     let detail;
     if (factory.status === 'bankrupt') detail = 'Confira a situação da empresa.';
     else if (!factory.opened) detail = 'Fundação: ' + money(factory.cost) + (factory.missing ? ' · faltam ' + money(factory.missing) : ' · capital disponível');
     else if (factory.status === 'crisis') detail = next.crisis.name + ' · consulte a previsão.';
+    else if (factory.status === 'waiting-staff') detail = 'Contrate uma equipe para iniciar as linhas.';
+    else if (factory.status === 'queued') detail = plural(factory.pendingUnits, 'veículo', 'veículos') + ' aguarda o próximo turno ou uma linha livre.';
     else if (factory.status === 'storage-full') detail = (factory.etaDays === 0 ? 'Entrega aguarda vaga' : factory.etaDays === null ? 'Produção com entrega a confirmar' : 'Próxima entrega em ' + plural(factory.etaDays, 'dia', 'dias')) + ' · libere espaço no estoque compartilhado.';
     else detail = factory.mainJobs + '/' + factory.capacity + ' linhas ocupadas' + (factory.dueDay === null ? '' : factory.etaDays ? ' · próxima entrega em ' + plural(factory.etaDays, 'dia', 'dias') : ' · entrega aguarda avanço');
+    if (factory.opened) detail += ' · pátio ' + factory.warehouseStock + '/' + factory.warehouseCapacity;
     setText(nodes.get('factory').detail, detail);
     setText(nodes.get('projects').status, projects.count ? plural(projects.count, 'homologado', 'homologados') : 'Crie seu primeiro modelo');
     setText(nodes.get('projects').detail, plural(projects.research, 'ponto P&D', 'pontos P&D'));
-    setText(host.querySelector('#ae-map-simulation'), next.paused ? 'Simulação pausada · avance os dias para produzir.' : 'Simulação em andamento · prazos em dias do jogo.');
+    setText(host.querySelector('#ae-map-simulation'), 'Por turnos · toque em Avançar dia para produzir e receber propostas.');
     const network = host.querySelector('#ae-map-network'), otherJobs = factory.totalJobs - factory.mainJobs;
     network.hidden = !otherJobs;
     setText(network, otherJobs ? plural(otherJobs, 'ordem em outra unidade', 'ordens em outras unidades') + ' · estoque compartilhado.' : '');

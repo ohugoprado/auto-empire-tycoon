@@ -29,7 +29,7 @@
     ['projects', 'Projetos e P&D', 'Pesquisar e desenvolver os seus modelos.'],
     ['network', 'Subsidiárias', 'Administrar unidades e escolher o mercado ativo.'],
     ['menu', 'Menu do jogo', 'Voltar às opções e à ajuda da campanha.'],
-    ['simulation', 'Retomar simulação', 'O tempo só avança quando você retoma.']
+    ['simulation', 'Avançar 1 dia', 'Produzir, receber propostas e pagar as despesas do próximo dia.']
   ]) {
     const action = document.createElement('button'); action.type = 'button'; action.className = 'ghost'; action.dataset.quickNav = id;
     action.innerHTML = icon(icons[id]) + '<span><strong>' + title + '</strong><small>' + description + '</small></span>' + icon('M9 6l6 6-6 6');
@@ -40,7 +40,7 @@
   let restoreFocus = true, scheduled = false, signature = '';
   const editable = element => element?.matches?.('input,select,textarea,[contenteditable="true"]');
   function obstructed() {
-    return Boolean(document.querySelector('#ae-company-screen.is-open, #modal:not(.hide), dialog[open]')) || Boolean(editable(document.activeElement)) || Boolean(window.visualViewport && innerHeight - visualViewport.height > 120);
+    return Boolean(document.querySelector('#ae-company-screen.is-open, #modal:not(.hide), dialog[open], #ae-turn-overlay:not([hidden])')) || Boolean(editable(document.activeElement)) || Boolean(window.visualViewport && innerHeight - visualViewport.height > 120);
   }
   function position() {
     const nav = document.querySelector('.bottom');
@@ -74,8 +74,8 @@
       setText(actions.get('garage').description, stock.length + ' veículo(s) no estoque · ' + offers + ' proposta(s).');
       setText(actions.get('factory').description, factory.opened ? 'Ver linhas e acompanhar as entregas da produção.' : 'Conferir o investimento e fundar sua fabricante.');
       setText(actions.get('projects').description, (Number(studio.research) || 0) + ' pontos P&D · ' + (studio.designs?.length || 0) + ' modelo(s) homologado(s).');
-      setText(actions.get('simulation').title, ended ? 'Simulação encerrada' : isPaused ? 'Retomar simulação' : 'Pausar simulação');
-      setText(actions.get('simulation').description, ended ? 'Consulte a situação financeira da campanha.' : isPaused ? 'O tempo só avança quando você retoma.' : 'Parar o tempo para planejar com calma.');
+      setText(actions.get('simulation').title, ended ? 'Campanha encerrada' : 'Avançar 1 dia');
+      setText(actions.get('simulation').description, ended ? 'Consulte a situação financeira da campanha.' : 'Produzir, receber propostas e pagar as despesas do próximo dia.');
       actions.get('simulation').button.disabled = ended;
       actions.get('menu').button.disabled = !gameMenuReady;
     }
@@ -112,7 +112,7 @@
     if (!actions.has(id)) return;
     if (id === 'simulation' && (typeof s === 'undefined' || s.empire?.economy?.bankrupt)) return;
     closeMenu(id === 'simulation');
-    if (id === 'simulation') { toggle(); refresh(); }
+    if (id === 'simulation') { advanceDay(); refresh(); }
     else if (id === 'market') { show('market'); focusPanel(document.getElementById('market')); }
     else if (id === 'network') {
       show('garage'); window.AEManagement?.openArea('network', 'fold-ae-world'); focusPanel(document.getElementById('ae-world'));
@@ -135,8 +135,8 @@
     if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeMenu();
   });
   new MutationObserver(records => {
-    if (records.some(record => record.type === 'attributes' && record.target.matches?.('#modal,#ae-company-screen,dialog') || record.type === 'childList' && [...record.addedNodes].some(node => node.matches?.('dialog') || node.querySelector?.('dialog')))) schedule();
-  }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'open'] });
+    if (records.some(record => record.type === 'attributes' && record.target.matches?.('#modal,#ae-company-screen,#ae-turn-overlay,dialog') || record.type === 'childList' && [...record.addedNodes].some(node => node.matches?.('dialog') || node.querySelector?.('dialog')))) schedule();
+  }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'open', 'hidden'] });
   document.addEventListener('focusin', schedule); document.addEventListener('focusout', schedule);
   window.addEventListener('resize', schedule); window.visualViewport?.addEventListener('resize', schedule);
   if (window.ResizeObserver) { const nav = document.querySelector('.bottom'); if (nav) new ResizeObserver(schedule).observe(nav); }

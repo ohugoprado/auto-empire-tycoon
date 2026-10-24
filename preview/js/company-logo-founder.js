@@ -4,7 +4,7 @@
 const host=document.getElementById('ae-economy');if(!host)return;
 const themes={shield:'Escudo',circle:'Selo circular',hex:'Hexágono',diamond:'Losango',crest:'Brasão',plate:'Placa esportiva'};
 const marks={bolt:'Raio',wing:'Asas',star:'Estrela',road:'Estrada',crown:'Coroa',mountain:'Montanhas',compass:'Rosa dos ventos',falcon:'Falcão'};
-const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=x=>Number.isFinite(Number(x))?Number(x):0;
 const color=x=>/^#[0-9a-fA-F]{6}$/.test(x)?x:'#2563a0';
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';

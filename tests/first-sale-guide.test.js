@@ -34,7 +34,7 @@ async function startServer() {
   for (let attempt = 0; attempt < 60; attempt++) {
     if (failure) throw failure;
     if (server.exitCode !== null) throw Error('HTTP server exited: ' + output);
-    try { if ((await fetch(base + '/preview/')).ok) return base; } catch (_) {}
+    try { if ((await fetch(base + '/preview/', { method: 'HEAD' })).ok) return base; } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw Error('HTTP server did not become ready: ' + output);
@@ -89,40 +89,47 @@ async function stockSummary(page, car, expectedPrice, label) {
   equal(visible, formatted, label + ': displayed costs and gross estimate agree with independent recorded costs');
   check((await block.innerText()).includes('Antes de tributos e despesas da empresa'), label + ': gross estimate identifies excluded business costs');
 }
-async function clockPerformance(page, label) {
+async function idlePerformance(page, label) {
   const before = await page.evaluate(async () => {
-    paused = true; speed = 1; s.minute = 600; render(); toggle();
+    render();
     await new Promise(resolve => requestAnimationFrame(resolve));
-    const measurement = { minute: s.minute, clock: document.getElementById('time').textContent,
+    const measurement = { minute: s.minute, clock: document.querySelector('.day').textContent,
       cash: s.cash, day: s.day, regions: [] };
     for (const [name, id] of [['stock', 'stock'], ['guide', 'ae-first-sale-guide'], ['progression', 'ae-progression-board']]) {
       const root = document.getElementById(id);
-      if (!root) throw Error('Missing clock-performance region: ' + id);
+      if (!root) throw Error('Missing idle-performance region: ' + id);
       const region = { name, mutations: 0 };
       region.observer = new MutationObserver(records => { region.mutations += records.length; });
       region.observer.observe(root, { childList: true, subtree: true, attributes: true, characterData: true });
       measurement.regions.push(region);
     }
-    window.__aeClockMeasurement = measurement;
+    window.__aeIdleMeasurement = measurement;
     return { minute: measurement.minute, clock: measurement.clock, cash: measurement.cash, day: measurement.day };
   });
-  await page.waitForFunction(minute => s.minute >= minute + 48, before.minute, { timeout: 15000 });
+  await page.waitForTimeout(2100);
   const after = await page.evaluate(() => {
-    const measurement = window.__aeClockMeasurement;
+    const measurement = window.__aeIdleMeasurement;
     const mutations = Object.fromEntries(measurement.regions.map(region => {
       region.mutations += region.observer.takeRecords().length; region.observer.disconnect();
       return [region.name, region.mutations];
     }));
-    const result = { minute: s.minute, clock: document.getElementById('time').textContent, cash: s.cash, day: s.day, mutations };
-    delete window.__aeClockMeasurement;
-    toggle();
+    const result = { minute: s.minute, clock: document.querySelector('.day').textContent, cash: s.cash, day: s.day, mutations };
+    delete window.__aeIdleMeasurement;
     return result;
   });
-  check(after.minute >= before.minute + 48, label + ': the real frame loop advances at least 48 simulated minutes');
-  check(after.clock !== before.clock, label + ': the visible clock advances during real simulation');
-  equal(after.day, before.day, label + ': the clock-only sample stays within the same simulated day');
-  equal(after.cash, before.cash, label + ': clock-only simulation makes no financial transaction');
-  for (const name of ['stock', 'guide', 'progression']) equal(after.mutations[name], 0, label + ': clock-only frames preserve ' + name + ' DOM');
+  equal(after.minute, before.minute, label + ': elapsed real time does not advance simulated minutes');
+  equal(after.clock, before.clock, label + ': the displayed turn stays unchanged without an action');
+  equal(after.day, before.day, label + ': only an explicit action may advance a day');
+  equal(after.cash, before.cash, label + ': waiting has no financial effect');
+  for (const name of ['stock', 'guide', 'progression']) equal(after.mutations[name], 0, label + ': waiting preserves ' + name + ' DOM');
+}
+
+async function closeDaySummary(page, label) {
+  const overlay = page.locator('#ae-turn-overlay');
+  if (await overlay.count() && await overlay.isVisible()) {
+    await tap(page.locator('#ae-turn-continue'), label + ' close daily report');
+    check(!(await overlay.isVisible()), label + ': the daily report closes before the next decision');
+  }
 }
 
 async function testProfile(base, profile) {
@@ -164,7 +171,7 @@ async function testProfile(base, profile) {
     equal(actual.guide.stage, 'choose', label + ': resume reveals the correct next step');
     equal(finance(actual), opening, label + ': starting or resuming never buys, repairs, advances or pays');
     equal(actual.other, preview, label + ': the preview campaign remains byte-for-byte unchanged');
-    if (profile.viewport.width === 440) await clockPerformance(page, label);
+    if (profile.viewport.width === 440) await idlePerformance(page, label);
     await tap(page.locator('#ae-first-sale-guide [data-guide-action="market"]'), label + ' compare market');
     const candidate = await page.evaluate(() => [...s.market].sort((a, b) => a.ask - b.ask)[0]);
     check(candidate.ask > 0 && candidate.ask < actual.cash, label + ': the deterministic real market has an affordable vehicle');
@@ -231,10 +238,9 @@ async function testProfile(base, profile) {
     equal(await page.locator('#stock > .panel:visible .ae-trade-summary').getAttribute('data-car-id'), String(candidate.id), label + ': filtering and sorting retain accounting identity');
 
     const dayBefore = actual.day;
-    await page.locator('#pause').tap();
-    check(await page.locator('#ae-first-sale-guide [data-guide-action="advance"]').isDisabled(), label + ': running simulation disables one-day advancement');
-    await page.locator('#pause').tap();
-    equal((await state(page)).day, dayBefore, label + ': pausing controls never skip a simulated day');
+    check(await page.locator('#ae-first-sale-guide [data-guide-action="advance"]').isEnabled(), label + ': the manual guide exposes an explicit one-day action');
+    check(await page.locator('#ae-end-day').isVisible(), label + ': the main manual-turn control remains available');
+    equal((await state(page)).day, dayBefore, label + ': opening the guide never skips a simulated day');
     const guarded = await page.evaluate(() => {
       // Exercise the actual click guard while a real modal blocks normal touch.
       const before = { day: s.day, cash: s.cash };
@@ -249,6 +255,7 @@ async function testProfile(base, profile) {
       const before = await state(page);
       await tap(page.locator('#ae-first-sale-guide [data-guide-action="advance"]'), label + ' explicit next day');
       equal((await state(page)).day, before.day + 1, label + ': one touch advances exactly one day');
+      await closeDaySummary(page, label);
     }
     actual = await state(page);
     check(actual.stock[0].offers.length > 0, label + ': real tickDay generates a buyer proposal under controlled randomness');

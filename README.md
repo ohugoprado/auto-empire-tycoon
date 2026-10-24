@@ -64,15 +64,15 @@ Os 32 modelos do catálogo têm carrocerias distintas e cinco pinturas: Branco P
 
 O guia da primeira venda é opcional, pode ser pausado e retomado em Eventos e salva seu progresso na campanha ativa. Preparar/reparar continua opcional; avançar um dia exige uma ação explícita. O painel de progressão consulta oito marcos reais da empresa, sem duplicar recompensas; a campanha não avança enquanto está fechada. O estoque e os diálogos mostram compra, despesas registradas no veículo, investimento e lucro bruto estimado; tributos e despesas da empresa ficam separados.
 
-A coleção passou por 1.713 verificações em cada motor (Chromium e WebKit), incluindo pixels dos 160 recortes, cores, enquadramento, filtros, zoom e migração de pinturas antigas. O fluxo industrial (pesquisa, homologação, fundação, lote, entrega e recarga) passou por 177 verificações por motor; o guia passou por 220 verificações por motor; o comércio integrado, por 163; os backups, por 175. O leilão tem 163 verificações por motor para arremate único, toques rápidos, botões antigos, recarga, renovação e campanhas separadas. Esses resultados são automatizados.
+A suíte verifica os pixels dos 160 recortes, margens, isolamento dos vizinhos, enquadramento, filtros, zoom e migração de pinturas. Também cobre tecnologia, homologação, emblema, fundação, produção industrial e pátio, menus, subsidiárias, navegação flutuante, comércio, leilões e backups. Os resultados são automatizados; a validação física no Safari continua pendente.
 
-O módulo `runtime-performance.js` atualiza o relógio sem reconstruir os cartões quando somente o tempo muda. Ações, mudanças de dia e alterações na campanha continuam provocando a atualização completa. O formato dos salvamentos foi preservado, incluindo os sistemas de progressão, clientes e indústria adicionados em paralelo.
+A simulação usa turnos manuais: o tempo real não processa despesas, propostas nem produção. O relatório diário mostra as movimentações de cada avanço. O formato dos salvamentos foi preservado, incluindo os sistemas de progressão, clientes e indústria adicionados em paralelo.
 
-O mapa operacional da garagem abre estoque, fundação/produção e projetos com um toque. As três construções têm imagens próprias e indicadores reais de propostas, vagas, reservas, homologações e próxima entrega da fábrica principal. É um distrito esquemático; não atribui cidades às plantas nem inventa prazos de transporte. Os menus anteriores continuam disponíveis.
+O mapa contínuo da garagem integra os prédios no mesmo cenário, com áreas de toque sobre estoque, fabricante e projetos. Mostra propostas, vagas, homologações, próxima entrega e pátio industrial reais. O menu inicial oferece continuar, criar campanha com dificuldade, opções e ajuda; Atalhos mantém os destinos principais ao alcance. Subsidiárias exibe unidades próprias primeiro, expansão recolhida e troca de mercado em um toque. É um distrito esquemático; não atribui cidades às plantas nem inventa prazos de transporte. Os menus anteriores continuam disponíveis.
 
 O leilão regional mantém um único veículo por lote de dois dias simulados. Carro e cotação ficam congelados na campanha; o primeiro arremate consome o lote e desativa o botão. Cliques repetidos, atualização do mercado e recarga não permitem comprar o mesmo lote outra vez. Caixa insuficiente, falência ou falta de vaga impedem a aquisição sem consumir a oferta. Salvamentos antigos e carros já adquiridos são preservados.
 
-O service worker registra a versão `motor-district-9100`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo mapa, guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O service worker registra a versão `motor-district-15000`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo mapa, guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Abrir a fabricante e produzir
 
@@ -80,8 +80,10 @@ O service worker registra a versão `motor-district-9100`, atualiza arquivos pel
 2. Toque em **Abrir fabricante**. A fundação custa 110.000 CR na inflação inicial; o valor atualizado e o capital que falta aparecem nessa seção. Confirme o nome e a despesa.
 3. Abra **Projetos e desenvolvimento** e localize o projeto em **Projetos homologados**. Homologar salva o projeto, mas não funda a fabricante.
 4. Toque em **Produzir** no projeto, escolha fábrica, pintura e quantidade e confirme o custo. O pedido precisa de caixa, linha disponível e vaga no estoque; conflitos ou falta de suprimentos também podem impedir a produção.
-5. Deixe a simulação avançar pelos dias indicados. A campanha não avança fechada nem pausada; o veículo terminado aparece no estoque.
+5. Deixe a simulação avançar pelos dias indicados. A campanha avança apenas ao tocar em Avançar dia; o veículo terminado aparece no estoque.
 
 ## Limitações
 
 Isto é um web app instalável na tela inicial, **não** um app nativo publicado na App Store. A arte e o balanceamento ainda são provisórios. O alvo principal informado é o iPhone 17 Pro Max, com versão do iOS desconhecida. Não houve teste físico no Safari ou na versão instalada do iPhone.
+
+A limpeza removeu protótipos, painéis e sprites antigos sem consumidores, além do intervalo legado da garagem. As 160 pinturas usam enquadramento individual 3:2, com margens e isolamento do atlas para impedir que apareçam carros vizinhos.

@@ -27,7 +27,7 @@ async function startServer() {
   const base = 'http://127.0.0.1:' + port;
   for (let attempt = 0; attempt < 60; attempt++) {
     if (server.exitCode !== null) throw Error('Menu server exited: ' + output);
-    try { if ((await fetch(base + '/preview/')).ok) return base; } catch (_) {}
+    try { if ((await fetch(base + '/preview/', { method: 'HEAD' })).ok) return base; } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw Error('Menu server did not start: ' + output);
@@ -144,7 +144,7 @@ async function menuScenario(base, width, mode, expectedCash) {
     equal(financial(await snapshot(page)), stable, label + ': accepting the prompt alone still cannot erase progress');
     await openMenu(page); await tap(page.locator(action('help')), label + ' help');
     await layout(page, label + ' help');
-    check((await page.locator('[data-menu-view="help"]').innerText()).includes('O tempo não avança com o jogo fechado'), label + ': help explains simulation and persistence');
+    check((await page.locator('[data-menu-view="help"]').innerText()).includes('Os dias avançam apenas quando você toca em Avançar dia'), label + ': help explains simulation and persistence');
     await page.screenshot({ path: path.join(artifacts, label + '-help.png'), scale: 'css' });
     await tap(page.locator(action('home')).filter({ visible: true }), label + ' help return');
     await page.screenshot({ path: path.join(artifacts, label + '-home.png'), scale: 'css' });

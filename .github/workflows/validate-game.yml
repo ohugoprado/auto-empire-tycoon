@@ -9,7 +9,7 @@ permissions:
 jobs:
   game:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,6 +36,9 @@ jobs:
           echo "AE_CHROMIUM_PATH=$RUNNER_TEMP/ae-browser-tests/chrome-linux64/chrome" >> "$GITHUB_ENV"
       - name: Check game logic and workflows
         run: |
+          node tests/local-resources.test.js
+          node tests/auction-turns.test.js
+          node tests/industrial-workforce-batch.test.js
           node tests/economy-smoke.test.js
           node tests/runtime-performance.test.js
           node tests/trading-identity.test.js
@@ -45,6 +48,12 @@ jobs:
           AE_BROWSER=webkit node tests/commerce-campaign.test.js
           node tests/auction-purchase.test.js
           AE_BROWSER=webkit node tests/auction-purchase.test.js
+          node tests/game-menu.test.js
+          AE_BROWSER=webkit node tests/game-menu.test.js
+          node tests/subsidiary-management.test.js
+          AE_BROWSER=webkit node tests/subsidiary-management.test.js
+          node tests/quick-navigation.test.js
+          AE_BROWSER=webkit node tests/quick-navigation.test.js
           node tests/operations-map.test.js
           AE_BROWSER=webkit node tests/operations-map.test.js
           node tests/factory-production.test.js
@@ -66,6 +75,9 @@ jobs:
           path: |
             /tmp/auto-empire-review
             /tmp/auto-empire-webkit
+            /tmp/auto-empire-game-menu
+            /tmp/auto-empire-subsidiaries
+            /tmp/auto-empire-quick-navigation
             /tmp/auto-empire-operations-map
             /tmp/auto-empire-auction
             /tmp/auto-empire-factory

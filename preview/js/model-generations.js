@@ -3,7 +3,7 @@
 'use strict';
 const studio=document.getElementById('ae-studio');if(!studio)return;
 const money=n=>Math.round(n).toLocaleString('pt-BR')+' CR';
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const panel=document.createElement('section');panel.id='ae-generations';
 panel.innerHTML='<h3>Ciclo de vida dos modelos</h3><p class="tiny">Reestilize projetos homologados ou lance uma nova geração. As mudanças só afetam produções futuras.</p><label>Projeto<select id="ae-gen-model"></select></label><div id="ae-gen-status"></div><div class="ae-gen-actions"><button type="button" data-gen="facelift">Investir em facelift</button><button type="button" data-gen="generation">Desenvolver nova geração</button></div>';
 studio.append(panel);

@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const studio=document.getElementById('ae-studio');if(!studio)return;
-const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=x=>Math.round(Number(x)||0).toLocaleString('pt-BR')+' CR';
 const designs=()=>s?.empire?.economy?.studio?.designs||[];
 const section=document.createElement('section');section.id='ae-market-intelligence';

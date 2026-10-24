@@ -3,6 +3,7 @@
  * below supply factory/queue/stock combinations only to verify read-only status;
  * they do not claim that the player earned, purchased or manufactured that state.
  * Manufacturing delay/delivery assertions advance the real tickDay engine.
+ * The turn UI, rather than an idle clock, performs an explicit day advance.
  * Run: node tests/operations-map.test.js; AE_BROWSER=webkit is also supported.
  */
 'use strict';
@@ -36,7 +37,7 @@ async function startServer() {
   for (let attempt = 0; attempt < 60; attempt++) {
     if (failure) throw failure;
     if (server.exitCode !== null) throw Error('Map fixture server exited: ' + output);
-    try { if ((await fetch(base + '/preview/')).ok) return base; } catch (_) {}
+    try { if ((await fetch(base + '/preview/', { method: 'HEAD' })).ok) return base; } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw Error('Map fixture server did not become ready: ' + output);
@@ -46,13 +47,14 @@ async function campaign(page) {
     key: KEY, cash: s.cash, day: s.day, sales: s.sales, profit: s.profit, slots: s.slots,
     stock: JSON.parse(JSON.stringify(s.stock)), market: JSON.parse(JSON.stringify(s.market)),
     queue: JSON.parse(JSON.stringify(s.empire.economy.factory.queue)),
+    warehouse: JSON.parse(JSON.stringify(s.empire.economy.factory.warehouseCars || [])),
     ledger: JSON.parse(JSON.stringify(s.ledger)), paused,
     other: localStorage.getItem(KEY === 'autoempire_v02' ? 'autoempire_preview_v06' : 'autoempire_v02')
   }));
 }
 const financial = value => ({
   cash: value.cash, day: value.day, sales: value.sales, profit: value.profit, slots: value.slots,
-  stock: value.stock, market: value.market, queue: value.queue, ledger: value.ledger
+  stock: value.stock, market: value.market, queue: value.queue, warehouse: value.warehouse, ledger: value.ledger
 });
 async function tap(locator, label) {
   const box = await locator.boundingBox();
@@ -91,34 +93,45 @@ async function assertReadability(page, label) {
   for (const value of values) check(value.contrast >= 4.5,
     label + ': ' + value.selector + ' has at least 4.5:1 contrast against white (' + value.color + ', ' + value.contrast.toFixed(2) + ':1)');
 }
-async function assertNoClockRebuild(page, label) {
+async function assertIdleAndExplicitTurn(page, label) {
   const before = await page.evaluate(async selector => {
-    paused = true; speed = 1; s.minute = 600; render(); toggle();
     await new Promise(resolve => requestAnimationFrame(resolve));
     const root = document.querySelector(selector);
-    if (!root) throw Error('Map root missing during performance sample');
-    const measurement = { minute: s.minute, day: s.day, cash: s.cash, clock: document.getElementById('time').textContent,
+    if (!root) throw Error('Map root missing during idle sample');
+    const measurement = { minute: s.minute, day: s.day, cash: s.cash,
+      clock: document.querySelector('.day').textContent,
       mutations: 0, nodes: [...root.querySelectorAll('[data-map-node]')] };
     measurement.observer = new MutationObserver(records => { measurement.mutations += records.length; });
     measurement.observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
-    window.__aeMapClockMeasurement = measurement;
+    window.__aeMapIdleMeasurement = measurement;
     return { minute: measurement.minute, day: measurement.day, cash: measurement.cash, clock: measurement.clock };
   }, panelSelector);
-  await page.waitForFunction(minute => s.minute >= minute + 48, before.minute, { timeout: 15000 });
+  await page.waitForTimeout(2100);
   const after = await page.evaluate(selector => {
-    const measurement = window.__aeMapClockMeasurement;
+    const measurement = window.__aeMapIdleMeasurement;
     measurement.mutations += measurement.observer.takeRecords().length; measurement.observer.disconnect();
     const current = [...document.querySelector(selector).querySelectorAll('[data-map-node]')];
-    const result = { minute: s.minute, day: s.day, cash: s.cash, clock: document.getElementById('time').textContent,
+    const result = { minute: s.minute, day: s.day, cash: s.cash, clock: document.querySelector('.day').textContent,
       mutations: measurement.mutations, retained: current.length === measurement.nodes.length && current.every((node, index) => node === measurement.nodes[index]) };
-    delete window.__aeMapClockMeasurement; toggle();
+    delete window.__aeMapIdleMeasurement;
     return result;
   }, panelSelector);
-  check(after.minute >= before.minute + 48 && after.clock !== before.clock, label + ': actual simulation clock advances');
-  equal(after.day, before.day, label + ': clock sample stays within one simulated day');
-  equal(after.cash, before.cash, label + ': clock sample performs no financial transaction');
-  equal(after.mutations, 0, label + ': clock-only frames do not mutate the map DOM');
-  check(after.retained, label + ': clock updates preserve the map node objects');
+  equal(after.minute, before.minute, label + ': idle time does not run a hidden simulation clock');
+  equal(after.clock, before.clock, label + ': idle time leaves the displayed turn time unchanged');
+  equal(after.day, before.day, label + ': remaining on the map cannot advance a simulated day');
+  equal(after.cash, before.cash, label + ': an idle map performs no financial transaction');
+  equal(after.mutations, 0, label + ': an idle map has no background DOM rebuild');
+  check(after.retained, label + ': idle map preserves its building touch targets');
+  const turnBefore = await campaign(page);
+  await tap(page.locator('#ae-end-day'), label + ' explicit day advance');
+  const turnAfter = await campaign(page);
+  equal(turnAfter.day, turnBefore.day + 1, label + ': one real turn-button tap advances exactly one simulated day');
+  equal((await snapshot(page)).day, turnAfter.day, label + ': map refreshes from the actual advanced day');
+  check(turnAfter.ledger.length < 100, label + ': full fixture ledger remains available for turn accounting');
+  const ledgerTotal = value => value.ledger.reduce((sum, item) => sum + item.amount, 0);
+  equal(turnAfter.cash - turnBefore.cash, ledgerTotal(turnAfter) - ledgerTotal(turnBefore), label + ': explicit turn cash movement matches real ledger entries');
+  check(await page.locator('#ae-turn-overlay').isVisible(), label + ': explicit turn opens its real daily summary');
+  await page.locator('#ae-turn-continue').tap();
 }
 
 async function showMap(page) {
@@ -140,53 +153,61 @@ async function assertMapState(page, expected, label) {
   for (const name of ['garage', 'factory', 'projects']) {
     const node = page.locator(nodeSelector(name));
     equal(await node.getAttribute('data-state'), actual[name].status, label + ': ' + name + ' exposes the current state');
-    check((await node.locator('[data-map-status]').innerText()).trim().length > 0, label + ': ' + name + ' state has a readable label');
-    check((await node.locator('[data-map-detail]').innerText()).trim().length > 0, label + ': ' + name + ' detail is visible text');
+    const status = page.locator('#ae-map-status-' + name), detail = page.locator('#ae-map-detail-' + name);
+    check(await status.isVisible() && (await status.innerText()).trim().length > 0, label + ': ' + name + ' state has a readable external label');
+    check(await detail.isVisible() && (await detail.innerText()).trim().length > 0, label + ': ' + name + ' detail is visible outside its transparent touch area');
+    equal((await node.getAttribute('aria-describedby')).split(/\s+/).sort(), ['ae-map-detail-' + name, 'ae-map-status-' + name], label + ': ' + name + ' exposes the external live details accessibly');
   }
   return actual;
 }
 async function assertArtwork(page, label) {
   const result = await page.evaluate(async selector => {
-    const art = AEOperationsMap.art;
-    const source = new Image(); source.src = art.url; await source.decode();
-    const boxes = {};
+    const art = AEOperationsMap.art, scene = document.querySelector(selector + ' img.ae-campus-scene');
+    if (!scene) throw Error('Continuous campus scene is missing');
+    await scene.decode();
+    const board = scene.parentElement.getBoundingClientRect();
+    const zones = {};
     for (const key of ['garage', 'factory', 'projects']) {
-      const box = Array.isArray(art.boxes[key]) ? art.boxes[key] : String(art.boxes[key]).split(/\s+/).map(Number);
-      const [x, y, width, height] = box;
-      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+      const zone = art.zones[key], [x, y, width, height] = zone;
+      const canvas = document.createElement('canvas'); canvas.width = 40; canvas.height = 40;
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(source, x, y, width, height, 0, 0, width, height);
-      const rgba = ctx.getImageData(0, 0, width, height).data;
-      let opaque = 0, edge = 0, fingerprint = 2166136261;
-      for (let py = 0; py < height; py++) for (let px = 0; px < width; px++) {
-        const offset = (py * width + px) * 4;
-        if (rgba[offset + 3] >= 200) {
-          opaque++;
-          if (px === 0 || py === 0 || px === width - 1 || py === height - 1) edge++;
-          fingerprint = Math.imul(fingerprint ^ rgba[offset], 16777619) >>> 0;
-          fingerprint = Math.imul(fingerprint ^ rgba[offset + 1], 16777619) >>> 0;
-          fingerprint = Math.imul(fingerprint ^ rgba[offset + 2], 16777619) >>> 0;
-        }
+      ctx.drawImage(scene, x * scene.naturalWidth, y * scene.naturalHeight, width * scene.naturalWidth, height * scene.naturalHeight, 0, 0, 40, 40);
+      const rgba = ctx.getImageData(0, 0, 40, 40).data;
+      const colors = new Set(); let fingerprint = 2166136261;
+      for (let offset = 0; offset < rgba.length; offset += 4) {
+        colors.add([rgba[offset] >> 4, rgba[offset + 1] >> 4, rgba[offset + 2] >> 4].join(','));
+        for (let channel = 0; channel < 3; channel++) fingerprint = Math.imul(fingerprint ^ rgba[offset + channel], 16777619) >>> 0;
       }
-      const svg = document.querySelector(selector + ' [data-map-node="' + key + '"] svg.ae-district-art');
-      boxes[key] = { box, opaque, edge, fingerprint, viewBox: svg?.getAttribute('viewBox'), href: svg?.querySelector('image')?.getAttribute('href') };
+      const button = document.querySelector(selector + ' [data-map-node="' + key + '"]');
+      const rect = button.getBoundingClientRect(), style = getComputedStyle(button);
+      const normalized = [(rect.left - board.left) / board.width, (rect.top - board.top) / board.height, rect.width / board.width, rect.height / board.height];
+      const channels = style.backgroundColor.match(/[\d.]+/g)?.map(Number) || [];
+      zones[key] = { zone, normalized, colors: colors.size, fingerprint,
+        transparent: channels.length === 4 && channels[3] === 0,
+        borderless: ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth'].every(key => Number.parseFloat(style[key]) === 0),
+        shadowless: style.boxShadow === 'none', individualImages: button.querySelectorAll('img,image').length };
     }
-    return { width: source.naturalWidth, height: source.naturalHeight, url: source.src, boxes,
-      imageCount: document.querySelectorAll(selector + ' svg.ae-district-art image').length };
+    const rect = scene.getBoundingClientRect();
+    return { width: scene.naturalWidth, height: scene.naturalHeight, url: scene.currentSrc, expected: art.url, zones,
+      imageCount: document.querySelectorAll(selector + ' img.ae-campus-scene').length,
+      scale: rect.width / rect.height, contained: getComputedStyle(scene).objectFit === 'contain' };
   }, panelSelector);
-  equal([result.width, result.height], [1536, 1024], label + ': the real building atlas decodes at its intended size');
-  equal(result.imageCount, 3, label + ': the three interactive buildings render real artwork');
-  for (const [name, value] of Object.entries(result.boxes)) {
-    const [x, y, width, height] = value.box;
-    check(value.box.every(Number.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= result.width && y + height <= result.height,
-      label + ': ' + name + ' crop lies within the real artwork');
-    check(value.opaque > 2500, label + ': ' + name + ' contains an opaque building rather than a blank placeholder');
-    equal(value.edge, 0, label + ': ' + name + ' crop does not cut any opaque building pixel');
-    equal(value.viewBox?.split(/\s+/).map(Number), value.box, label + ': ' + name + ' renders its approved crop');
-    equal(value.href, result.url, label + ': ' + name + ' uses the decoded shared atlas');
+  equal([result.width, result.height], [1024, 1536], label + ': the continuous campus image decodes at its intended resolution');
+  equal(result.imageCount, 1, label + ': one shared scene integrates all three buildings');
+  equal(result.url, result.expected, label + ': the rendered scene is the actual configured local artwork');
+  check(Math.abs(result.scale - 2 / 3) < .005 && result.contained, label + ': the whole campus scales proportionally without cover-cropping');
+  for (const [name, value] of Object.entries(result.zones)) {
+    const [x, y, width, height] = value.zone;
+    check(value.zone.length === 4 && value.zone.every(Number.isFinite) && x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 1 && y + height <= 1,
+      label + ': ' + name + ' touch region lies within the shared scene');
+    check(value.normalized.every((valueAt, index) => Math.abs(valueAt - value.zone[index]) < .004), label + ': ' + name + ' touch region follows the building while the map scales');
+    check(value.colors > 80, label + ': ' + name + ' region contains varied real scene artwork rather than an empty placeholder');
+    check(value.transparent && value.borderless && value.shadowless, label + ': ' + name + ' remains an integrated transparent touch region without a separate card');
+    equal(value.individualImages, 0, label + ': ' + name + ' uses the shared scenery rather than an isolated image-button');
   }
-  equal(new Set(Object.values(result.boxes).map(value => value.fingerprint)).size, 3, label + ': the three buildings have different visible artwork');
+  equal(new Set(Object.values(result.zones).map(value => value.fingerprint)).size, 3, label + ': the three destinations correspond to visually different regions');
 }
+
 async function fixture(page) {
   // Explicit display fixture: two owned cars, two homologated projects and three
   // queued jobs, one belonging to an extra plant. No purchase/foundation is claimed.
@@ -198,6 +219,7 @@ async function fixture(page) {
     e.inflation = 1.25; e.bankrupt = false;
     e.crisis = { id: 'stable', name: 'Estabilidade', end: 0, region: null };
     Object.assign(f, { opened: true, brand: 'Distrito Motors', level: 2, produced: 0,
+      workforce: { staff: 12, shift: 1 }, warehouseCapacity: 20, warehouseCars: [], autoDistribution: false,
       queue: [
         { model: 'Fixture Compact', kind: 'Compacto', due: 15, cost: 1000, value: 1400, designId: 9001, quality: 70, supplier: 'standard' },
         { model: 'Fixture Hatch', kind: 'Hatch', due: 17, cost: 1200, value: 1600, designId: 9002, quality: 70, supplier: 'standard' },
@@ -243,11 +265,11 @@ async function runProfile(base, width) {
     await assertMapState(page, { paused: true, garage: { stock: 0, capacity: 1, offers: 0, reserved: 0, free: 1, status: 'ready' },
       factory: { opened: false, mainJobs: 0, totalJobs: 0, capacity: 2, etaDays: null, dueDay: null, status: 'unbuilt', cost: 110000, missing: 75000 },
       projects: { count: 0, research: 0, status: 'empty' } }, label + ' fresh map');
-    check(/pausada/i.test(await page.locator('#ae-map-simulation').innerText()), label + ': paused simulation is explained on the map');
+    check(/turno|avan[cç]e.*dia/i.test(await page.locator('#ae-map-simulation').innerText()), label + ': explicit simulated-day advancement is explained on the map');
     await assertLayout(page, label + ' initial map');
     await assertReadability(page, label + ' initial map');
     if (width === 440) await assertArtwork(page, label);
-    await page.locator(panelSelector).screenshot({ path: path.join(artifacts, label + '-empty-map.png'), scale: 'css' });
+    await page.locator(panelSelector).screenshot({ path: path.join(artifacts, label + '-empty-map.png'), scale: 'css', style: 'nav.bottom,#ae-quick-nav-button,#ae-end-day{visibility:hidden!important}' });
     const readOnly = await page.evaluate(() => {
       const before = JSON.stringify(s), factoryFrozen = Object.isFrozen(s.empire.economy.factory), queueFrozen = Object.isFrozen(s.empire.economy.factory.queue);
       const value = AEOperationsMap.snapshot();
@@ -276,16 +298,16 @@ async function runProfile(base, width) {
     await showMap(page);
     await page.evaluate(() => { s.empire.economy.inflation = 1.25; render(); });
     await assertMapState(page, { factory: { cost: 137500, missing: 102500, status: 'unbuilt' } }, label + ' indexed foundation');
-    check((await page.locator(nodeSelector('factory')).innerText()).includes('137.500'), label + ': displayed opening cost follows actual inflation');
+    check((await page.locator('#ae-map-detail-factory').innerText()).includes('137.500'), label + ': displayed opening cost follows actual inflation');
     await fixture(page);
     await showMap(page);
-    await assertMapState(page, { day: 10, paused: true, garage: { stock: 2, capacity: 8, offers: 0, reserved: 3, free: 3 },
-      factory: { opened: true, mainJobs: 2, totalJobs: 3, capacity: 4, dueDay: 15, etaDays: 5, status: 'working', missing: 0, brand: 'Distrito Motors' },
+    await assertMapState(page, { day: 10, paused: true, garage: { stock: 2, capacity: 8, offers: 0, reserved: 3, free: 6 },
+      factory: { opened: true, mainJobs: 2, totalJobs: 3, capacity: 4, dueDay: 15, etaDays: 5, status: 'working', missing: 0, brand: 'Distrito Motors', warehouseStock: 0, warehouseCapacity: 20, industrialFree: 23 },
       projects: { count: 2, research: 7, status: 'ready' } }, label + ' real queue summary');
     await page.evaluate(() => { s.slots = s.stock.length; render(); });
-    await assertMapState(page, { factory: { status: 'storage-full', etaDays: 5 } }, label + ' future delivery with full stock');
-    const warning = await page.locator(nodeSelector('factory') + ' [data-map-detail]').innerText();
-    check(warning.includes('5 dias') && !warning.includes('aguarda vaga'), label + ': full stock warns about future space without claiming a delivery is already waiting');
+    await assertMapState(page, { factory: { status: 'working', etaDays: 5, warehouseStock: 0, warehouseCapacity: 20, industrialFree: 17 } }, label + ' full showroom with free industrial yard');
+    const warning = await page.locator('#ae-map-detail-factory').innerText();
+    check(warning.includes('5 dias') && !warning.includes('aguarda vaga'), label + ': a full showroom does not claim production is blocked when the industrial yard has room');
     await page.evaluate(() => { s.slots = 8; render(); });
     const queueBeforeNavigation = financial(await campaign(page));
     await tap(page.locator(nodeSelector('factory')), label + ' active factory node');
@@ -300,10 +322,30 @@ async function runProfile(base, width) {
       s.slots = s.stock.length; render();
     });
     await assertMapState(page, { garage: { stock: 2, capacity: 2, free: 0, status: 'full' },
-      factory: { mainJobs: 1, totalJobs: 1, dueDay: 10, etaDays: 0, status: 'storage-full' } }, label + ' due and storage blocked');
+      factory: { mainJobs: 1, totalJobs: 1, dueDay: 10, etaDays: 0, status: 'working', warehouseStock: 0 } }, label + ' due order with a free industrial yard');
     await page.evaluate(() => { tickDay(); save(); render(); });
-    equal((await campaign(page)).stock.length, 2, label + ': the actual engine keeps completed production queued while stock is full');
-    await assertMapState(page, { day: 11, factory: { dueDay: 12, etaDays: 1, status: 'storage-full' } }, label + ' postponed delivery');
+    let actualCampaign = await campaign(page);
+    equal(actualCampaign.stock.length, 2, label + ': a full showroom does not receive an extra car');
+    equal(actualCampaign.warehouse.length, 1, label + ': the real engine delivers the completed fixture job into the industrial yard');
+    equal(actualCampaign.queue.length, 0, label + ': a real yard delivery consumes its queue entry');
+    await assertMapState(page, { day: 11, factory: { mainJobs: 0, totalJobs: 0, warehouseStock: 1, warehouseCapacity: 20, industrialFree: 19, status: 'ready' } }, label + ' real yard delivery');
+    await page.evaluate(() => {
+      const f = s.empire.economy.factory;
+      // Explicit storage-pressure fixture only; these nineteen cars are not
+      // claimed as manufactured or purchased by the campaign's actual actions.
+      while (f.warehouseCars.length < f.warehouseCapacity) {
+        const car = makeCar(); car.offers = []; car.listed = false; f.warehouseCars.push(car);
+      }
+      f.queue = [{ model: 'Fixture Compact', kind: 'Compacto', due: s.day, cost: 1000, value: 1400, designId: 9001, quality: 70, supplier: 'standard' }];
+      save(); render();
+    });
+    await assertMapState(page, { factory: { mainJobs: 1, totalJobs: 1, dueDay: 11, etaDays: 0, status: 'storage-full', warehouseStock: 20, industrialFree: 0 } }, label + ' both stores full');
+    await page.evaluate(() => { tickDay(); save(); render(); });
+    actualCampaign = await campaign(page);
+    equal(actualCampaign.stock.length, 2, label + ': blocked delivery leaves the showroom unchanged');
+    equal(actualCampaign.warehouse.length, 20, label + ': blocked delivery cannot overflow the industrial yard');
+    equal(actualCampaign.queue.length, 1, label + ': the actual engine retains the order when both stores are full');
+    await assertMapState(page, { day: 12, factory: { dueDay: 13, etaDays: 1, status: 'storage-full', warehouseStock: 20 } }, label + ' postponed delivery');
     await page.evaluate(() => {
       s.slots = 3; s.empire.economy.crisis = { id: 'supply', name: 'Ruptura de suprimentos', end: s.day + 10, region: null }; render();
     });
@@ -318,8 +360,9 @@ async function runProfile(base, width) {
     const delivered = await campaign(page);
     equal(delivered.stock.length, 3, label + ': the real engine delivers the queued display-fixture job when a slot becomes free');
     equal(delivered.queue.length, 0, label + ': delivered job no longer appears in the queue');
-    await assertMapState(page, { day: 12, garage: { stock: 3, capacity: 3, reserved: 0, free: 0, status: 'full' },
-      factory: { mainJobs: 0, totalJobs: 0, dueDay: null, etaDays: null, status: 'ready' } }, label + ' completed order');
+    equal(delivered.warehouse.length, 20, label + ': freeing the showroom allows delivery without overflowing the still-full yard');
+    await assertMapState(page, { day: 13, garage: { stock: 3, capacity: 3, reserved: 0, free: 0, status: 'full' },
+      factory: { mainJobs: 0, totalJobs: 0, dueDay: null, etaDays: null, warehouseStock: 20, status: 'ready' } }, label + ' completed order');
     await page.evaluate(() => {
       s.stock[0].offers = [{ amount: 10000, type: 'cash' }, { amount: 11000, type: 'cash' }]; render();
     });
@@ -331,7 +374,7 @@ async function runProfile(base, width) {
     equal(await snapshot(page), persisted, label + ': map reads the same saved operational state after reload');
     equal((await campaign(page)).cash, savedBeforeReload.cash, label + ': map reload cannot create income or a second production expense');
     check((await campaign(page)).other === null, label + ': main navigation never creates a preview campaign');
-    if (width === 440) await assertNoClockRebuild(page, label);
+    if (width === 440) await assertIdleAndExplicitTurn(page, label);
     const mainStored = await page.evaluate(() => { save(); return localStorage.getItem(KEY); });
     await page.goto(base + '/preview/', { waitUntil: 'networkidle' });
     await showMap(page);
@@ -343,7 +386,7 @@ async function runProfile(base, width) {
     equal((await snapshot(page)).garage.stock, 3, label + ': returning from preview restores the original operational inventory');
     await assertLayout(page, label + ' restored map');
     await assertReadability(page, label + ' restored map');
-    await page.locator(panelSelector).screenshot({ path: path.join(artifacts, label + '-map.png'), scale: 'css' });
+    await page.locator(panelSelector).screenshot({ path: path.join(artifacts, label + '-map.png'), scale: 'css', style: 'nav.bottom,#ae-quick-nav-button,#ae-end-day{visibility:hidden!important}' });
     equal(errors, [], label + ': no JavaScript errors');
     equal(missing, [], label + ': no missing map assets');
     equal(dialogs, [], label + ': all map actions remain navigational');
@@ -362,7 +405,7 @@ async function runProfile(base, width) {
       ? { executablePath: process.env.AE_CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] }
       : { headless: true, ...(process.env.AE_WEBKIT_PATH ? { executablePath: process.env.AE_WEBKIT_PATH } : {}) });
     for (const width of profiles) await runProfile(base, width);
-    console.log('PASS: ' + checks + ' read-only map, main-line queue, state, touch, navigation, artwork, persistence and clock checks (' + engine + ')');
+    console.log('PASS: ' + checks + ' read-only map, main-line queue, state, touch, navigation, artwork, persistence, yard routing and explicit-turn checks (' + engine + ')');
     console.log('Physical Safari/iPhone validation was not performed. Screenshots: ' + artifacts);
   } finally {
     if (browser) await browser.close();

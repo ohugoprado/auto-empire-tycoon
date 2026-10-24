@@ -25,7 +25,7 @@ async function startServer() {
   for (let attempt = 0; attempt < 50; attempt++) {
     if (failure) throw failure;
     if (server.exitCode !== null) throw Error('Server exited: ' + output);
-    try { if ((await fetch(base + '/preview/')).ok) return base; } catch (_) {}
+    try { if ((await fetch(base + '/preview/', { method: 'HEAD' })).ok) return base; } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   throw Error('Server did not become ready: ' + output);

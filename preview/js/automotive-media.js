@@ -8,7 +8,7 @@ const outlets=[
  {name:'Garagem em Vídeo',type:'Canal de vídeo',bias:'performance'},
  {name:'Pista & Estrada',type:'Portal automotivo',bias:'reliability'}
 ];
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&#39;'}[c]));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const designs=()=>s?.empire?.economy?.studio?.designs||[];
 const state=()=>{const e=s?.empire?.economy;if(!e)return null;if(!e.mediaCoverage)e.mediaCoverage={reviews:[]};if(!Array.isArray(e.mediaCoverage.reviews))e.mediaCoverage.reviews=[];return e.mediaCoverage};
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));

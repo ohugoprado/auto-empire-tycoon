@@ -58,7 +58,7 @@ async function startServer() {
     if (startupError) throw startupError;
     if (server.exitCode !== null) throw Error('HTTP server exited: ' + output);
     try {
-      const response = await fetch(base + '/preview/');
+      const response = await fetch(base + '/preview/', { method: 'HEAD' });
       if (response.ok) return base;
     } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -153,10 +153,10 @@ async function assertDialogFocus(page, carId, label) {
 }
 
 async function assertSprites(page, selector, expected, label) {
-  check(await page.locator(selector + ' svg.ae-sprite > image').count() === expected,
+  check(await page.locator(selector + ' svg.ae-sprite image').count() === expected,
     label + ': the expected sprites are present');
   const decoded = await page.evaluate(async selector => {
-    const sources = [...new Set([...document.querySelectorAll(selector + ' svg.ae-sprite > image')]
+    const sources = [...new Set([...document.querySelectorAll(selector + ' svg.ae-sprite image')]
       .map(element => element.getAttribute('href') || element.getAttribute('xlink:href')))];
     if (!sources.length || sources.some(source => !source)) return false;
     for (const source of sources) {
@@ -342,7 +342,7 @@ async function testProfile(base, profile) {
     check((await page.locator('#ae-company-identity').innerText()).includes('Aurora iPhone'), label + ': company creation succeeds by touch');
     await page.locator('#toast').waitFor({ state: 'hidden' });
     await assertLayout(page, label + ' showroom');
-    check(await page.locator('#ae-showroom svg.ae-district-art > image').count() === 3, label + ': all three district illustrations are present');
+    check(await page.locator('#ae-showroom img.ae-campus-scene').count() === 1, label + ': one continuous district illustration is present');
     await page.screenshot({ path: path.join(artifacts, 'garage-' + label + '.png'), fullPage: true });
 
     await page.locator('.bottom [data-tab="market"]').tap();

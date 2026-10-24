@@ -4,7 +4,7 @@
 const studio=document.getElementById('ae-studio');if(!studio)return;
 const n=x=>Number.isFinite(Number(x))?Number(x):0;
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
-const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&gt;','"':'&quot;'}[c]));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nodes=[
  {id:'sketch',name:'Estúdio de estilo',cost:450000,days:2,requires:[],description:'Desbloqueia a identidade visual própria e a assinatura da marca.'},
  {id:'aero',name:'Aerodinâmica',cost:1200000,days:3,requires:['sketch'],description:'Permite desenho de carroceria mais eficiente.'},

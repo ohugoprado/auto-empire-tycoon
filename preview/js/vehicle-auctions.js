@@ -4,7 +4,7 @@
 const market=document.getElementById('market');if(!market)return;
 const n=x=>Number.isFinite(Number(x))?Number(x):0;
 const fmtMoney=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
-const esc=x=>String(x??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;'}[c]));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const css=document.createElement('style');css.textContent=`
 #ae-auctions{margin:12px 0;padding:14px;border:1px solid #4c6777;border-radius:13px;background:#1b303d;color:#e7f0f6}
 #ae-auctions h3{font-size:16px;margin:0 0 6px;color:#f5d28a}
@@ -51,6 +51,7 @@ function commitments(a,exclude){
  return {cash:winners.reduce((sum,l)=>sum+n(l.playerBid),0),slots:winners.length};
 }
 function canCommit(a,lot,amount){
+ if(s.empire?.economy?.bankrupt)return false;
  const reserved=commitments(a,lot);
  return n(s.cash)-reserved.cash>=amount&&n(s.slots)-n(s.stock.length)-reserved.slots>=1;
 }
@@ -86,7 +87,7 @@ function finish(a,lot){
  if(!lot)return;
  if(lot.leader==='Você'&&n(lot.playerBid)>0){
   const car=lot.car,price=n(lot.playerBid);
-  if(s.stock.length<s.slots&&n(s.cash)>=price){
+  if(!s.empire?.economy?.bankrupt&&s.stock.length<s.slots&&n(s.cash)>=price){
    const defect=lot.defect||{cost:0,conditionLoss:0};
    car.condition=Math.max(10,n(car.condition)-n(defect.conditionLoss));
    car.repair=n(car.repair)+n(defect.cost);
@@ -121,7 +122,7 @@ function refresh(){
  const margin=n(lot.car.value)-n(lot.high)-(lot.inspected?n(lot.defect?.cost):0);
  const fee=Math.max(150,Math.round(n(lot.car.value)*.012/50)*50);
  const defect=lot.defect||{name:'Sem defeitos relevantes',cost:0};
- return '<article class="ae-auction-lot" data-auction-lot="'+id+'"><p><strong>'+esc(lot.categoryLabel||'Leilão geral')+'</strong> · '+esc(lot.categoryDescription||'')+'</p><h4>'+esc(lot.car.name)+'</h4><p>Ano '+n(lot.car.year)+' · '+n(lot.car.km).toLocaleString('pt-BR')+' km · Conservação '+n(lot.car.condition)+'%</p><div class="ae-auction-metrics"><div>Lance atual<b>'+fmtMoney(lot.high)+'</b></div><div>Líder<b>'+esc(lot.leader)+'</b></div><div>Valor estimado<b>'+fmtMoney(lot.car.value)+'</b></div><div>Encerra no dia<b>'+n(lot.ends)+'</b></div></div><p>Próximo lance: <strong>'+fmtMoney(minBid)+'</strong></p><div class="ae-auction-actions"><button data-auction-bid="'+id+'" '+(!enough||n(lot.rounds)>=12?'disabled':'')+'>Dar lance</button><button class="ae-auction-secondary" data-auction-max="'+id+'" '+(!canCommit(a,lot,Math.round(minBid*1.08/100)*100)||n(lot.rounds)>=12?'disabled':'')+'>Lance +8%</button></div><p><strong>Laudo:</strong> '+(lot.inspected?esc(defect.name)+' · Reparo adicional: '+fmtMoney(n(defect.cost)):'Defeitos ocultos possíveis')+'</p>'+(lot.inspected?'':'<button class="ae-auction-secondary" data-auction-inspect="'+id+'" '+(n(s.cash)-held.cash<fee?'disabled':'')+'>Inspecionar · '+fmtMoney(fee)+'</button>')+'</article>';
+ return '<article class="ae-auction-lot" data-auction-lot="'+id+'"><p><strong>'+esc(lot.categoryLabel||'Leilão geral')+'</strong> · '+esc(lot.categoryDescription||'')+'</p><h4>'+esc(lot.car.name)+'</h4><p>Ano '+n(lot.car.year)+' · '+n(lot.car.km).toLocaleString('pt-BR')+' km · Conservação '+n(lot.car.condition)+'%</p><div class="ae-auction-metrics"><div>Lance atual<b>'+fmtMoney(lot.high)+'</b></div><div>Líder<b>'+esc(lot.leader)+'</b></div><div>Valor estimado<b>'+fmtMoney(lot.car.value)+'</b></div><div>Encerra no dia<b>'+n(lot.ends)+'</b></div></div><p>Próximo lance: <strong>'+fmtMoney(minBid)+'</strong></p><div class="ae-auction-actions"><button data-auction-bid="'+id+'" '+(!enough||n(lot.rounds)>=12?'disabled':'')+'>Dar lance</button><button class="ae-auction-secondary" data-auction-max="'+id+'" '+(!canCommit(a,lot,Math.round(minBid*1.08/100)*100)||n(lot.rounds)>=12?'disabled':'')+'>Lance +8%</button></div><p><strong>Laudo:</strong> '+(lot.inspected?esc(defect.name)+' · Reparo adicional: '+fmtMoney(n(defect.cost)):'Defeitos ocultos possíveis')+'</p>'+(lot.inspected?'':'<button class="ae-auction-secondary" data-auction-inspect="'+id+'" '+(s.empire?.economy?.bankrupt||n(s.cash)-held.cash<fee?'disabled':'')+'>Inspecionar · '+fmtMoney(fee)+'</button>')+'</article>';
  }).join(''):'<p>Nenhum lote nesta categoria. Próxima rodada a partir do dia '+Math.max(n(s.day),n(a.nextDay))+'.</p>')+'</div>'+history(a);
  panel.querySelectorAll('[data-auction-filter]').forEach(b=>b.onclick=()=>{selected=b.dataset.auctionFilter;refresh();});
  panel.querySelectorAll('[data-auction-bid]').forEach(b=>b.onclick=()=>bid(Number(b.dataset.auctionBid),false));
@@ -129,6 +130,7 @@ function refresh(){
  panel.querySelectorAll('[data-auction-inspect]').forEach(b=>b.onclick=()=>inspect(Number(b.dataset.auctionInspect)));
 }
 function inspect(id){
+ if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência.');
  const a=ensure(),lot=a?.lots?.find(x=>n(x.car.id)===id);
  if(!lot||lot.inspected)return;
  const price=Math.max(150,Math.round(n(lot.car.value)*.012/50)*50);
@@ -157,7 +159,11 @@ function bid(id,raise){
 }
 const previousTick=tickDay;
 tickDay=function(){
- const result=previousTick(),a=ensure();if(!a)return result;
+ const dayBefore=s?.day;
+ const result=previousTick.apply(this,arguments);
+ // Blocked turns must not settle lots, debit money or start another round.
+ if(s?.day===dayBefore)return result;
+ const a=ensure();if(!a)return result;
  // Rival bidders continue to compete between player actions, up to their budgets.
  for(const lot of a.lots){
   if(n(s.day)>n(lot.ends)||lot.leader!=='Você'||Math.random()>=.24)continue;

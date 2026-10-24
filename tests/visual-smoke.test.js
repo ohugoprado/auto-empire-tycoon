@@ -47,7 +47,7 @@ async function startServer() {
     if (spawnError) throw spawnError;
     if (server.exitCode !== null) throw Error('HTTP server exited: ' + output);
     try {
-      const response = await fetch(base + '/preview/');
+      const response = await fetch(base + '/preview/', { method: 'HEAD' });
       if (response.ok) return base;
     } catch (_) {}
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -193,15 +193,15 @@ async function testViewport(base, width, height) {
       width + ': visual redesign is loaded');
     await createCompany(page);
     await page.locator('#ae-showroom').waitFor({ state: 'visible' });
-    check(await page.locator('#ae-showroom svg.ae-district-art > image').count() === 3,
-      width + ': district contains all three building illustrations');
+    check(await page.locator('#ae-showroom img.ae-campus-scene').count() === 1,
+      width + ': district uses a continuous campus illustration');
     await assertLayout(page, width + ' garage');
     await page.screenshot({ path: path.join(artifacts, 'garage-' + width + '.png'), fullPage: true });
 
     await page.locator('.bottom [data-tab="market"]').click();
     await page.locator('#listings > .panel').first().waitFor({ state: 'visible' });
     check(await page.locator('#listings > .panel').count() === 6, width + ': six marketplace opportunities render');
-    check(await page.locator('#listings > .panel svg.ae-sprite > image').count() === 6,
+    check(await page.locator('#listings > .panel svg.ae-sprite image').count() === 6,
       width + ': each marketplace vehicle has a sprite');
     await assertLayout(page, width + ' market');
     await assertMarketFilter(page);
@@ -250,7 +250,7 @@ async function testViewport(base, width, height) {
       }), target.id);
       check(restored.hasCar && restored.cash === purchased.cash, 'Reload preserves the purchased vehicle and cash');
       check(restored.company === 'Aurora Motors', 'Reload preserves company identity');
-      check(await page.locator('#stock svg.ae-sprite > image').count() === 1,
+      check(await page.locator('#stock svg.ae-sprite image').count() === 1,
         'Purchased vehicle retains its sprite after reload');
       await assertStockFilters(page, target.id);
       await page.locator('#stock button[onclick="listDialog(' + target.id + ')"]').click();

@@ -4,7 +4,7 @@
 const num=x=>Number.isFinite(Number(x))?Number(x):0;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
-const escText=x=>String(x??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&gt;','"':'&quot;'}[ch]));
+const escText=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const profiles={
  budget:{label:'Econômico',price:.91,quality:.5,patience:1},
  family:{label:'Família',price:1,quality:1.25,patience:1.1},

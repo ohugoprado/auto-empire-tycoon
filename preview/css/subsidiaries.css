@@ -67,3 +67,11 @@ body.ae-redesign.ae-next #ae-world .ae-world-no-results{padding:15px 0}
   body.ae-redesign.ae-next #ae-world .ae-world-toolbar{grid-template-columns:minmax(0,1fr)}
   body.ae-redesign.ae-next #ae-world .ae-world-summary strong{font-size:18px!important}
 }
+
+body.ae-redesign.ae-next #ae-world button{min-height:46px!important;min-width:44px!important}
+
+/* Imported industrial panels follow the app's daylight surfaces. */
+body.ae-redesign.ae-next :is(#ae-subsidiary-command,#ae-workforce,#ae-factory-warehouse){background:#fff!important;color:#15263b!important;border-color:#cbd9eb!important}
+body.ae-redesign.ae-next :is(#ae-subsidiary-command,#ae-workforce,#ae-factory-warehouse) :is(h3,strong,b,label){color:#183d69!important}
+body.ae-redesign.ae-next :is(#ae-subsidiary-command,#ae-workforce,#ae-factory-warehouse) :is(p,small,#ae-sub-summary,#ae-sub-quote){color:#52647a!important}
+body.ae-redesign.ae-next #ae-sub-feedback{color:#166b59!important}

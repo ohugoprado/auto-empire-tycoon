@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const garage=document.getElementById('garage');if(!garage)return;
-const escapeText=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
+const escapeText=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validColor=x=>/^#[0-9a-f]{6}$/i.test(x)?x:'#2563a0';
 const shapes={shield:'M80 12 L137 32 L131 104 Q120 136 80 151 Q40 136 29 104 L23 32 Z',circle:'M80 13 A67 67 0 1 1 79.99 13 Z',hex:'M80 11 L137 45 L137 115 L80 149 L23 115 L23 45 Z',diamond:'M80 10 L147 80 L80 150 L13 80 Z'};
 const marks={bolt:'M87 34 L54 85 L78 85 L70 124 L111 69 L84 69 Z',wing:'M25 68 L67 86 L80 76 L93 86 L135 68 L110 99 L80 91 L50 99 Z',star:'M80 38 L91 67 L122 67 L97 86 L106 115 L80 97 L54 115 L63 86 L38 67 L69 67 Z',road:'M69 34 L91 34 L113 122 L89 122 L84 100 L76 100 L71 122 L47 122 Z'};
