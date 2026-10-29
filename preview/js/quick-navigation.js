@@ -92,6 +92,13 @@
     const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
+      // Prioritize the stock screen when there are offers to review, without
+      // changing the default shortcut order for campaigns with no offers.
+      const links = dialog.querySelector('.ae-quick-nav-links');
+      const marketButton = actions.get('market').button;
+      const garageButton = actions.get('garage').button;
+      if (offers > 0 && garageButton.nextElementSibling !== marketButton) links.insertBefore(garageButton, marketButton);
+      else if (offers === 0 && marketButton.nextElementSibling !== garageButton) links.insertBefore(marketButton, garageButton);
       setText(actions.get('garage').description, stockLabel + ' no estoque · ' + offerLabel + '.');
       setText(actions.get('factory').description, factory.opened ? 'Ver linhas e acompanhar as entregas da produção.' : 'Conferir o investimento e fundar sua fabricante.');
       setText(actions.get('projects').description, (Number(studio.research) || 0) + ' pontos P&D · ' + (studio.designs?.length || 0) + ' modelo(s) homologado(s).');
