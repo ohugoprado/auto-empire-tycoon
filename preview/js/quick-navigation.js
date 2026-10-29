@@ -115,8 +115,14 @@
   }
   function focusPanel(target) {
     if (!target) return;
-    if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
-    target.scrollIntoView({ block: 'start', behavior: 'auto' }); target.focus({ preventScroll: true });
+    // Switching workspaces may update hidden panels on the next render frame.
+    // Defer focus so keyboard and screen-reader users land on visible content.
+    requestAnimationFrame(() => {
+      if (!target.isConnected || !target.getClientRects().length) return;
+      if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
+      target.scrollIntoView({ block: 'start', behavior: 'auto' });
+      target.focus({ preventScroll: true });
+    });
   }
   function visitFallback(id) {
     show('garage');
