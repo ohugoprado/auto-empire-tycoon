@@ -75,7 +75,7 @@
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
       garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: mainJobs, free,
-        status: offers ? 'offers' : stock.length >= capacity ? 'full' : !free ? 'reserved' : 'ready' }),
+        status: offers ? 'offers' : stock.length >= capacity ? 'full' : mainJobs >= free && mainJobs > 0 ? 'reserved' : 'ready' }),
       factory: Object.freeze({ opened, mainJobs, totalJobs,
         capacity: lines, warehouseStock, warehouseCapacity, industrialFree, pendingUnits,
         etaDays: dueDay === null ? null : Math.max(0, Math.ceil(dueDay - day)), dueDay,
@@ -126,7 +126,7 @@
       if (node.row.dataset.state !== value.status) node.row.dataset.state = value.status;
     }
     setText(nodes.get('garage').status, garage.offers ? plural(garage.offers, 'proposta', 'propostas') : garage.status === 'full' ? 'Estoque cheio' : garage.status === 'reserved' ? 'Vagas reservadas' : 'Seu estoque');
-    setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'reserva', 'reservas') : ''));
+    setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'ordem da fábrica', 'ordens da fábrica') : ''));
     const labels = { unbuilt: 'Falta fundar', ready: 'Sem ordens na fila', working: plural(factory.mainJobs, 'ordem na fila', 'ordens na fila'), 'storage-full': 'Estoque e pátio cheios', 'waiting-staff': 'Equipe insuficiente', queued: 'Lote aguardando início', crisis: 'Produção suspensa', bankrupt: 'Campanha encerrada' };
     setText(nodes.get('factory').status, labels[factory.status]);
     let detail;
