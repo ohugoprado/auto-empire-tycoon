@@ -48,7 +48,14 @@
     const shifts = factory.workforce?.shift === 2 ? 2 : 1;
     const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
     const lines = Math.min(level * 4, Math.floor(staff / (3 * shifts)) * shifts);
-    const pendingUnits = (Array.isArray(factory.industrialOrders) ? factory.industrialOrders : []).filter(order => order && !order.plantId).reduce((sum, order) => sum + positive(order.remaining), 0);
+    // Count only outstanding main-plant units; ignore completed orders and
+    // subsidiary orders when calculating the main factory's workload.
+    let pendingUnits = 0;
+    if (Array.isArray(factory.industrialOrders)) {
+      for (const order of factory.industrialOrders) {
+        if (order && !order.plantId) pendingUnits += positive(order.remaining);
+      }
+    }
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
     const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (main.length || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : main.length ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
