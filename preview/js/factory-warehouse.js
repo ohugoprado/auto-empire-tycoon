@@ -42,7 +42,14 @@ panel.addEventListener('click',ev=>{
  if(ev.target.closest('#ae-warehouse-bulk')){
   const count=Math.min(Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length),f.warehouseCars.length);
   if(!count)return toast('Não há vagas ou veículos para transferir.');
-  s.stock.push(...f.warehouseCars.splice(0,count));
+  // Move in bounded chunks: spreading a large warehouse batch can exceed
+  // JavaScript's argument limit on mobile Safari.
+  let remaining=count;
+  while(remaining>0){
+   const batch=f.warehouseCars.splice(0,Math.min(remaining,200));
+   for(const car of batch)s.stock.push(car);
+   remaining-=batch.length;
+  }
   note('Transferência em lote: '+count+' veículo(s) enviados à concessionária.');
   save();render();refresh();return;
  }
