@@ -68,8 +68,14 @@
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
     const queuedJobs = Array.isArray(factory.queue) ? factory.queue.filter(job => job && typeof job === 'object') : [];
     const productionJobs = queuedJobs.length;
-    const deliveryDays = queuedJobs.map(job => Number(job.due)).filter(Number.isFinite);
-    const nextDelivery = deliveryDays.length ? Math.min(...deliveryDays) : null;
+    // Keep delivery calculations linear and avoid spreading large production
+    // queues into Math.min (which can exceed argument limits on mobile Safari).
+    let nextDelivery = null;
+    for (const job of queuedJobs) {
+      if (job.due == null || job.due === '') continue;
+      const due = Number(job.due);
+      if (Number.isFinite(due) && (nextDelivery === null || due < nextDelivery)) nextDelivery = due;
+    }
     const warehouseCount = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
     // A visible pending-offer count helps players notice decisions without
     // opening the stock panel or repeatedly checking each vehicle.
