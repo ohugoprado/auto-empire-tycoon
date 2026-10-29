@@ -112,11 +112,9 @@
     } else if (view.status === 'enabled') {
       const [title, copy, action, actionLabel, step] = steps[view.stage];
       const carName = view.car ? view.car.name + ' · ' : '';
-      const running = view.stage === 'wait' && !paused;
       write(card, title, carName + copy,
-        [[action, actionLabel, false, running], ...(view.stage === 'prepare' ? [['prepared', 'Já avaliei, continuar', true]] : []), ['dismiss', 'Pausar guia', true]],
-        'ETAPA ' + step + ' DE 5', 'Dia ' + count(s.day) + ' · ' + (paused ? 'Simulação pausada' : 'Simulação em andamento') +
-        (running ? '. Use Pausar antes de avançar um dia pelo guia.' : ''));
+        [[action, actionLabel], ...(view.stage === 'prepare' ? [['prepared', 'Já avaliei, continuar', true]] : []), ['dismiss', 'Pausar guia', true]],
+        'ETAPA ' + step + ' DE 5', 'Dia ' + count(s.day) + ' · Por turnos. O próximo dia só começa ao tocar em Avançar dia.');
     }
 
     const existingCampaign = view.status === 'unavailable' && !s?.empire?.economy?.bankrupt;

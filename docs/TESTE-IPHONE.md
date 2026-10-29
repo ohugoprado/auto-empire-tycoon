@@ -8,7 +8,11 @@ O app atual é uma PWA. Instalar pela tela inicial não equivale a publicar um a
 
 O usuário informou **iPhone 17 Pro Max**; a versão do iOS ainda não foi informada. Esse é o alvo principal do roteiro físico.
 
-Na versão `motor-district-9100`, o WebKit 26.5 passou por 647 verificações automatizadas em cinco perfis móveis, incluindo o descriptor oficial do iPhone 17 Pro Max (viewport 440 × 763 e tela 440 × 956, escala 3). Foram exercitados toque, criação de empresa, compra, anúncio, recarga, filtros, campanhas separadas, sprites, as três ilustrações do mapa e galeria de 32 modelos. O ciclo de revenda com folha, tributos e dívida tem regressão nos dois motores, incluindo consistência da proposta ao cancelar, reabrir e recarregar. Guia e coleção têm testes adicionais; nenhum resultado automatizado equivale a uma sessão humana no iPhone.
+O build desta revisão é `motor-district-15002`, visível em **Menu → Opções**. A entrada pública abre o menu antes do cadastro. Na campanha nova, seguir **Nova campanha → dificuldade → Configurar nova empresa**; na existente, tocar em **Continuar campanha**. O relatório automatizado também registra o build de cada perfil WebKit.
+
+Na base anterior `f08df56` (`motor-district-15001`), o [CI de 24/10/2026 UTC](https://github.com/ohugoprado/auto-empire-tycoon/actions/runs/40044595469) aprovou mapa (763 verificações), guia (226), produção (369), backup (175) e menu (158), em cada um dos motores Chromium e WebKit. A execução completa falhou no teste final: ele tentava preencher o cadastro sob o menu inicial aberto. Esta revisão faz esse teste percorrer o menu real e conferir que **Continuar** preserva dia, caixa e estoque. O resultado da revisão deve ser conferido no check **Validate game** do commit em teste; os resultados da base anterior não aprovam a alteração atual.
+
+As 647 verificações de WebKit 26.5 registradas anteriormente para `motor-district-9100` são evidência histórica, não o resultado deste build. Nenhuma execução em viewport móvel equivale a uma sessão humana no iPhone.
 
 Uma verificação de navegação offline foi excluída explicitamente: o WebKit/WPE deste ambiente falha com erro interno também em uma página mínima independente, já controlada por service worker e com arquivos em cache. O cache do jogo foi conferido; recarga offline continua sem aprovação nesse motor. O teste offline do Chromium permanece obrigatório. Não extrapolar nenhum desses resultados para instalação, teclado, compartilhamento, áreas seguras ou retomada do iOS real.
 
@@ -30,6 +34,23 @@ Registrar modelo exato e versão instalada do iOS. A meta inicial é validar ver
 3. Criar uma campanha na entrada principal e outra na prévia, com nomes e saldos distinguíveis.
 4. Depois do primeiro carregamento completo, repetir os cenários indicados sem conexão.
 5. Repetir no app adicionado à tela inicial; não presumir que seus dados estarão compartilhados com a sessão do Safari. Verificar esse comportamento no aparelho.
+6. Quando houver Mac disponível, observar o console pelo Web Inspector durante entrada, navegação, avanço diário e importação. Sem essa observação, registrar console físico como não verificado.
+
+## Rodada prioritária: entrada, mapa, guia, turno e backup
+
+Executar nesta ordem em Safari e tela inicial, registrando modelo/iOS, build, resultado e evidência em cada modo:
+
+| Ordem | Procedimento | Aprovação |
+| --- | --- | --- |
+| 1 | Abrir pela raiz com campanha nova e existente; configurar empresa ou continuar; cancelar uma nova configuração. | Cadastro recebe toque e teclado; menu fecha; não há tela vazia, recarga em ciclo, reset nem cobrança ao continuar/cancelar. |
+| 2 | Tocar nos três prédios com Gestão recolhida, antes/depois da fundação da fabricante. | Painel real visível e utilizável; navegar não muda dia, caixa ou fila. |
+| 3 | Iniciar, dispensar e retomar o guia; comprar, preparar opcionalmente, anunciar e vender. | Etapas acompanham ações reais e persistem; não há compra/venda automática nem promessa de proposta a cada dia. |
+| 4 | Anotar dia/caixa; avançar pelo botão flutuante e pelo guia; repetir toque rápido e tentar com modal/resumo aberto. | Uma ação aceita gera um dia; bloqueio não cobra nem mostra resumo de sucesso; espera e retorno do app não avançam tempo. |
+| 5 | Em campanha avançada, produzir duas unidades, testar falta de equipe e estoque cheio com vaga no pátio. | Fila, folha, prazo, bloqueio e entrega acompanham os dias explícitos; recarga não duplica veículos. |
+| 6 | Exportar por Eventos e Ferramentas e localizar o JSON em Arquivos; importar nas duas campanhas; recuperar a versão anterior. | Arquivo recuperável; valores restaurados; destino financeiro correto; perfil global coerente. Cancelamento e JSON inválido preservam os dados. |
+| 7 | Recarregar, alternar aplicativos, bloquear/desbloquear; repetir offline após cache completo e numa instalação antiga após atualização. | Progresso mantido, ações alcançáveis com teclado/barra do Safari e ausência de recarga em ciclo. Sem atualização disponível, marcar essa parte como não executada. |
+
+Usar cópias de campanhas de teste. Para verificar importação, exportar o estado A, avançar para B, importar A e usar **Restaurar versão anterior** para recuperar B. Conferir a outra campanha antes/depois; seu perfil é global e pode mudar nas duas entradas. Marcar os casos sem aparelho, backup antigo ou campanha avançada como **não executados**.
 
 ## Cenários obrigatórios
 

@@ -238,6 +238,8 @@ async function testProfile(base, profile) {
     equal(await page.locator('#stock > .panel:visible .ae-trade-summary').getAttribute('data-car-id'), String(candidate.id), label + ': filtering and sorting retain accounting identity');
 
     const dayBefore = actual.day;
+    // A legacy pause flag must not disable the only permitted simulation action.
+    await page.evaluate(() => { paused = false; render(); });
     check(await page.locator('#ae-first-sale-guide [data-guide-action="advance"]').isEnabled(), label + ': the manual guide exposes an explicit one-day action');
     check(await page.locator('#ae-end-day').isVisible(), label + ': the main manual-turn control remains available');
     equal((await state(page)).day, dayBefore, label + ': opening the guide never skips a simulated day');

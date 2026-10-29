@@ -82,7 +82,7 @@ async function assertOffline(context, page, expectedCar) {
       async function inspect() {
         if (!navigator.serviceWorker.controller) return;
         try {
-          const cache = await caches.open('auto-empire-motor-district-15001');
+          const cache = await caches.open('auto-empire-motor-district-15002');
           const keys = await cache.keys();
           clearTimeout(timeout);
           resolve({
