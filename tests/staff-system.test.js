@@ -125,10 +125,8 @@ async function snapshot(page) {
     actual = await snapshot(page);
     equal(actual.cash, cashBeforeRepair - 1120, 'One 20% repair benefit costs 1120, without stacking the new 12% perk');
     equal(actual.stock[0].spent, 1120, 'The repair basis records the actual one-time expense');
-    const quoteBeforeDialog = (await snapshot(page)).stock[0].offers[0];
     await page.evaluate(id => offersDialog(id), carId);
     actual = await snapshot(page);
-    console.log('STAFF_QUOTE_TRACE', JSON.stringify({ before: quoteBeforeDialog, after: actual.stock[0].offers[0], staff: actual.staff, migration: actual.saved.empire.staffMigration }));
     equal(actual.stock[0].offers[0].amount, 10800, 'A mixed saved proposal retains the old 8% seller bonus on its historical quote');
     await page.evaluate(id => { closeModal(); offersDialog(id); }, carId);
     equal((await snapshot(page)).stock[0].offers[0].amount, 10800, 'Reopening the real dialog does not compound bonuses');
