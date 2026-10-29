@@ -14,7 +14,11 @@ let warehousePage=0;
 function refresh(){
  const f=state();panel.hidden=!f?.opened;if(!f?.opened)return;
  const free=Math.max(0,(Number(s.slots)||0)-s.stock.length);
- const waiting=(f.queue||[]).length;
+ // Subsidiary jobs belong to their own plants and must not inflate
+ // the main warehouse's in-production count.
+ const waiting=Array.isArray(f.queue)
+  ? f.queue.reduce((count,job)=>count+(job&&typeof job==='object'&&!job.plantId?1:0),0)
+  : 0;
  const pressure=f.warehouseCars.length/Math.max(1,f.warehouseCapacity);
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const fleetStats=fleet(f);
