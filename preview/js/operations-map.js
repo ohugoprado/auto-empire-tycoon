@@ -61,7 +61,11 @@
         if (order && !order.plantId) pendingUnits += positive(order.remaining);
       }
     }
-    const storageBlocked = (mainJobs > 0 || pendingUnits > 0) && industrialFree === 0;
+    // Reserved slots are not the same as physically full storage: existing
+    // production jobs can still finish in their reserved slots. Only show a
+    // storage blockage when both the garage and warehouse are actually full.
+    const storageBlocked = (mainJobs > 0 || pendingUnits > 0) &&
+      free === 0 && warehouseStock >= warehouseCapacity;
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
     const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : storageBlocked ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
