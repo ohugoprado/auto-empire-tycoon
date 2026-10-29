@@ -92,7 +92,9 @@ tickDay=function(){
  if(!f.autoDistribution||!f.warehouseCars.length)return result;
  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
  const stats=fleet(f);
- const affordable=Math.max(0,Math.floor((Number(s.cash)||0)/stats.fee));
+ // Logistics must not turn a negative or invalid balance into capacity.
+ const cash=Number(s.cash);
+ const affordable=Number.isFinite(cash)&&cash>0?Math.floor(cash/stats.fee):0;
  const quantity=Math.min(stats.capacity,slots,affordable,f.warehouseCars.length);
  if(quantity>0){
   const moved=f.warehouseCars.splice(0,quantity);
