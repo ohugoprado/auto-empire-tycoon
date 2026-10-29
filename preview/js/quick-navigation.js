@@ -66,6 +66,13 @@
     const stock = Array.isArray(state.stock) ? state.stock : [];
     const economy = state.empire?.economy || {}, factory = economy.factory || {}, studio = economy.studio || {};
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
+    // A visible pending-offer count helps players notice decisions without
+    // opening the stock panel or repeatedly checking each vehicle.
+    const stockLabel = stock.length + ' veículo' + (stock.length === 1 ? '' : 's');
+    const offerLabel = offers + ' proposta' + (offers === 1 ? '' : 's');
+    const quickLabel = offers ? 'Atalhos · ' + offerLabel : 'Atalhos';
+    setText(button.querySelector('span'), quickLabel);
+    button.setAttribute('aria-label', 'Abrir atalhos. ' + stockLabel + ' no estoque, ' + offerLabel + '.');
     const isPaused = typeof paused === 'undefined' || Boolean(paused), ended = Boolean(economy.bankrupt);
     const gameMenuReady = typeof window.AEGameMenu?.open === 'function';
     // Keep the current day and available cash visible in the shortcut sheet,
@@ -77,7 +84,7 @@
     const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
-      setText(actions.get('garage').description, stock.length + ' veículo(s) no estoque · ' + offers + ' proposta(s).');
+      setText(actions.get('garage').description, stockLabel + ' no estoque · ' + offerLabel + '.');
       setText(actions.get('factory').description, factory.opened ? 'Ver linhas e acompanhar as entregas da produção.' : 'Conferir o investimento e fundar sua fabricante.');
       setText(actions.get('projects').description, (Number(studio.research) || 0) + ' pontos P&D · ' + (studio.designs?.length || 0) + ' modelo(s) homologado(s).');
       setText(actions.get('simulation').title, ended ? 'Campanha encerrada' : 'Avançar 1 dia');
