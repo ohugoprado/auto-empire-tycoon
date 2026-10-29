@@ -57,7 +57,9 @@
   }
   function openMenu() {
     if (dialog.open) { refresh(); return true; }
-    if (document.querySelector('#modal:not(.hide),dialog[open]')) return false;
+    // The founding form is a custom dialog, not a native <dialog>. Never
+    // open a top-layer menu above it: that would block every onboarding tap.
+    if (document.querySelector('#ae-company-screen.is-open,#modal:not(.hide),dialog[open]')) return false;
     returnTarget = document.activeElement;
     // Opening or continuing the menu never advances a turn or charges another
     // day of expenses. The player uses the explicit advance-day control.
