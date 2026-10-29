@@ -15,6 +15,10 @@ for (const installed of [false, true]) {
   events.controllerchange();
   assert.equal(reloads, 0, 'first claim or queued same-controller event preserves the current document');
   assert.equal(saves, 0, 'first installation does not rewrite a partly initialized campaign');
+  serviceWorker.controller = null;
+  events.controllerchange();
+  assert.equal(reloads, 0, 'missing controller must not trigger a reload');
+  assert.equal(saves, 0, 'missing controller must not overwrite campaign');
   serviceWorker.controller = { scriptURL: first.scriptURL };
   events.controllerchange();
   assert.equal(reloads, installed ? 1 : 0, 'an actual replacement reloads an already controlled app only');
