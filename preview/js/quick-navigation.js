@@ -66,12 +66,14 @@
     const stock = Array.isArray(state.stock) ? state.stock : [];
     const economy = state.empire?.economy || {}, factory = economy.factory || {}, studio = economy.studio || {};
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
-    const queuedJobs = Array.isArray(factory.queue) ? factory.queue.filter(job => job && typeof job === 'object') : [];
-    const productionJobs = queuedJobs.length;
+    const queuedJobs = Array.isArray(factory.queue) ? factory.queue : [];
+    let productionJobs = 0;
     // Keep delivery calculations linear and avoid spreading large production
     // queues into Math.min (which can exceed argument limits on mobile Safari).
     let nextDelivery = null;
     for (const job of queuedJobs) {
+      if (!job || typeof job !== 'object') continue;
+      productionJobs++;
       if (job.due == null || job.due === '') continue;
       const due = Number(job.due);
       if (Number.isFinite(due) && (nextDelivery === null || due < nextDelivery)) nextDelivery = due;
