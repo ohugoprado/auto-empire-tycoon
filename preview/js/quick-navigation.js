@@ -66,6 +66,7 @@
     const stock = Array.isArray(state.stock) ? state.stock : [];
     const economy = state.empire?.economy || {}, factory = economy.factory || {}, studio = economy.studio || {};
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
+    const productionJobs = Array.isArray(factory.queue) ? factory.queue.filter(job => job && typeof job === 'object').length : 0;
     // A visible pending-offer count helps players notice decisions without
     // opening the stock panel or repeatedly checking each vehicle.
     const stockLabel = stock.length + ' veículo' + (stock.length === 1 ? '' : 's');
@@ -89,7 +90,7 @@
       setText(statusNode, 'Dia ' + day + ' · Caixa ' + cashLabel);
       statusNode.dataset.statusKey = statusKey;
     }
-    const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
+    const next = JSON.stringify([stock.length, offers, productionJobs, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
       // Prioritize the stock screen when there are offers to review, without
@@ -100,7 +101,7 @@
       if (offers > 0 && garageButton.nextElementSibling !== marketButton) links.insertBefore(garageButton, marketButton);
       else if (offers === 0 && marketButton.nextElementSibling !== garageButton) links.insertBefore(marketButton, garageButton);
       setText(actions.get('garage').description, stockLabel + ' no estoque · ' + offerLabel + '.');
-      setText(actions.get('factory').description, factory.opened ? 'Ver linhas e acompanhar as entregas da produção.' : 'Conferir o investimento e fundar sua fabricante.');
+      setText(actions.get('factory').description, factory.opened ? (productionJobs ? productionJobs + ' ordem' + (productionJobs === 1 ? '' : 's') + ' de produção na fila · Ver linhas e entregas.' : 'Nenhuma ordem na fila · Ver linhas e entregas.') : 'Conferir o investimento e fundar sua fabricante.');
       setText(actions.get('projects').description, (Number(studio.research) || 0) + ' pontos P&D · ' + (studio.designs?.length || 0) + ' modelo(s) homologado(s).');
       setText(actions.get('simulation').title, ended ? 'Campanha encerrada' : 'Avançar 1 dia');
       setText(actions.get('simulation').description, ended ? 'Consulte a situação financeira da campanha.' : 'Produzir, receber propostas e pagar as despesas do próximo dia.');
