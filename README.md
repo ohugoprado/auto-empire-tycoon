@@ -72,7 +72,7 @@ O mapa contínuo da garagem integra os prédios no mesmo cenário, com áreas de
 
 O leilão regional mantém um único veículo por lote de dois dias simulados. Carro e cotação ficam congelados na campanha; o primeiro arremate consome o lote e desativa o botão. Cliques repetidos, atualização do mercado e recarga não permitem comprar o mesmo lote outra vez. Caixa insuficiente, falência ou falta de vaga impedem a aquisição sem consumir a oferta. Salvamentos antigos e carros já adquiridos são preservados.
 
-O service worker registra a versão `motor-district-15001`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo mapa, guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
+O service worker registra a versão `motor-district-15002`, atualiza arquivos pela rede e mantém a interface completa em cache, incluindo mapa, guia, progressão e as 160 imagens. O cache antigo do jogo é substituído sem apagar o armazenamento das campanhas. O workflow `Validate game` verifica a interface e as regressões em Chromium e WebKit nos novos pushes; o sincronizador antigo que sobrescrevia a prévia foi retirado. A publicação continua pelo GitHub Pages, branch `main`, raiz do repositório.
 
 ## Abrir a fabricante e produzir
 

@@ -102,6 +102,26 @@ async function assertTouchTarget(locator, label) {
   check(box && box.width >= 44 && box.height >= 44, label + ': touch target is at least 44 × 44 CSS pixels');
 }
 
+async function enterPublicCampaign(page, label, creating = false) {
+  const menu = page.locator('#ae-game-menu');
+  await menu.waitFor({ state: 'visible' });
+  const action = name => menu.locator('[data-menu-action="' + name + '"]');
+  if (creating) {
+    check(await action('continue').isHidden(), label + ': a fresh campaign requires company setup');
+    await assertTouchTarget(action('new'), label + ' new campaign');
+    await action('new').tap();
+    const normal = menu.locator('.ae-game-menu-difficulty').filter({ has: page.locator('input[value="normal"]') });
+    await assertTouchTarget(normal, label + ' normal difficulty');
+    await normal.tap();
+    await assertTouchTarget(action('create'), label + ' configure company');
+    await action('create').tap();
+  } else {
+    await assertTouchTarget(action('continue'), label + ' continue campaign');
+    await action('continue').tap();
+  }
+  await menu.waitFor({ state: 'hidden' });
+}
+
 async function assertTouchHit(locator, label) {
   await locator.scrollIntoViewIfNeeded();
   const hit = await locator.evaluate(element => {
@@ -321,12 +341,14 @@ async function testProfile(base, profile) {
     const environment = await page.evaluate(() => ({
       width: innerWidth, height: innerHeight, touch: navigator.maxTouchPoints,
       coarse: matchMedia('(pointer: coarse)').matches, touchEvents: 'ontouchstart' in window,
-      ua: navigator.userAgent, key: KEY
+      ua: navigator.userAgent, key: KEY,
+      release: document.querySelector('meta[name="ae-release"]')?.content
     }));
     check(environment.width === profile.viewport.width, label + ': viewport uses the requested portrait width');
     check(environment.touchEvents && environment.coarse, label + ': mobile touch input is emulated');
     check(environment.ua.includes('iPhone') && environment.key === 'autoempire_v02',
       label + ': iPhone profile reaches the original public campaign');
+    await enterPublicCampaign(page, label, true);
     await page.locator('#ae-company-screen').waitFor({ state: 'visible' });
     await assertLayout(page, label + ' onboarding');
     await page.locator('#ae-company-name').tap();
@@ -458,12 +480,15 @@ async function testProfile(base, profile) {
         'WebKit: opening the preview does not replace main campaign progress');
       await page.goto(base + '/', { waitUntil: 'networkidle' });
       await page.waitForURL(url => url.searchParams.get('campaign') === 'main');
+      await enterPublicCampaign(page, label + ' returning');
+      const resumed = await page.evaluate(() => ({ cash: s.cash, day: s.day, ids: s.stock.map(car => car.id) }));
+      check(JSON.stringify(resumed) === JSON.stringify(main), label + ': the public Continue action preserves day, money and inventory');
       if (profile.target) await assertOffline(context, page, { id: target.id, cash: purchased.cash }, profile.name);
     }
     check(errors.length === 0, label + ': no WebKit JavaScript errors: ' + errors.join('; '));
     check(missing.length === 0, label + ': no missing assets: ' + missing.join('; '));
     completed.push({
-      name: profile.name, device: profile.device, viewport: profile.viewport, touch: true,
+      name: profile.name, device: profile.device, viewport: profile.viewport, touch: true, release: environment.release,
       ...(profile.target ? { requestedModel: targetModel, officialDeviceDescriptor: profile.officialDeviceDescriptor } : {}),
       reportedMaxTouchPoints: environment.touch
     });

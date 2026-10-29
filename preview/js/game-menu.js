@@ -14,6 +14,14 @@
     '<section data-menu-view="options" hidden><button type="button" class="ae-game-menu-back ghost" data-menu-action="home">← Menu principal</button><h2>Opções da campanha</h2><div class="ae-game-menu-option-list"><button type="button" class="ghost" data-menu-action="identity"><strong>Identidade da empresa</strong><small>Editar empresa e proprietário.</small></button><button type="button" class="ghost" data-menu-action="backup"><strong>Salvamentos e backup</strong><small>Abrir os controles de exportação e recuperação.</small></button><button type="button" class="ghost" data-menu-action="guide"><strong>Guia da primeira venda</strong><small>Aprender o ciclo de compra, preparação e venda.</small></button></div><p class="ae-game-menu-local">A dificuldade de uma campanha em andamento é mantida. Animações respeitam a redução de movimento do aparelho.</p></section>' +
     '<section data-menu-view="help" hidden><button type="button" class="ae-game-menu-back ghost" data-menu-action="home">← Menu principal</button><h2>Seu primeiro negócio</h2><ol class="ae-game-menu-help"><li><strong>Encontre uma oportunidade</strong><span>Compare preço, conservação e custo de preparação no mercado.</span></li><li><strong>Prepare e anuncie</strong><span>Reparar é opcional. Compare o investimento com o preço desejado.</span></li><li><strong>Avance um dia e negocie</strong><span>Use Avançar dia para processar produção, compradores e despesas do próximo dia.</span></li><li><strong>Reinvista e cresça</strong><span>Use o mapa para chegar à fabricante, projetos e estoque.</span></li></ol><p class="ae-game-menu-local">Os dias avançam apenas quando você toca em Avançar dia. As campanhas principal e de prévia têm progresso separado; o perfil da empresa é compartilhado. Exporte backups pelos controles em Eventos.</p><button type="button" data-menu-action="guide">Abrir guia da venda</button></section></div>';
   document.body.append(dialog);
+  const release = document.querySelector('meta[name="ae-release"]')?.content;
+  if (release) {
+    const version = document.createElement('p');
+    version.id = 'ae-game-menu-version';
+    version.className = 'ae-game-menu-local';
+    version.textContent = 'Versão do jogo: ' + release;
+    dialog.querySelector('[data-menu-view="options"]').append(version);
+  }
   const difficultySet = dialog.querySelector('#ae-game-menu-difficulties');
   for (const [id, mode] of Object.entries(profile.difficulties)) {
     const label = document.createElement('label');
