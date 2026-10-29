@@ -43,7 +43,8 @@
     const opened = Boolean(factory.opened);
     const warehouseStock = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
     const warehouseCapacity = Math.max(20, positive(factory.warehouseCapacity) || 20);
-    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - jobs.length);
+    // Subsidiary jobs reserve capacity at their own plants, not at the main factory.
+    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - main.length);
     const level = Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1));
     const shifts = factory.workforce?.shift === 2 ? 2 : 1;
     const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
