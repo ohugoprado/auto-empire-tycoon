@@ -61,7 +61,7 @@
     const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (main.length || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : main.length ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
-      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: jobs.length, free,
+      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: main.length, free,
         status: offers ? 'offers' : stock.length >= capacity ? 'full' : !free ? 'reserved' : 'ready' }),
       factory: Object.freeze({ opened, mainJobs: main.length, totalJobs: jobs.length,
         capacity: lines, warehouseStock, warehouseCapacity, industrialFree, pendingUnits,
