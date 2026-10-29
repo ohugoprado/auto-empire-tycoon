@@ -327,6 +327,12 @@ async function testProfile(base, profile) {
     check(environment.touchEvents && environment.coarse, label + ': mobile touch input is emulated');
     check(environment.ua.includes('iPhone') && environment.key === 'autoempire_v02',
       label + ': iPhone profile reaches the original public campaign');
+    // The public entry opens the game menu. Choose a new campaign before
+    // interacting with the founding form; native dialogs block taps behind them.
+    await page.locator('#ae-game-menu[open]').waitFor({ state: 'visible' });
+    await page.locator('#ae-game-menu [data-menu-action="new"]').tap();
+    await page.locator('#ae-game-menu [data-menu-action="create"]').tap();
+    await page.locator('#ae-game-menu').waitFor({ state: 'hidden' });
     await page.locator('#ae-company-screen').waitFor({ state: 'visible' });
     await assertLayout(page, label + ' onboarding');
     await page.locator('#ae-company-name').tap();
