@@ -62,7 +62,7 @@
     let pendingUnits = 0;
     if (Array.isArray(factory.industrialOrders)) {
       for (const order of factory.industrialOrders) {
-        if (order && !order.plantId) pendingUnits += positive(order.remaining);
+        if (order && !order.plantId) pendingUnits += Math.ceil(positive(order.remaining));
       }
     }
     // Reserved slots are not the same as physically full storage: existing
