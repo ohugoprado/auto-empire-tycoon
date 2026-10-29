@@ -20,7 +20,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'ae-quick-nav';
   dialog.setAttribute('aria-labelledby', 'ae-quick-nav-title'); dialog.setAttribute('aria-describedby', 'ae-quick-nav-description');
-  dialog.innerHTML = '<div class="ae-quick-nav-head"><div><h2 id="ae-quick-nav-title">Aonde você quer ir?</h2><p id="ae-quick-nav-description">Abra uma área para ver seus controles.</p></div><button id="ae-quick-nav-close" type="button" class="ghost">Fechar</button></div><div class="ae-quick-nav-links"></div><p class="ae-quick-nav-hint">Abrir uma área não compra nem produz veículos.</p>';
+  dialog.innerHTML = '<div class="ae-quick-nav-head"><div><h2 id="ae-quick-nav-title">Aonde você quer ir?</h2><p id="ae-quick-nav-description">Abra uma área para ver seus controles.</p><p id="ae-quick-nav-status" aria-live="off"></p></div><button id="ae-quick-nav-close" type="button" class="ghost">Fechar</button></div><div class="ae-quick-nav-links"></div><p class="ae-quick-nav-hint">Abrir uma área não compra nem produz veículos.</p>';
   const actions = new Map();
   for (const [id, title, description] of [
     ['market', 'Mercado', 'Encontrar carros e negociar antes de comprar.'],
@@ -68,6 +68,12 @@
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
     const isPaused = typeof paused === 'undefined' || Boolean(paused), ended = Boolean(economy.bankrupt);
     const gameMenuReady = typeof window.AEGameMenu?.open === 'function';
+    // Keep the current day and available cash visible in the shortcut sheet,
+    // so players can navigate without returning to the financial dashboard.
+    const day = Math.max(1, Math.floor(Number(state.day) || 1));
+    const cash = Number(state.cash);
+    const cashLabel = Number.isFinite(cash) ? Math.round(cash).toLocaleString('pt-BR') + ' CR' : '—';
+    setText(dialog.querySelector('#ae-quick-nav-status'), 'Dia ' + day + ' · Caixa ' + cashLabel);
     const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
