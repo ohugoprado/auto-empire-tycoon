@@ -28,8 +28,14 @@
     const capacity = Math.max(0, Math.floor(positive(game.slots)));
     const free = Math.max(0, capacity - stock.length);
     const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
-    const dueDates = main.map(job => Number(job.due)).filter(Number.isFinite);
-    const dueDay = dueDates.length ? Math.min(...dueDates) : null;
+    // Scan due dates without allocating arrays or spreading a potentially
+    // large industrial queue into Math.min on mobile Safari.
+    let dueDay = null;
+    for (const job of main) {
+      if (job.due == null || job.due === '') continue;
+      const due = Number(job.due);
+      if (Number.isFinite(due) && (dueDay === null || due < dueDay)) dueDay = due;
+    }
     const rawCrisis = economy.crisis || {};
     const city = window.AEWorld?.cities?.find(item => item.id === game.empire?.world?.active);
     const applies = rawCrisis.id && rawCrisis.id !== 'stable' && day < amount(rawCrisis.end) && (!rawCrisis.region || rawCrisis.region === city?.country);
