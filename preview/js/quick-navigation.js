@@ -72,15 +72,23 @@
     const offerLabel = offers + ' proposta' + (offers === 1 ? '' : 's');
     const quickLabel = offers ? 'Atalhos · ' + offerLabel : 'Atalhos';
     setText(button.querySelector('span'), quickLabel);
-    button.setAttribute('aria-label', 'Abrir atalhos. ' + stockLabel + ' no estoque, ' + offerLabel + '.');
+    const accessibleLabel = 'Abrir atalhos. ' + stockLabel + ' no estoque, ' + offerLabel + '.';
+    if (button.getAttribute('aria-label') !== accessibleLabel) button.setAttribute('aria-label', accessibleLabel);
     const isPaused = typeof paused === 'undefined' || Boolean(paused), ended = Boolean(economy.bankrupt);
     const gameMenuReady = typeof window.AEGameMenu?.open === 'function';
     // Keep the current day and available cash visible in the shortcut sheet,
     // so players can navigate without returning to the financial dashboard.
     const day = Math.max(1, Math.floor(Number(state.day) || 1));
     const cash = Number(state.cash);
-    const cashLabel = Number.isFinite(cash) ? Math.round(cash).toLocaleString('pt-BR') + ' CR' : '—';
-    setText(dialog.querySelector('#ae-quick-nav-status'), 'Dia ' + day + ' · Caixa ' + cashLabel);
+    // The renderer may call refresh many times per frame; format currency only
+    // when the actual displayed day or balance changes.
+    const statusNode = dialog.querySelector('#ae-quick-nav-status');
+    const statusKey = day + ':' + (Number.isFinite(cash) ? Math.round(cash) : 'unknown');
+    if (statusNode.dataset.statusKey !== statusKey) {
+      const cashLabel = Number.isFinite(cash) ? Math.round(cash).toLocaleString('pt-BR') + ' CR' : '—';
+      setText(statusNode, 'Dia ' + day + ' · Caixa ' + cashLabel);
+      statusNode.dataset.statusKey = statusKey;
+    }
     const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
