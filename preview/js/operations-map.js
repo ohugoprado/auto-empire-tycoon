@@ -39,7 +39,11 @@
     const day = Math.max(1, Math.floor(positive(game.day)));
     const capacity = Math.max(0, Math.floor(positive(game.slots)));
     const free = Math.max(0, capacity - stock.length);
-    const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
+    // Sum proposals without building temporary collections on each map refresh.
+    let offers = 0;
+    for (const car of stock) {
+      if (Array.isArray(car?.offers)) offers += car.offers.length;
+    }
     const rawCrisis = economy.crisis || {};
     const city = window.AEWorld?.cities?.find(item => item.id === game.empire?.world?.active);
     const applies = rawCrisis.id && rawCrisis.id !== 'stable' && day < amount(rawCrisis.end) && (!rawCrisis.region || rawCrisis.region === city?.country);
