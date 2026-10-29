@@ -11,7 +11,14 @@
     // worker calls for a reload; reloading the same controller interrupts boot.
     if (!initialController || navigator.serviceWorker.controller === initialController || refreshed) return;
     refreshed = true;
-    if (typeof save === 'function') save();
+    try {
+      if (typeof save === 'function') save();
+    } catch (error) {
+      // Never discard an unsaved campaign just to activate a new worker.
+      refreshed = false;
+      console.warn('Atualização adiada: não foi possível salvar a campanha.', error);
+      return;
+    }
     location.reload();
   });
   window.addEventListener('load', () => {
