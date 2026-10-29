@@ -22,20 +22,24 @@
     const factory = economy.factory || {};
     const studio = economy.studio || {};
     const stock = Array.isArray(game.stock) ? game.stock : [];
-    const jobs = Array.isArray(factory.queue) ? factory.queue.filter(job => job && typeof job === 'object') : [];
-    const main = jobs.filter(job => !job.plantId);
-    const day = Math.max(1, Math.floor(positive(game.day)));
-    const capacity = Math.max(0, Math.floor(positive(game.slots)));
-    const free = Math.max(0, capacity - stock.length);
-    const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
-    // Scan due dates without allocating arrays or spreading a potentially
-    // large industrial queue into Math.min on mobile Safari.
+    // A single pass keeps main-plant and subsidiary reservations separate.
+    const queue = Array.isArray(factory.queue) ? factory.queue : [];
+    let totalJobs = 0;
+    let mainJobs = 0;
     let dueDay = null;
-    for (const job of main) {
+    for (const job of queue) {
+      if (!job || typeof job !== 'object') continue;
+      totalJobs++;
+      if (job.plantId) continue;
+      mainJobs++;
       if (job.due == null || job.due === '') continue;
       const due = Number(job.due);
       if (Number.isFinite(due) && (dueDay === null || due < dueDay)) dueDay = due;
     }
+    const day = Math.max(1, Math.floor(positive(game.day)));
+    const capacity = Math.max(0, Math.floor(positive(game.slots)));
+    const free = Math.max(0, capacity - stock.length);
+    const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
     const rawCrisis = economy.crisis || {};
     const city = window.AEWorld?.cities?.find(item => item.id === game.empire?.world?.active);
     const applies = rawCrisis.id && rawCrisis.id !== 'stable' && day < amount(rawCrisis.end) && (!rawCrisis.region || rawCrisis.region === city?.country);
@@ -44,7 +48,7 @@
     const warehouseStock = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
     const warehouseCapacity = Math.max(20, positive(factory.warehouseCapacity) || 20);
     // Subsidiary jobs reserve capacity at their own plants, not at the main factory.
-    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - main.length);
+    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - mainJobs);
     const level = Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1));
     const shifts = factory.workforce?.shift === 2 ? 2 : 1;
     const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
@@ -58,12 +62,12 @@
       }
     }
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
-    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (main.length || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : main.length ? 'working' : pendingUnits ? 'queued' : 'ready';
+    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (mainJobs || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
-      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: main.length, free,
+      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: mainJobs, free,
         status: offers ? 'offers' : stock.length >= capacity ? 'full' : !free ? 'reserved' : 'ready' }),
-      factory: Object.freeze({ opened, mainJobs: main.length, totalJobs: jobs.length,
+      factory: Object.freeze({ opened, mainJobs, totalJobs,
         capacity: lines, warehouseStock, warehouseCapacity, industrialFree, pendingUnits,
         etaDays: dueDay === null ? null : Math.max(0, Math.ceil(dueDay - day)), dueDay,
         status, cost, missing: opened ? 0 : Math.max(0, cost - amount(game.cash)), brand: String(factory.brand || '') }),
