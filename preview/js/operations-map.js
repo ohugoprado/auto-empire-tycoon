@@ -61,8 +61,9 @@
         if (order && !order.plantId) pendingUnits += positive(order.remaining);
       }
     }
+    const storageBlocked = (mainJobs > 0 || pendingUnits > 0) && industrialFree === 0;
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
-    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (mainJobs || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
+    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : storageBlocked ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
       garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: mainJobs, free,
