@@ -79,7 +79,7 @@ function refresh(){
  for(const car of (Array.isArray(s.stock)?s.stock:[]))addModel(car,'stock');
  for(const car of (Array.isArray(factory.warehouseCars)?factory.warehouseCars:[]))addModel(car,'warehouse');
  for(const order of contracts){if(!order||typeof order!=='object')continue;const name=String(order.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:'',stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}m.production+=Math.max(0,num(order.remaining));const cost=Number(order.cost);if(Number.isFinite(cost)&&cost>0&&m.unitCost==null)m.unitCost=cost;}
- const modelRows=[...modelStats.values()].sort((a,b)=>(b.stock+b.warehouse+b.production)-(a.stock+a.warehouse+a.production)).slice(0,12);
+ const modelRows=[...modelStats.values()].sort((a,b)=>(b.stock+b.warehouse+b.production)-(a.stock+a.warehouse+a.production));
  panel.querySelector('#ae-industrial-models').innerHTML='<h4>Planejamento por modelo</h4>'+(modelRows.length?modelRows.map(m=>{const inventory=m.stock+m.warehouse,coverage=m.offers/inventory||0,trendBoost=hotKind&&m.kind===hotKind;const margin=m.ask!=null&&m.unitCost!=null?Math.round((m.ask-m.unitCost)/m.ask*100):null;const status=inventory>=8&&coverage<.25?'Estoque elevado: avalie reduzir a produção':inventory>=4&&m.offers===0?'Pouca procura observada: monitore antes de ampliar':trendBoost&&inventory<3?'Segmento aquecido e estoque baixo':m.production>inventory*2&&inventory>=3?'Produção acima do estoque disponível: acompanhe vendas':'Acompanhar desempenho';return '<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Concessionária '+m.stock+' · pátio '+m.warehouse+' · aguardando montagem '+m.production+' · propostas abertas '+m.offers+'</p><p>'+(margin===null?'Margem estimada indisponível (faltam preço e custo comparáveis)':'Margem bruta indicativa '+margin+'% (sem despesas indiretas)')+' · '+esc(status)+'</p></div>';}).join(''):'<p class="tiny">Sem modelos disponíveis para análise.</p>')+'<p class="tiny">Sinais baseados no estoque atual e nas propostas abertas; não representam vendas realizadas nem garantem procura futura.</p>';
  const policy=economy.productionPolicy&&typeof economy.productionPolicy==='object'?economy.productionPolicy:{};
  const target=Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
@@ -88,7 +88,7 @@ function refresh(){
  const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+Math.max(0,l.capacity-count(l)),0));
  const spendable=Math.max(0,(Number.isFinite(cashBalance)?cashBalance:0)-reserveAmount);
  let remainingBudget=spendable,remainingLines=freeCapacity;
- const proposals=modelRows.filter(m=>target>0&&m.stock+m.warehouse+m.production<target).map(m=>{
+ const proposals=modelRows.filter(m=>target>0&&m.name!=='Modelo não identificado'&&m.stock+m.warehouse+m.production<target).map(m=>{
   const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
   const unitCost=m.unitCost!=null&&Number.isFinite(m.unitCost)&&m.unitCost>0?m.unitCost:null;
   const margin=m.ask!=null&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
@@ -107,7 +107,7 @@ function refresh(){
   return {...m,suggested,reason};
  });
  const opportunities=recommendations.filter(m=>m.suggested>0);
- const overstock=modelRows.filter(m=>m.stock+m.warehouse>target*2&&m.offers===0);
+ const overstock=modelRows.filter(m=>m.stock+m.warehouse>Math.max(2,target*2)&&m.offers===0);
  const policyPanel=panel.querySelector('#ae-industrial-policy');
  if(!policyPanel.contains(document.activeElement)){
  policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p>Linhas livres: '+freeCapacity+' · orçamento acima da reserva: '+money(spendable)+' · lote sugerido: '+recommendations.reduce((sum,m)=>sum+m.suggested,0)+' veículo(s).</p>'+(recommendations.length?recommendations.slice(0,8).map(m=>'<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Faltam '+m.shortfall+' para a meta · sugestão '+m.suggested+' · '+esc(m.reason)+(m.suggested?' · investimento estimado '+money(m.suggested*m.unitCost):'')+'</p></div>').join(''):'')+'<p class="tiny">Prévia de planejamento. O custo médio de estoque não é uma cotação da fábrica. Para produzir, abra o formulário de fabricação e confirme os valores reais. Nenhuma ordem é criada aqui.</p>';
