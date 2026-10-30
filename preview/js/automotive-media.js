@@ -10,7 +10,7 @@ const outlets=[
 ];
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const designs=()=>Array.isArray(s?.empire?.economy?.studio?.designs)?s.empire.economy.studio.designs:[];
-const state=()=>{const e=s?.empire?.economy;if(!e)return null;if(!e.mediaCoverage)e.mediaCoverage={reviews:[]};if(!Array.isArray(e.mediaCoverage.reviews))e.mediaCoverage.reviews=[];return e.mediaCoverage};
+const state=()=>{const e=s?.empire?.economy;if(!e)return null;if(!e.mediaCoverage||typeof e.mediaCoverage!=='object')e.mediaCoverage={reviews:[]};if(!Array.isArray(e.mediaCoverage.reviews))e.mediaCoverage.reviews=[];return e.mediaCoverage};
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const finite=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
 const designKey=d=>String(d.id)+':'+Math.max(1,Math.floor(finite(d.generation,1)))+':'+Math.max(0,Math.floor(finite(d.facelift,0)));
@@ -18,7 +18,8 @@ function review(d){
  const media=state();if(!media||!d||d.id==null)return;
  const gen=Math.max(1,Math.floor(finite(d.generation,1))),facelift=Math.max(0,Math.floor(finite(d.facelift,0)));
  const key=designKey(d);
- if(media.reviews.some(r=>r.key===key))return;
+ const existing=media.reviews.find(r=>r&&r.key===key&&Number.isFinite(Number(r.average)));
+ if(existing){d.mediaBonus=clamp((Number(existing.average)-70)/500,-.05,.056);return;}
  const base=clamp(finite(d.quality,65),0,100);
  const attributes={comfort:clamp(finite(d.comfort,3),0,5),tech:clamp(finite(d.tech,3),0,5),performance:d.engine==='performance'?5:3,reliability:clamp(finite(d.reliability,3),0,5)};
  const scores=outlets.map((o,i)=>{
@@ -57,7 +58,7 @@ const oldRender=render;let signature='';
 render=function(){
  const result=oldRender.apply(this,arguments);
  const list=designs();
- const next=list.filter(d=>d&&d.id!=null).map(designKey).join('|');
+ const next=list.filter(d=>d&&d.id!=null).map(designKey).join('|')+'#'+(s?.empire?.economy?.mediaCoverage?.reviews?.length||0);
  if(next!==signature){signature=next;for(const d of list)review(d);refresh();}
  return result;
 };
