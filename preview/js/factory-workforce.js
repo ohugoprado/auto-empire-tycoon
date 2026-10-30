@@ -13,9 +13,9 @@ function read(ref){
  const baseLines=Math.max(1,Math.min(3,Number.isFinite(rawLevel)?Math.floor(rawLevel):1))*2;
  const managed=!!ref?.workforce;
  const current=ref?.workforce||{staff:baseLines*3,shift:1};
- const rawStaff=Number(current.staff);
+ const rawStaff=current.staff==null?NaN:Number(current.staff);
  const staff=Number.isFinite(rawStaff)?Math.min(500,Math.max(0,Math.floor(rawStaff))):0,shift=Number(current.shift)===2?2:1;
- const lines=Math.min(baseLines*2,Math.floor(staff/(3*shift))*shift);
+ const lines=Math.max(0,Math.min(baseLines*2,Math.floor(staff/(3*shift))*shift));
  const rate=Number(s.empire?.economy?.inflation);
  const daily=managed?Math.round(staff*(shift===2?115:90)*(Number.isFinite(rate)?Math.max(1,rate):1)):0;
  return Object.freeze({staff,shift,lines,daily,managed,baseLines});
@@ -23,7 +23,7 @@ function read(ref){
 function quote(ref,staff,shift){
  if(!Number.isInteger(staff)||staff<0||staff>500||![1,2].includes(shift))return null;
  const before=read(ref),added=Math.max(0,staff-before.staff);
- const lines=Math.min(before.baseLines*2,Math.floor(staff/(3*shift))*shift);
+ const lines=Math.max(0,Math.min(before.baseLines*2,Math.floor(staff/(3*shift))*shift));
  const rate=Number(s.empire?.economy?.inflation);
  const daily=Math.round(staff*(shift===2?115:90)*(Number.isFinite(rate)?Math.max(1,rate):1));
  return Object.freeze({before,after:Object.freeze({staff,shift,lines,daily,managed:true}),added,hiring:added*350});
@@ -45,11 +45,11 @@ panel.addEventListener('click',ev=>{
  if(!Number.isInteger(staff)||staff<0||staff>500||![1,2].includes(shift))return toast('Informe de 0 a 500 funcionários e 1 ou 2 turnos.');
  const q=quote(p.ref,staff,shift);if(!q)return toast('Quadro de pessoal inválido.');
  if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência.');
- if(!Number.isFinite(Number(s.cash))||Number(s.cash)<q.hiring)return toast('Caixa insuficiente para contratação.');
+ if(!Number.isFinite(Number(s.cash))||Number(s.cash)<0||Number(s.cash)<q.hiring)return toast('Caixa insuficiente para contratação.');
  if(!confirm('Aplicar '+staff+' funcionários e '+shift+' turno(s)? Contratação: '+q.hiring.toLocaleString('pt-BR')+' CR. Folha diária: '+q.before.daily.toLocaleString('pt-BR')+' → '+q.after.daily.toLocaleString('pt-BR')+' CR. A equipe de apoio legada permanece separada.'))return;
  const live=quote(p.ref,staff,shift);
  if(!live||live.hiring!==q.hiring||live.before.staff!==q.before.staff||live.before.shift!==q.before.shift||live.before.managed!==q.before.managed||live.after.daily!==q.after.daily||s.empire?.economy?.bankrupt)return toast('O quadro mudou. Confira os valores novamente.');
- if(!Number.isFinite(Number(s.cash))||Number(s.cash)<live.hiring)return toast('Caixa insuficiente para contratação.');
+ if(!Number.isFinite(Number(s.cash))||Number(s.cash)<0||Number(s.cash)<live.hiring)return toast('Caixa insuficiente para contratação.');
  if(live.hiring){s.cash-=live.hiring;entry('Contratação industrial',-live.hiring);}
  p.ref.workforce={staff,shift};note('Equipe industrial atualizada em '+p.name+'.');save();render();refresh();
  window.AESubsidiaryCommand?.refresh?.();
