@@ -36,14 +36,14 @@ function refresh(){
  const contracts=Array.isArray(factory.industrialOrders)?factory.industrialOrders.filter(o=>Number(o.remaining)>0||Number(o.delivered)<Number(o.total)):[];
  const plants=Array.isArray(economy.plantNetwork?.plants)?economy.plantNetwork.plants:[];
  const workforce=window.AEFactoryWorkforce;
- const plantLine=(id,name,ref)=>{const info=workforce?.read(ref);const level=Math.max(1,num(ref.level));return {id,name,level,staff:info?.staff??null,capacity:info?.lines??level*2,baseCapacity:info?.baseLines??level*2,payroll:info?.daily??0};};
+ const plantLine=(id,name,ref)=>{const info=ref?workforce?.read(ref):null;const level=Math.max(1,num(ref?.level));return {id,name,level,staff:info?.staff??null,capacity:info?.lines??level*2,baseCapacity:info?.baseLines??level*2,payroll:info?.daily??0};};
  const lines=[plantLine(null,'Fábrica principal',factory),...plants.map(p=>plantLine(p.id,p.name||'Unidade industrial',p))];
  const load=new Map(),jobsByPlant=new Map();for(const job of jobs){if(!job||typeof job!=='object')continue;const id=job.plantId==null?'main':String(job.plantId);load.set(id,(load.get(id)||0)+1);if(!jobsByPlant.has(id))jobsByPlant.set(id,[]);jobsByPlant.get(id).push(job);}
  const count=line=>load.get(line.id===null?'main':String(line.id))||0;
  panel.querySelector('#ae-industrial-contracts').innerHTML=contracts.map(o=>{
   const total=Math.max(1,num(o.total)),remaining=Math.max(0,num(o.remaining)),started=total-remaining,delivered=Math.max(0,num(o.delivered));
   const plant=o.plantId!=null?plants.find(p=>String(p.id)===String(o.plantId)):factory;
-  const capacity=plant?(workforce?.read(plant).lines??Math.max(1,num(plant.level))*2):0;
+  const capacity=plant?(workforce?.read(plant)?.lines??Math.max(1,num(plant.level))*2):0;
   const cycles=capacity>0?Math.ceil(remaining/capacity):null;
   const eta=cycles===null?null:cycles*Math.max(2,num(o.cycleDays)||7);
   return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId!=null?esc(plant?.name||'Unidade industrial indisponível'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
@@ -144,7 +144,7 @@ panel.querySelector('#ae-industrial-policy').addEventListener('click',event=>{
  const target=Number(targetInput?.value),reserve=Number(reserveInput?.value);
  if(!Number.isInteger(target)||target<0||target>100||!Number.isInteger(reserve)||reserve<0||reserve>95)return toast('Defina uma meta de 0 a 100 e uma reserva de 0% a 95%.');
  const economy=s?.empire?.economy;if(!economy||economy.bankrupt)return toast('Política indisponível nesta campanha.');
- economy.productionPolicy={target,reserve};save();refresh();toast('Política industrial salva.');
+ economy.productionPolicy={target,reserve};save();if(document.activeElement instanceof HTMLElement)document.activeElement.blur();refresh();toast('Política industrial salva.');
 });
 panel.querySelector('#ae-id-filter').addEventListener('change',refresh);
 panel.querySelector('#ae-id-sort').addEventListener('change',refresh);
