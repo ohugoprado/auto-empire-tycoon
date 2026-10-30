@@ -54,6 +54,12 @@
     // Subsidiary jobs reserve capacity at their own plants, not at the main factory.
     const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - mainJobs);
     const level = Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1));
+    const careerXp = positive(game.empireLevels?.xp);
+    const careerThresholds = [0,150,420,850,1450,2300,3500];
+    const careerLevel = careerThresholds.reduce((current, threshold, index) => careerXp >= threshold ? index + 1 : current, 1);
+    const garageTier = Math.min(4, Math.max(1, Math.ceil(Math.max(1, capacity) / 3)));
+    const factoryTier = opened ? level : 0;
+    const projectsTier = Math.min(4, Math.floor(positive(studio.research) / 100) + (Array.isArray(studio.designs) && studio.designs.length ? 1 : 0));
     const shifts = factory.workforce?.shift === 2 ? 2 : 1;
     const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
     const lines = Math.min(level * 4, Math.floor(staff / (3 * shifts)) * shifts);
@@ -73,7 +79,7 @@
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
     const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : storageBlocked ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
-      day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
+      day, careerLevel, garageTier, factoryTier, projectsTier, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
       garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: mainJobs, free,
         status: offers ? 'offers' : stock.length >= capacity ? 'full' : mainJobs >= free && mainJobs > 0 ? 'reserved' : 'ready' }),
       factory: Object.freeze({ opened, mainJobs, totalJobs,
@@ -120,13 +126,22 @@
     if (key === signature) return;
     signature = key;
     const { garage, factory, projects } = next;
+    const tierNames = { garage: ['Garagem inicial','Garagem ampliada','Concessionária','Complexo comercial'], factory: ['Terreno disponível','Fábrica inicial','Fábrica ampliada','Complexo industrial','Fábrica avançada'], projects: ['Sem centro de projetos','Projetos iniciais','Centro de pesquisa','Centro tecnológico','P&D avançado'] };
+    const tiers = { garage: next.garageTier, factory: next.factoryTier, projects: next.projectsTier };
+    for (const [id, tier] of Object.entries(tiers)) {
+      const node = nodes.get(id);
+      node.button.dataset.tier = String(tier);
+      const name = tierNames[id][id === 'garage' ? tier - 1 : tier] || tierNames[id].at(-1);
+      node.button.title = name;
+      node.row.dataset.tier = String(tier);
+    }
     for (const [id, value] of [['garage', garage], ['factory', factory], ['projects', projects]]) {
       const node = nodes.get(id);
       if (node.button.dataset.state !== value.status) node.button.dataset.state = value.status;
       if (node.row.dataset.state !== value.status) node.row.dataset.state = value.status;
     }
     setText(nodes.get('garage').status, garage.offers ? plural(garage.offers, 'proposta', 'propostas') : garage.status === 'full' ? 'Estoque cheio' : garage.status === 'reserved' ? 'Vagas reservadas' : 'Seu estoque');
-    setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'ordem da fábrica', 'ordens da fábrica') : ''));
+    setText(nodes.get('garage').detail, tierNames.garage[next.garageTier - 1] + ' · ' + garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'ordem da fábrica', 'ordens da fábrica') : ''));
     const labels = { unbuilt: 'Falta fundar', ready: 'Sem ordens na fila', working: plural(factory.mainJobs, 'ordem na fila', 'ordens na fila'), 'storage-full': 'Estoque e pátio cheios', 'waiting-staff': 'Equipe insuficiente', queued: 'Lote aguardando início', crisis: 'Produção suspensa', bankrupt: 'Campanha encerrada' };
     setText(nodes.get('factory').status, labels[factory.status]);
     let detail;
@@ -137,10 +152,11 @@
     else if (factory.status === 'queued') detail = plural(factory.pendingUnits, 'veículo', 'veículos') + ' aguarda o próximo turno ou uma linha livre.';
     else if (factory.status === 'storage-full') detail = (factory.etaDays === 0 ? 'Entrega aguarda vaga' : factory.etaDays === null ? 'Produção com entrega a confirmar' : 'Próxima entrega em ' + plural(factory.etaDays, 'dia', 'dias')) + ' · libere espaço no estoque compartilhado.';
     else detail = factory.mainJobs + '/' + factory.capacity + ' linhas ocupadas' + (factory.dueDay === null ? '' : factory.etaDays ? ' · próxima entrega em ' + plural(factory.etaDays, 'dia', 'dias') : ' · entrega aguarda avanço');
+    if (factory.opened) detail = tierNames.factory[next.factoryTier] + ' · ' + detail;
     if (factory.opened) detail += ' · pátio ' + factory.warehouseStock + '/' + factory.warehouseCapacity;
     setText(nodes.get('factory').detail, detail);
     setText(nodes.get('projects').status, projects.count ? plural(projects.count, 'homologado', 'homologados') : 'Crie seu primeiro modelo');
-    setText(nodes.get('projects').detail, plural(projects.research, 'ponto P&D', 'pontos P&D'));
+    setText(nodes.get('projects').detail, tierNames.projects[next.projectsTier] + ' · ' + plural(projects.research, 'ponto P&D', 'pontos P&D'));
     setText(host.querySelector('#ae-map-simulation'), 'Por turnos · toque em Avançar dia para produzir e receber propostas.');
     const network = host.querySelector('#ae-map-network'), otherJobs = factory.totalJobs - factory.mainJobs;
     network.hidden = !otherJobs;
