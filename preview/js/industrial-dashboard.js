@@ -6,7 +6,7 @@ const num=x=>Number.isFinite(Number(x))?Number(x):0;
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const panel=document.createElement('section');panel.id='ae-industrial-dashboard';panel.className='panel';
-panel.innerHTML='<h3>Central de operações industriais</h3><p class="tiny">Produção, entregas e despesas da rede em um só lugar.</p><div id="ae-industrial-kpis"></div><div class="ae-id-controls"><label for="ae-id-filter">Exibir fábricas</label><select id="ae-id-filter"><option value="all">Todas</option><option value="busy">Em produção</option><option value="available">Com vagas</option><option value="delayed">Com atrasos</option><option value="blocked">Sem equipe operacional</option><option value="saturated">Capacidade esgotada</option></select><label for="ae-id-sort">Ordenar</label><select id="ae-id-sort"><option value="name">Nome</option><option value="occupation">Ocupação</option><option value="delivery">Próxima entrega</option><option value="free">Vagas livres</option><option value="backlog">Mais ordens</option></select></div><div id="ae-industrial-advice" role="status"></div><div id="ae-industrial-lines"></div><h4>Contratos industriais</h4><div id="ae-industrial-contracts"></div><h4>Últimas entregas concluídas</h4><div id="ae-industrial-history"></div><p class="tiny" id="ae-industrial-note"></p>';
+panel.innerHTML='<h3>Central de operações industriais</h3><p class="tiny">Produção, entregas e despesas da rede em um só lugar.</p><div id="ae-industrial-kpis"></div><div class="ae-id-controls"><label for="ae-id-filter">Exibir fábricas</label><select id="ae-id-filter"><option value="all">Todas</option><option value="busy">Em produção</option><option value="available">Com vagas</option><option value="delayed">Com atrasos</option><option value="blocked">Sem equipe operacional</option><option value="saturated">Capacidade esgotada</option></select><label for="ae-id-sort">Ordenar</label><select id="ae-id-sort"><option value="name">Nome</option><option value="occupation">Ocupação</option><option value="delivery">Próxima entrega</option><option value="free">Vagas livres</option><option value="backlog">Mais ordens</option></select></div><div id="ae-industrial-advice" role="status"></div><div id="ae-industrial-market" role="status"></div><div id="ae-industrial-lines"></div><h4>Contratos industriais</h4><div id="ae-industrial-contracts"></div><h4>Últimas entregas concluídas</h4><div id="ae-industrial-history"></div><p class="tiny" id="ae-industrial-note"></p>';
 const style=document.createElement('style');style.textContent=`
 #ae-industrial-dashboard{padding:14px;margin:12px 0}
 #ae-industrial-dashboard h3{font-size:15px;color:#f4d38b;margin:0 0 8px}
@@ -19,6 +19,7 @@ const style=document.createElement('style');style.textContent=`
 .ae-id-controls select{width:100%;min-width:0;min-height:44px;border-radius:8px;background:#20384b;color:#f3f6f8;border:1px solid #547086;padding:8px}
 .ae-id-line{padding:12px 0;border-top:1px solid #385064}
 #ae-industrial-advice{font-size:12px;line-height:1.6;padding:9px 0;color:#e8d6ae}
+#ae-industrial-market{font-size:12px;line-height:1.6;padding:10px;margin:8px 0;border:1px solid #385064;border-radius:9px;color:#d9e5ee}
 .ae-id-line h4{margin:0 0 6px;font-size:13px}
 .ae-id-line p{font-size:12px;color:#c3d4df;margin:5px 0}
 .ae-id-progress{height:7px;background:#31495b;border-radius:6px;overflow:hidden;margin-top:8px}
@@ -53,6 +54,15 @@ function refresh(){
  const pendingCars=contracts.reduce((sum,o)=>sum+Math.max(0,num(o.remaining)),0);
  const warehouseCars=Array.isArray(factory.warehouseCars)?factory.warehouseCars.length:0;
  const dealerCars=Array.isArray(s.stock)?s.stock.length:0;
+ const stockByKind=new Map();for(const car of [...(Array.isArray(s.stock)?s.stock:[]),...(Array.isArray(factory.warehouseCars)?factory.warehouseCars:[])]){if(!car||typeof car!=='object')continue;const kind=String(car.kind||'Outros');stockByKind.set(kind,(stockByKind.get(kind)||0)+1);}
+ const market=s.empire||{},index=Number.isFinite(Number(market.marketIndex))?Number(market.marketIndex):1,competition=Number.isFinite(Number(market.competitors))?Math.max(1,Number(market.competitors)):1;
+ const trend=market.trend&&typeof market.trend==='object'?market.trend:null;
+ const hotKind=trend?.kind?String(trend.kind):null;
+ const pressure=index*(1-Math.min(.25,(competition-1)*.025));
+ const marketStatus=pressure>=1.06?'Favorável':pressure<.91?'Desafiador':'Estável';
+ const hotStock=hotKind?(stockByKind.get(hotKind)||0):0;
+ const stockSummary=[...stockByKind].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([kind,count])=>esc(kind)+': '+count).join(' · ');
+ panel.querySelector('#ae-industrial-market').innerHTML='<b>Leitura de mercado: '+marketStatus+'</b> · índice '+Math.round(index*100)+' · concorrentes '+competition+(hotKind?' · tendência '+esc(hotKind):'')+'<p>Estoque por segmento: '+(stockSummary||'sem veículos')+'. '+(hotKind&&hotStock===0?'Há procura favorável por '+esc(hotKind)+', mas não há veículos desse segmento no estoque.':hotKind&&hotStock>0?'Segmento em destaque: '+hotStock+' veículo(s) disponíveis ou no pátio.':'Compare o estoque com os custos antes de abrir novas ordens.')+'</p><p class="tiny">Indicadores orientativos, não previsão garantida de vendas.</p>';
  const delayed=jobs.filter(j=>j?.due!=null&&Number.isFinite(Number(j.due))&&Number(j.due)<num(s.day)).length;
  const upcoming=jobs.filter(j=>j?.due!=null&&Number.isFinite(Number(j.due))&&Number(j.due)>=num(s.day)).reduce((best,j)=>!best||num(j.due)<num(best.due)?j:best,null);
  const activeLines=lines.filter(l=>l.id!==null||factory.opened);
