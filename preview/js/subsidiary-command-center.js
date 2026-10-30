@@ -8,7 +8,7 @@ const inflation=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
 const upgrade=p=>Math.round((80000+n(p.level)*55000)*inflation());
 const plants=()=>Array.isArray(s?.empire?.economy?.plantNetwork?.plants)?s.empire.economy.plantNetwork.plants:[];
 const panel=document.createElement('section');panel.id='ae-subsidiary-command';panel.className='panel';
-panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha por turno</option><option value="8" selected>Equilibrada · capacidade base</option><option value="12">Expansão · capacidade máxima</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option><option value="busy">Somente com capacidade ocupada</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
+panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha operacional</option><option value="8" selected>Equilibrada · linhas da capacidade base</option><option value="12">Expansão · todas as linhas disponíveis</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option><option value="busy">Somente com capacidade ocupada</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
 network.parentNode.insertBefore(panel,network);
 const style=document.createElement('style');style.textContent=`
 #ae-subsidiary-command{margin:12px 0;padding:14px;border:1px solid #c6d5e7;border-radius:12px;background:#f5f8fc;color:#15263b}
@@ -41,7 +41,9 @@ function quote(){
  const list=selected(),policy=panel.querySelector('#ae-sub-target').value,api=window.AEFactoryWorkforce;
  const items=api?list.map(plant=>{
   const current=api.read(plant);
-  const target=policy==='4'?3*current.shift:policy==='12'?current.baseLines*6:current.baseLines*3;
+  // Staffing required for the requested number of lines, capped by plant level.
+  const desiredLines=policy==='4'?1:policy==='12'?current.baseLines*2:current.baseLines;
+  const target=Math.min(500,desiredLines*3*current.shift);
   return {plant,quote:api.quote(plant,Math.max(current.staff,target),current.shift)};
  }).filter(item=>item.quote?.added>0):[];
  const hires=items.reduce((sum,item)=>sum+item.quote.added,0),hireCost=items.reduce((sum,item)=>sum+item.quote.hiring,0);
