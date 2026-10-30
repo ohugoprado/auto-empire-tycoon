@@ -7,6 +7,8 @@ const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const inflation=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
 const upgrade=p=>Math.round((80000+n(p.level)*55000)*inflation());
 const plants=()=>Array.isArray(s?.empire?.economy?.plantNetwork?.plants)?s.empire.economy.plantNetwork.plants:[];
+const occupiedJobs=()=>{const load=new Map();const queue=s?.empire?.economy?.factory?.queue;if(Array.isArray(queue))for(const job of queue){if(job?.plantId==null)continue;const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}return load;};
+let operationMessage='';
 const panel=document.createElement('section');panel.id='ae-subsidiary-command';panel.className='panel';
 panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha operacional</option><option value="8" selected>Equilibrada · linhas da capacidade base</option><option value="12">Expansão · todas as linhas disponíveis</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option><option value="busy">Somente com capacidade ocupada</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
 network.parentNode.insertBefore(panel,network);
@@ -24,13 +26,7 @@ const style=document.createElement('style');style.textContent=`
 `;document.head.append(style);
 function selected(){
  const scope=panel.querySelector('#ae-sub-scope').value,api=window.AEFactoryWorkforce;
- const queue=Array.isArray(s.empire?.economy?.factory?.queue)?s.empire.economy.factory.queue:[];
- const occupied=new Map();
- for(const job of queue){
-  if(!job||job.plantId==null)continue;
-  const id=String(job.plantId);
-  occupied.set(id,(occupied.get(id)||0)+1);
- }
+ const occupied=occupiedJobs();
  return plants().filter(p=>{
   const lines=api?.read(p).lines??n(p.level)*2;
   const jobs=occupied.get(String(p.id))||0;
@@ -48,9 +44,7 @@ function quote(){
  }).filter(item=>item.quote?.added>0):[];
  const hires=items.reduce((sum,item)=>sum+item.quote.added,0),hireCost=items.reduce((sum,item)=>sum+item.quote.hiring,0);
  // Only propose expansion where current staffed capacity is fully occupied.
- const queue=Array.isArray(s.empire?.economy?.factory?.queue)?s.empire.economy.factory.queue:[];
- const load=new Map();
- for(const job of queue)if(job&&job.plantId!=null){const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}
+ const load=occupiedJobs();
  const upgrades=list.filter(p=>{const lines=api?.read(p).lines??Math.max(0,n(p.level)*2);return n(p.level)<3&&lines>0&&(load.get(String(p.id))||0)>=lines;});
  const saturated=list.filter(p=>{const lines=api?.read(p).lines??0;return lines>0&&(load.get(String(p.id))||0)>=lines;}).length;
  const upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
@@ -65,14 +59,7 @@ function refresh(){
  const api=window.AEFactoryWorkforce;
  const apiLines=new Map();
  if(api)for(const p of units)apiLines.set(String(p.id),api.read(p).lines);
- const activeIds=new Set(units.map(p=>String(p.id)));
- const queue=Array.isArray(economy.factory?.queue)?economy.factory.queue:[];
- const load=new Map();
- for(const job of queue){
-  if(!job||job.plantId==null)continue;
-  const id=String(job.plantId);
-  if(activeIds.has(id))load.set(id,(load.get(id)||0)+1);
- }
+ const load=occupiedJobs();
  let activeJobs=0,availableLines=0,freeLines=0,overloaded=0;
  for(const p of units){
   const id=String(p.id),jobs=load.get(id)||0,lines=apiLines.get(id)||0;
@@ -86,7 +73,7 @@ function refresh(){
  const blocked=!!economy.bankrupt;
  const cash=Number(s.cash),validCash=Number.isFinite(cash)&&cash>=0;
  const scope=panel.querySelector('#ae-sub-scope').value;
- panel.querySelector('#ae-sub-feedback').textContent=scope==='busy'&&q.list.length===0?'Nenhuma fábrica está com todas as linhas ocupadas. Evite ampliar sem necessidade.':scope==='idle'&&q.list.length===0?'Nenhuma fábrica possui linhas livres no momento.':'';
+ panel.querySelector('#ae-sub-feedback').textContent=operationMessage||(scope==='busy'&&q.list.length===0?'Nenhuma fábrica está com todas as linhas ocupadas. Evite ampliar sem necessidade.':scope==='idle'&&q.list.length===0?'Nenhuma fábrica possui linhas livres no momento.':'');
  panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||!Number.isFinite(q.hireCost)||!validCash||cash<q.hireCost;
  panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||!Number.isFinite(q.upgradeCost)||!validCash||cash<q.upgradeCost;
 }
@@ -108,12 +95,12 @@ function execute(type){
  else live.upgrades.forEach(p=>p.level=Math.min(3,n(p.level)+1));
  entry(isHire?'Contratação industrial em lote':'Expansão em lote · subsidiárias',-liveCost);
  note('Gestão central: '+label+' por '+money(liveCost)+'.');
- panel.querySelector('#ae-sub-feedback').textContent='Operação concluída: '+label+'.';
+ operationMessage='Operação concluída: '+label+'.';
  save();render();refresh();
 }
 panel.querySelector('#ae-sub-hire').addEventListener('click',()=>execute('hire'));
 panel.querySelector('#ae-sub-upgrade').addEventListener('click',()=>execute('upgrade'));
-panel.querySelector('#ae-sub-controls').addEventListener('change',refresh);
+panel.querySelector('#ae-sub-controls').addEventListener('change',()=>{operationMessage='';refresh();});
 const prevRender=render;let signature='';
 render=function(){const result=prevRender.apply(this,arguments);const next=[s?.cash,s?.day,!!window.AEFactoryWorkforce,plants().map(p=>[p.id,p.staff,p.level,p.workforce?.staff,p.workforce?.shift].join(':')).join('|')].join(';');if(next!==signature){signature=next;refresh();}return result;};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
