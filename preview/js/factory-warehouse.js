@@ -4,6 +4,8 @@
 const garage=document.getElementById('garage');if(!garage)return;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>Math.round(Number(n)||0).toLocaleString('pt-BR')+' CR';
+const validCash=()=>Number.isFinite(Number(s.cash))&&Number(s.cash)>=0;
+const slotsFree=()=>Math.max(0,Math.floor(Number(s.slots)||0)-(Array.isArray(s.stock)?s.stock.length:0));
 const panel=document.createElement('section');panel.id='ae-factory-warehouse';panel.className='panel';
 panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><div id="ae-warehouse-pages"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
 (document.getElementById('ae-industrial-dashboard')||garage).after(panel);
@@ -13,7 +15,7 @@ function fleet(f){const level=Math.max(1,Math.min(10,Math.floor(Number(f.logisti
 let warehousePage=0;
 function refresh(){
  const f=state();panel.hidden=!f?.opened;if(!f?.opened)return;
- const free=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
+ const free=slotsFree();
  // Subsidiary jobs belong to their own plants and must not inflate
  // the main warehouse's in-production count.
  const waiting=Array.isArray(f.queue)
@@ -22,19 +24,20 @@ function refresh(){
  const pressure=f.warehouseCars.length/Math.max(1,f.warehouseCapacity);
  const fleetStats=fleet(f);
  const cash=Number(s.cash);
- const freeSlots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
+ const freeSlots=slotsFree();
  const inflationFactor=Number(s.empire?.economy?.inflation);
  const projectedStorage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflationFactor)?Math.max(1,inflationFactor):1));
  const affordable=Number.isFinite(cash)&&cash>projectedStorage?Math.floor((cash-projectedStorage)/fleetStats.fee):0;
  const planned=f.autoDistribution?Math.min(fleetStats.capacity,freeSlots,affordable,f.warehouseCars.length):0;
  const daysToClear=f.autoDistribution&&planned>0?Math.ceil(f.warehouseCars.length/planned):null;
+ const congestion=pressure>=1?'Pátio lotado':pressure>=.9?'Pátio quase lotado':pressure>=.7?'Pátio em atenção':'Pátio normal';
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const dailyStorage=projectedStorage;
  panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · previsão para o próximo dia: '+planned+' veículo(s), '+money(planned*fleetStats.fee)+' · dias estimados no ritmo atual, se houver vagas: '+(daysToClear===null?'indisponível':daysToClear+'')+' · gasto acumulado: '+money(f.logisticsSpent||0)+'</p><p>Armazenagem: '+money(dailyStorage)+'/dia · total pago: '+money(f.storageSpent||0)+'</p>';
  panel.querySelector('#ae-fleet-upgrade').textContent=fleetStats.level>=10?'Frota no nível máximo':'Ampliar frota · '+money(fleetStats.upgrade);
  panel.querySelector('#ae-fleet-upgrade').disabled=!!s.empire?.economy?.bankrupt||fleetStats.level>=10||!Number.isFinite(cash)||cash<fleetStats.upgrade;
  const cost=Math.round(20000*Math.pow(1.35,Math.max(0,(f.warehouseCapacity-20)/20)));
- panel.querySelector('#ae-warehouse-stats').innerHTML='<p><b>Pátio:</b> '+f.warehouseCars.length+'/'+f.warehouseCapacity+' vagas · <b>Vagas na concessionária:</b> '+free+' · <b>Em produção:</b> '+waiting+'</p>'+(pressure>=.9?'<p role="status"><b>Atenção:</b> pátio quase lotado. Amplie vagas ou transfira veículos para evitar paradas na fábrica.</p>':'');
+ panel.querySelector('#ae-warehouse-stats').innerHTML='<p><b>'+congestion+'</b> · Pátio: '+f.warehouseCars.length+'/'+f.warehouseCapacity+' vagas · <b>Vagas na concessionária:</b> '+free+' · <b>Em produção:</b> '+waiting+'</p>'+(pressure>=.9?'<p role="status"><b>Atenção:</b> pátio quase lotado. Amplie vagas ou transfira veículos para evitar paradas na fábrica.</p>':'');
  panel.querySelector('#ae-warehouse-bulk').disabled=!!s.empire?.economy?.bankrupt||free<1||!f.warehouseCars.length;
  panel.querySelector('#ae-warehouse-bulk').textContent='Transferir até '+Math.min(free,f.warehouseCars.length)+' veículo(s) para a concessionária';
  const pageCount=Math.max(1,Math.ceil(f.warehouseCars.length/30));warehousePage=Math.max(0,Math.min(warehousePage,pageCount-1));
@@ -48,7 +51,7 @@ panel.addEventListener('click',ev=>{
  const f=state();if(!f?.opened)return;
  if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência.');
  if(ev.target.closest('#ae-warehouse-bulk')){
-  const count=Math.min(Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length),f.warehouseCars.length);
+  const count=Math.min(slotsFree(),f.warehouseCars.length);
   if(!count)return toast('Não há vagas ou veículos para transferir.');
   // Move in bounded chunks: spreading a large warehouse batch can exceed
   // JavaScript's argument limit on mobile Safari.
@@ -61,17 +64,17 @@ panel.addEventListener('click',ev=>{
   note('Transferência em lote: '+count+' veículo(s) enviados à concessionária.');
   save();render();refresh();return;
  }
- const page=ev.target.closest('[data-page]');if(page){warehousePage=Math.max(0,warehousePage+(page.dataset.page==='next'?1:-1));refresh();return;}
+ const page=ev.target.closest('[data-page]');if(page){const pages=Math.max(1,Math.ceil(f.warehouseCars.length/30));warehousePage=Math.max(0,Math.min(pages-1,warehousePage+(page.dataset.page==='next'?1:-1)));refresh();return;}
  const transfer=ev.target.closest('[data-transfer]');
  if(transfer){
-  if(s.stock.length>=s.slots)return toast('Concessionária sem vagas.');
+  if(slotsFree()<1)return toast('Concessionária sem vagas.');
   const index=f.warehouseCars.findIndex(c=>String(c.id)===transfer.dataset.transfer);if(index<0)return;
   const car=f.warehouseCars.splice(index,1)[0];s.stock.push(car);
   note('Transferência do pátio: '+car.name+'.');save();render();refresh();return;
  }
  if(ev.target.closest('#ae-fleet-upgrade')){
   const stats=fleet(f);if(stats.level>=10)return;
-  if(!Number.isFinite(Number(s.cash))||Number(s.cash)<stats.upgrade)return toast('Caixa insuficiente para ampliar a frota.');
+  if(!validCash()||Number(s.cash)<stats.upgrade)return toast('Caixa insuficiente para ampliar a frota.');
   if(!confirm('Ampliar frota logística para nível '+(stats.level+1)+' por '+money(stats.upgrade)+'?'))return;
   if(fleet(f).level!==stats.level||!Number.isFinite(Number(s.cash))||Number(s.cash)<stats.upgrade)return toast('Saldo ou frota alterados. Confira novamente.');
   s.cash-=stats.upgrade;entry('Ampliação da frota logística',-stats.upgrade);
@@ -81,7 +84,7 @@ panel.addEventListener('click',ev=>{
  if(ev.target.closest('#ae-warehouse-upgrade')){
   if(f.warehouseCapacity>=5000)return;
   const cost=Math.round(20000*Math.pow(1.35,Math.max(0,(f.warehouseCapacity-20)/20)));
-  if(!Number.isFinite(Number(s.cash))||Number(s.cash)<cost)return toast('Caixa insuficiente.');
+  if(!validCash()||Number(s.cash)<cost)return toast('Caixa insuficiente.');
   if(!confirm('Ampliar o pátio em 20 vagas por '+money(cost)+'?'))return;
   const liveCost=Math.round(20000*Math.pow(1.35,Math.max(0,(f.warehouseCapacity-20)/20)));
   if(f.warehouseCapacity>=5000||liveCost!==cost||!Number.isFinite(Number(s.cash))||Number(s.cash)<liveCost)return toast('Saldo ou cotação alterados. Confira novamente.');
@@ -124,7 +127,7 @@ tickDay=function(){
   }
  }
  // Persist at most once per turn, after all warehouse charges and transfers.
- if(storage>0||quantity>0)save();
+ if(storage>0||quantity>0){save();refresh();}
  return result;
 };
 const oldRender=render;let key='';
