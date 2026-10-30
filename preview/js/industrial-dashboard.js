@@ -85,8 +85,8 @@ function refresh(){
  const target=Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
  const reserve=Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
  const cashBalance=Number(s.cash),reserveAmount=Number.isFinite(cashBalance)?Math.max(0,Math.round(cashBalance*reserve/100)):0;
- const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+Math.max(0,l.capacity-count(l)),0));
- const spendable=Math.max(0,(Number.isFinite(cashBalance)?cashBalance:0)-reserveAmount);
+ const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+(Number.isFinite(l.capacity)&&l.capacity>0?Math.max(0,Math.floor(l.capacity)-count(l)):0),0));
+ const spendable=Number.isFinite(cashBalance)&&cashBalance>=0&&!economy.bankrupt?Math.max(0,cashBalance-reserveAmount):0;
  let remainingBudget=spendable,remainingLines=freeCapacity;
  const proposals=modelRows.filter(m=>target>0&&m.name!=='Modelo não identificado'&&m.stock+m.warehouse+m.production<target).map(m=>{
   const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
@@ -102,6 +102,7 @@ function refresh(){
   else if(m.unitCost===null)reason='Custo unitário desconhecido';
   else if(!Number.isFinite(m.unitCost)||m.unitCost<=0)reason='Custo inválido';
   else if(remainingLines===0)reason='Sem linhas livres';
+  else if(!Number.isFinite(cashBalance)||cashBalance<0||economy.bankrupt)reason='Caixa indisponível ou campanha encerrada';
   else if(remainingBudget<m.unitCost)reason='Reserva financeira limita o lote';
   else{suggested=Math.min(m.shortfall,remainingLines,Math.floor(remainingBudget/m.unitCost));remainingLines-=suggested;remainingBudget-=suggested*m.unitCost;reason=suggested<m.shortfall?'Lote parcial sugerido':'Meta atendida pelo lote sugerido';}
   return {...m,suggested,reason};
