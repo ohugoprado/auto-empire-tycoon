@@ -81,10 +81,11 @@ function refresh(){
  panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · '+overloaded+' unidade(s) acima da capacidade · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
  panel.querySelector('#ae-sub-quote').textContent=q.ready?'Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+' (aumento '+money(Math.max(0,q.dailyAfter-q.dailyBefore))+'/dia). Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
  const blocked=!!economy.bankrupt;
+ const cash=Number(s.cash),validCash=Number.isFinite(cash)&&cash>=0;
  const scope=panel.querySelector('#ae-sub-scope').value;
  panel.querySelector('#ae-sub-feedback').textContent=scope==='busy'&&q.list.length===0?'Nenhuma fábrica está com todas as linhas ocupadas. Evite ampliar sem necessidade.':scope==='idle'&&q.list.length===0?'Nenhuma fábrica possui linhas livres no momento.':'';
- panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||n(s.cash)<q.hireCost;
- panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||n(s.cash)<q.upgradeCost;
+ panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||!Number.isFinite(q.hireCost)||!validCash||cash<q.hireCost;
+ panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||!Number.isFinite(q.upgradeCost)||!validCash||cash<q.upgradeCost;
 }
 function fingerprint(q,isHire){
  return JSON.stringify(isHire?q.items.map(item=>[item.plant.id,item.quote.before.staff,item.quote.before.shift,item.quote.before.managed,item.quote.after.staff,item.quote.hiring,item.quote.after.daily]):q.upgrades.map(p=>[p.id,p.level,upgrade(p)]));
@@ -92,13 +93,13 @@ function fingerprint(q,isHire){
 function execute(type){
  const q=quote(),isHire=type==='hire',cost=isHire?q.hireCost:q.upgradeCost,count=isHire?q.hires:q.upgrades.length;
  if(!count||!Number.isFinite(cost)||cost<0||s.empire.economy.bankrupt)return;
- if(n(s.cash)<cost)return toast('Caixa insuficiente para executar o lote.');
+ if(!Number.isFinite(Number(s.cash))||Number(s.cash)<cost)return toast('Caixa insuficiente para executar o lote.');
  const label=isHire?'contratar '+count+' funcionário(s) industriais em '+q.items.length+' unidade(s)':'ampliar '+count+' unidade(s)';
  const salary=isHire?' Folha diária gerenciada: '+money(q.dailyBefore)+' → '+money(q.dailyAfter)+'. A folha da equipe de apoio legada não muda.':'';
  if(!confirm('Deseja '+label+' por '+money(cost)+'?'+salary))return;
  const live=quote(),liveCost=isHire?live.hireCost:live.upgradeCost;
  if(s.empire.economy.bankrupt||fingerprint(live,isHire)!==fingerprint(q,isHire)||liveCost!==cost)return toast('A rede mudou. Confira a nova cotação.');
- if(!Number.isFinite(liveCost)||liveCost<0||n(s.cash)<liveCost)return toast('Saldo insuficiente ou cotação inválida.');
+ if(!Number.isFinite(liveCost)||liveCost<0||(!Number.isFinite(Number(s.cash))||Number(s.cash)<liveCost))return toast('Saldo insuficiente ou cotação inválida.');
  s.cash-=liveCost;
  if(isHire)live.items.forEach(item=>{item.plant.workforce={staff:item.quote.after.staff,shift:item.quote.after.shift};});
  else live.upgrades.forEach(p=>p.level=Math.min(3,n(p.level)+1));
