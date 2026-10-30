@@ -8,7 +8,7 @@ const inflation=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
 const upgrade=p=>Math.round((80000+n(p.level)*55000)*inflation());
 const plants=()=>s?.empire?.economy?.plantNetwork?.plants||[];
 const panel=document.createElement('section');panel.id='ae-subsidiary-command';panel.className='panel';
-panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha por turno</option><option value="8" selected>Equilibrada · capacidade base</option><option value="12">Expansão · capacidade máxima</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
+panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha por turno</option><option value="8" selected>Equilibrada · capacidade base</option><option value="12">Expansão · capacidade máxima</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option><option value="busy">Somente com capacidade ocupada</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
 network.parentNode.insertBefore(panel,network);
 const style=document.createElement('style');style.textContent=`
 #ae-subsidiary-command{margin:12px 0;padding:14px;border:1px solid #c6d5e7;border-radius:12px;background:#f5f8fc;color:#15263b}
@@ -31,7 +31,11 @@ function selected(){
   const id=String(job.plantId);
   occupied.set(id,(occupied.get(id)||0)+1);
  }
- return plants().filter(p=>scope!=='idle'||(occupied.get(String(p.id))||0)<(api?.read(p).lines??n(p.level)*2));
+ return plants().filter(p=>{
+  const lines=api?.read(p).lines??n(p.level)*2;
+  const jobs=occupied.get(String(p.id))||0;
+  return scope==='idle'?jobs<lines:scope==='busy'?jobs>=lines:true;
+ });
 }
 function quote(){
  const list=selected(),policy=panel.querySelector('#ae-sub-target').value,api=window.AEFactoryWorkforce;
@@ -61,6 +65,8 @@ function refresh(){
  panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
  panel.querySelector('#ae-sub-quote').textContent=q.ready?'Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+'. Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
  const blocked=!!economy.bankrupt;
+ const scope=panel.querySelector('#ae-sub-scope').value;
+ panel.querySelector('#ae-sub-feedback').textContent=scope==='busy'&&q.list.length===0?'Nenhuma fábrica está com todas as linhas ocupadas. Evite ampliar sem necessidade.':scope==='idle'&&q.list.length===0?'Nenhuma fábrica possui linhas livres no momento.':'';
  panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||n(s.cash)<q.hireCost;
  panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||n(s.cash)<q.upgradeCost;
 }
