@@ -36,9 +36,10 @@ function refresh(){
  panel.querySelector('#ae-warehouse-upgrade').textContent=f.warehouseCapacity>=5000?'Capacidade máxima': 'Ampliar +20 vagas · '+money(cost);
  panel.querySelector('#ae-warehouse-upgrade').disabled=f.warehouseCapacity>=5000||s.cash<cost;
 }
-panel.querySelector('#ae-warehouse-auto').addEventListener('change',ev=>{const f=state();if(!f)return;f.autoDistribution=!!ev.target.checked;note('Distribuição automática '+(f.autoDistribution?'ativada':'desativada')+'.');save();refresh()});
+panel.querySelector('#ae-warehouse-auto').addEventListener('change',ev=>{const f=state();if(!f?.opened||s.empire?.economy?.bankrupt){refresh();return;}f.autoDistribution=!!ev.target.checked;note('Distribuição automática '+(f.autoDistribution?'ativada':'desativada')+'.');save();refresh()});
 panel.addEventListener('click',ev=>{
- const f=state();if(!f)return;
+ const f=state();if(!f?.opened)return;
+ if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência.');
  if(ev.target.closest('#ae-warehouse-bulk')){
   const count=Math.min(Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length),f.warehouseCars.length);
   if(!count)return toast('Não há vagas ou veículos para transferir.');
@@ -86,7 +87,7 @@ tickDay=function(){
  // A blocked turn (for example, bankruptcy) must not charge warehouse fees.
  if(s?.day===dayBefore)return result;
  const f=state();
- if(!f?.opened)return result;
+ if(!f?.opened||s.empire?.economy?.bankrupt)return result;
  const inflation=Number(s.empire?.economy?.inflation);
  const storage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflation)?Math.max(1,inflation):1));
  if(storage>0){
