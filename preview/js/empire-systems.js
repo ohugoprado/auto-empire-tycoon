@@ -45,17 +45,17 @@ const previousSeed=seed;
 seed=function(){previousSeed();ensure();save()};
 const originalTick=tickDay;
 tickDay=function(){
- ensure();const before=s.day;const counts=new Map(s.stock.map(c=>[c.id,(c.offers||[]).length]));originalTick();if(s.day===before)return;
+ ensure();const before=s.day;const stockBefore=Array.isArray(s.stock)?s.stock:[];const counts=new Map(stockBefore.filter(c=>c&&typeof c==='object').map(c=>[c.id,Array.isArray(c.offers)?c.offers.length:0]));originalTick();if(s.day===before)return;
  const e=s.empire;
  // Market factors affect new offers. The single staff bonus is quoted when opened.
- for(const car of s.stock){const offers=car.offers||[],start=counts.get(car.id)||0;for(let j=start;j<offers.length;j++){const offer=offers[j];if(!offer||!Number.isFinite(Number(offer.amount)))continue;const trend=car.kind===e.trend.kind?e.trend.impact:0;const boost=e.marketIndex*(1+trend+(getMode().demand-1)*.13);offer.amount=Math.max(100,Math.round(offer.amount*boost/100)*100)}}
+ for(const car of (Array.isArray(s.stock)?s.stock:[])){if(!car||typeof car!=='object')continue;const offers=Array.isArray(car.offers)?car.offers:[],start=counts.get(car.id)||0;for(let j=start;j<offers.length;j++){const offer=offers[j];if(!offer||!Number.isFinite(Number(offer.amount))||Number(offer.amount)<=0)continue;const trend=car.kind===e.trend.kind?e.trend.impact:0;const competition=1-Math.max(0,e.competitors-1)*.025;const boost=clamp(e.marketIndex*(1+trend+(getMode().demand-1)*.13)*competition,.6,1.5);offer.amount=Math.max(100,Math.round(Number(offer.amount)*boost/100)*100)}}
  // Economic cycles are deterministic within a campaign day; changes are announced in the event log.
  if(s.day%7===0){const ix=Math.floor(s.day/7)%scenarios.length;e.trend=scenarios[ix];e.marketIndex=clamp(e.marketIndex+((ix%3)-1)*.035,.82,1.18);note('Mercado: '+e.trend.title+'. '+e.trend.description)}
  if(s.day%15===0){e.competitors=1+(Math.floor(s.day/15)%4);note('Concorrência regional: '+e.competitors+' empresas disputando anúncios.')}
  const payroll=staffSystem.chargePayroll(s);
  if(payroll){entry('Folha de pagamento',-payroll);note('Salários mensais pagos: '+cash(payroll))}
  // Rival dealerships can acquire a listing; stock owned by the player is never taken.
- if(s.day%5===0&&s.market.length>3){const index=Math.floor(Math.random()*s.market.length);const removed=s.market.splice(index,1)[0];if(removed)note('Concorrente adquiriu '+removed.name+' antes de você.')}
+ if(s.day%5===0&&Array.isArray(s.market)&&s.market.length>3){const index=Math.floor(Math.random()*s.market.length);const removed=s.market.splice(index,1)[0];if(removed)note('Concorrente adquiriu '+removed.name+' antes de você.')}
  checkMilestones();save();
 };
 function checkMilestones(){

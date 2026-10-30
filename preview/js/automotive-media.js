@@ -9,18 +9,23 @@ const outlets=[
  {name:'Pista & Estrada',type:'Portal automotivo',bias:'reliability'}
 ];
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const designs=()=>s?.empire?.economy?.studio?.designs||[];
-const state=()=>{const e=s?.empire?.economy;if(!e)return null;if(!e.mediaCoverage)e.mediaCoverage={reviews:[]};if(!Array.isArray(e.mediaCoverage.reviews))e.mediaCoverage.reviews=[];return e.mediaCoverage};
+const designs=()=>Array.isArray(s?.empire?.economy?.studio?.designs)?s.empire.economy.studio.designs:[];
+const state=()=>{const e=s?.empire?.economy;if(!e)return null;if(!e.mediaCoverage||typeof e.mediaCoverage!=='object')e.mediaCoverage={reviews:[]};if(!Array.isArray(e.mediaCoverage.reviews))e.mediaCoverage.reviews=[];return e.mediaCoverage};
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const finite=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+const designKey=d=>String(d.id)+':'+Math.max(1,Math.floor(finite(d.generation,1)))+':'+Math.max(0,Math.floor(finite(d.facelift,0)));
 function review(d){
- const media=state();if(!media)return;
- const gen=Math.max(1,Number(d.generation)||1),facelift=Math.max(0,Number(d.facelift)||0);
- const key=String(d.id)+':'+gen+':'+facelift;
- if(media.reviews.some(r=>r.key===key))return;
- const base=Number(d.quality)||65;
- const attributes={comfort:Number(d.comfort)||3,tech:Number(d.tech)||3,performance:d.engine==='performance'?5:3,reliability:Number(d.reliability)||3};
+ const media=state();if(!media||!d||d.id==null)return;
+ const gen=Math.max(1,Math.floor(finite(d.generation,1))),facelift=Math.max(0,Math.floor(finite(d.facelift,0)));
+ const key=designKey(d);
+ const existing=media.reviews.find(r=>r&&r.key===key&&Number.isFinite(Number(r.average)));
+ if(existing){d.mediaBonus=clamp((Number(existing.average)-70)/500,-.05,.056);return;}
+ const base=clamp(finite(d.quality,65),0,100);
+ const attributes={comfort:clamp(finite(d.comfort,3),0,5),tech:clamp(finite(d.tech,3),0,5),performance:d.engine==='performance'?5:3,reliability:clamp(finite(d.reliability,3),0,5)};
  const scores=outlets.map((o,i)=>{
-  const seed=(Number(d.id)*31+gen*19+facelift*11+i*13)%11-5;
+  const identity=String(d.id);
+  let hash=0;for(let k=0;k<identity.length;k++)hash=(Math.imul(hash,31)+identity.charCodeAt(k))|0;
+  const seed=((Math.abs(hash)+gen*19+facelift*11+i*13)%11)-5;
   const score=clamp(Math.round(base*.72+23+(attributes[o.bias]-3)*3+seed),35,98);
   return {name:o.name,type:o.type,score,verdict:score>=85?'Destaque editorial':score>=70?'Boa recepção':score>=55?'Avaliação equilibrada':'Críticas importantes'};
  });
@@ -45,15 +50,15 @@ const css=document.createElement('style');css.textContent=`
 `;document.head.append(css);
 function refresh(){
  const media=state();if(!media)return;
- const list=media.reviews;
+ const list=media.reviews.filter(r=>r&&typeof r==='object');
  panel.hidden=!list.length;
- panel.querySelector('#ae-media-list').innerHTML=list.slice(0,12).map(r=>'<article class="ae-media-review"><h4>'+esc(r.model)+' · G'+r.generation+(r.facelift?' · Facelift '+r.facelift:'')+' <span class="ae-media-score">'+r.average+'/100</span></h4>'+r.scores.map(x=>'<p><b>'+esc(x.name)+'</b> ('+esc(x.type)+') · '+x.score+'/100 · '+esc(x.verdict)+'</p>').join('')+'</article>').join('');
+ panel.querySelector('#ae-media-list').innerHTML=list.slice(0,12).map(r=>'<article class="ae-media-review"><h4>'+esc(r.model)+' · G'+r.generation+(r.facelift?' · Facelift '+r.facelift:'')+' <span class="ae-media-score">'+r.average+'/100</span></h4>'+(Array.isArray(r.scores)?r.scores:[]).filter(Boolean).map(x=>'<p><b>'+esc(x.name)+'</b> ('+esc(x.type)+') · '+x.score+'/100 · '+esc(x.verdict)+'</p>').join('')+'</article>').join('');
 }
 const oldRender=render;let signature='';
 render=function(){
  const result=oldRender.apply(this,arguments);
  const list=designs();
- const next=list.map(d=>[d.id,d.generation||1,d.facelift||0].join(':')).join('|');
+ const next=list.filter(d=>d&&d.id!=null).map(designKey).join('|')+'#'+(s?.empire?.economy?.mediaCoverage?.reviews?.length||0);
  if(next!==signature){signature=next;for(const d of list)review(d);refresh();}
  return result;
 };

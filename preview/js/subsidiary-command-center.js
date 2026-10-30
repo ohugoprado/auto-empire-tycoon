@@ -7,7 +7,7 @@ const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const inflation=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
 const upgrade=p=>Math.round((80000+n(p.level)*55000)*inflation());
 const balance=()=>Number(s.cash);
-const canSpend=cost=>Number.isFinite(cost)&&cost>=0&&Number.isFinite(balance())&&balance()>=cost;
+const canSpend=cost=>Number.isFinite(cost)&&cost>=0&&Number.isFinite(balance())&&balance()>=0&&balance()>=cost;
 const plants=()=>Array.isArray(s?.empire?.economy?.plantNetwork?.plants)?s.empire.economy.plantNetwork.plants:[];
 const occupiedJobs=()=>{const load=new Map();const queue=s?.empire?.economy?.factory?.queue;if(Array.isArray(queue))for(const job of queue){if(job?.plantId==null)continue;const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}return load;};
 let operationMessage='';
@@ -42,7 +42,7 @@ function quote(){
   const current=api.read(plant);
   // Staffing required for the requested number of lines, capped by plant level.
   const desiredLines=policy==='4'?1:policy==='12'?current.baseLines*2:current.baseLines;
-  const target=Math.min(500,desiredLines*3*current.shift);
+  const target=Math.min(500,Math.ceil(desiredLines/current.shift)*3*current.shift);
   return {plant,quote:api.quote(plant,Math.max(current.staff,target),current.shift)};
  }).filter(item=>item.quote?.added>0):[];
  const hires=items.reduce((sum,item)=>sum+item.quote.added,0),hireCost=items.reduce((sum,item)=>sum+item.quote.hiring,0);
@@ -108,7 +108,7 @@ panel.querySelector('#ae-sub-hire').addEventListener('click',()=>execute('hire')
 panel.querySelector('#ae-sub-upgrade').addEventListener('click',()=>execute('upgrade'));
 panel.querySelector('#ae-sub-controls').addEventListener('change',()=>{operationMessage='';refresh();});
 const prevRender=render;let signature='';
-render=function(){const result=prevRender.apply(this,arguments);const next=[s?.cash,s?.day,!!window.AEFactoryWorkforce,plants().map(p=>[p.id,p.staff,p.level,p.workforce?.staff,p.workforce?.shift].join(':')).join('|')].join(';');if(next!==signature){signature=next;refresh();}return result;};
+render=function(){const result=prevRender.apply(this,arguments);const next=[s?.cash,s?.day,!!window.AEFactoryWorkforce,plants().map(p=>[p.id,p.staff,p.level,p.workforce?.staff,p.workforce?.shift].join(':')).join('|'),s?.empire?.economy?.factory?.queue?.map(j=>[j?.plantId,j?.id,j?.due].join(':')).join('|')].join(';');if(next!==signature){signature=next;refresh();}return result;};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);
 window.AESubsidiaryCommand=Object.freeze({refresh});
 refresh();
