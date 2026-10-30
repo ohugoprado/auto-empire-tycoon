@@ -45,7 +45,12 @@ function quote(){
   return {plant,quote:api.quote(plant,Math.max(current.staff,target),current.shift)};
  }).filter(item=>item.quote?.added>0):[];
  const hires=items.reduce((sum,item)=>sum+item.quote.added,0),hireCost=items.reduce((sum,item)=>sum+item.quote.hiring,0);
- const upgrades=list.filter(p=>n(p.level)<3),upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
+ // Only propose expansion where current staffed capacity is fully occupied.
+ const queue=Array.isArray(s.empire?.economy?.factory?.queue)?s.empire.economy.factory.queue:[];
+ const load=new Map();
+ for(const job of queue)if(job&&job.plantId!=null){const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}
+ const upgrades=list.filter(p=>n(p.level)<3&&(!api||(load.get(String(p.id))||0)>=(api.read(p).lines||0)));
+ const upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
  const dailyBefore=api?plants().reduce((sum,p)=>sum+api.read(p).daily,0):0;
  const dailyAfter=dailyBefore+items.reduce((sum,item)=>sum+item.quote.after.daily-item.quote.before.daily,0);
  return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,ready:!!api};
