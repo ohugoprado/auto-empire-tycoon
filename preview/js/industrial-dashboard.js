@@ -46,15 +46,15 @@ function refresh(){
   const eta=cycles===null?null:cycles*Math.max(2,num(o.cycleDays)||7);
   return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId?esc(plant?.name||'Unidade industrial'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
  }).join('')||'<p class="tiny">Sem contratos aguardando montagem. Verifique as linhas acima para veículos já em produção.</p>';
- const history=(factory.completedIndustrialOrders||[]).slice(-5).reverse();
+ const history=(Array.isArray(factory.completedIndustrialOrders)?factory.completedIndustrialOrders:[]).slice(-5).reverse();
  panel.querySelector('#ae-industrial-history').innerHTML=history.map(o=>'<div class="ae-id-line"><p><b>'+esc(o.model)+'</b> · '+num(o.delivered)+' veículos · concluído no dia '+num(o.completedDay)+' · investimento '+money(num(o.investment))+'</p></div>').join('')||'<p class="tiny">Nenhum contrato industrial concluído ainda.</p>';
  const payroll=plants.reduce((sum,p)=>sum+Math.max(0,num(p.staff))*1100*Math.max(1,num(p.level)),0);
  const invested=jobs.reduce((sum,j)=>sum+Math.max(0,num(j.cost)),0);
  const pendingCars=contracts.reduce((sum,o)=>sum+Math.max(0,num(o.remaining)),0);
  const warehouseCars=Array.isArray(factory.warehouseCars)?factory.warehouseCars.length:0;
  const dealerCars=Array.isArray(s.stock)?s.stock.length:0;
- const delayed=jobs.filter(j=>num(j.due)<num(s.day)).length;
- const upcoming=jobs.filter(j=>num(j.due)>=num(s.day)).reduce((best,j)=>!best||num(j.due)<num(best.due)?j:best,null);
+ const delayed=jobs.filter(j=>Number.isFinite(Number(j?.due))&&Number(j.due)<num(s.day)).length;
+ const upcoming=jobs.filter(j=>Number.isFinite(Number(j?.due))&&Number(j.due)>=num(s.day)).reduce((best,j)=>!best||num(j.due)<num(best.due)?j:best,null);
  const activeLines=lines.filter(l=>l.id!==null||factory.opened);
  const totalCapacity=activeLines.reduce((sum,l)=>sum+l.capacity,0);
  const utilization=totalCapacity?Math.round(jobs.length/totalCapacity*100):0;
@@ -67,7 +67,7 @@ function refresh(){
  panel.querySelector('#ae-industrial-advice').textContent=blocked?'Prioridade: '+blocked+' fábrica(s) possuem ordens, mas nenhuma linha operacional. Revise funcionários e turnos antes de investir em expansão.':overloaded?'Atenção: '+overloaded+' fábrica(s) com mais ordens do que linhas disponíveis. Confira equipe e prazos.':freeLines===0&&jobs.length?'Todas as linhas estão ocupadas. Compare demanda, estoque e caixa antes de ampliar.':freeLines>0?'Há '+freeLines+' linha(s) livres na rede. Aproveite a capacidade existente antes de ampliar instalações.':'Sem ordens industriais ativas.';
  const filter=panel.querySelector('#ae-id-filter').value,sort=panel.querySelector('#ae-id-sort').value;
  const eligible=lines.filter(l=>l.id!==null||factory.opened).filter(line=>{
-  const own=jobs.filter(j=>line.id===null?!j.plantId:String(j.plantId)===String(line.id));
+  const own=ownJobs(line);
   if(filter==='blocked')return line.capacity===0&&own.length>0;
   if(filter==='saturated')return line.capacity>0&&own.length>=line.capacity;
   if(filter==='busy')return own.length>0;
@@ -75,15 +75,15 @@ function refresh(){
   if(filter==='delayed')return own.some(j=>num(j.due)<num(s.day));
   return true;
  });
- const ownJobs=line=>jobs.filter(j=>line.id===null?!j.plantId:String(j.plantId)===String(line.id));
- const nextDue=line=>Math.min(Infinity,...ownJobs(line).map(j=>num(j.due)));
+ const ownJobs=line=>jobs.filter(j=>line.id===null?j?.plantId==null:String(j?.plantId)===String(line.id));
+ const nextDue=line=>ownJobs(line).reduce((min,j)=>Number.isFinite(Number(j?.due))?Math.min(min,Number(j.due)):min,Infinity);
  eligible.sort((a,b)=>sort==='occupation'?count(b)/Math.max(1,b.capacity)-count(a)/Math.max(1,a.capacity):sort==='free'?Math.max(0,b.capacity-count(b))-Math.max(0,a.capacity-count(a)):sort==='backlog'?count(b)-count(a):sort==='delivery'?nextDue(a)-nextDue(b):String(a.name).localeCompare(String(b.name),'pt-BR'));
  panel.querySelector('#ae-industrial-lines').innerHTML=eligible.map(line=>{
-  const own=jobs.filter(j=>line.id===null?!j.plantId:String(j.plantId)===String(line.id));
+  const own=ownJobs(line);
   const pct=line.capacity?Math.min(100,Math.round(own.length/line.capacity*100)):0;
   const details=own.slice().sort((a,b)=>num(a.due)-num(b.due)).slice(0,5).map(j=>{
-   const remaining=Math.round(num(j.due)-num(s.day));
-   return '<div class="ae-id-job"><span>'+esc(j.model||'Veículo')+'</span><span>'+(remaining<0?'Atrasado '+Math.abs(remaining)+' d':remaining===0?'Entrega hoje':'Em '+remaining+' d')+'</span></div>';
+   const remaining=Number.isFinite(Number(j?.due))?Math.round(Number(j.due)-num(s.day)):null;
+   return '<div class="ae-id-job"><span>'+esc(j.model||'Veículo')+'</span><span>'+(remaining===null?'Prazo indefinido':remaining<0?'Atrasado '+Math.abs(remaining)+' d':remaining===0?'Entrega hoje':'Em '+remaining+' d')+'</span></div>';
   }).join('');
   return '<div class="ae-id-line"><h4>'+esc(line.name)+'</h4><p>Ocupação '+own.length+'/'+line.capacity+' · Livres '+Math.max(0,line.capacity-own.length)+' · Nível '+line.level+' · Capacidade base '+line.baseCapacity+(line.staff===null?'':' · Equipe '+line.staff)+'</p><div class="ae-id-progress"><span style="width:'+pct+'%"></span></div>'+(details||'<p>Sem ordens em andamento.</p>')+(own.length>5?'<p>Mais '+(own.length-5)+' ordem(ns).</p>':'')+'</div>';
  }).join('')||'<p class="tiny">Nenhuma fábrica corresponde ao filtro selecionado.</p>';
