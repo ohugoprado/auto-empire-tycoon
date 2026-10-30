@@ -24,8 +24,14 @@ const style=document.createElement('style');style.textContent=`
 `;document.head.append(style);
 function selected(){
  const scope=panel.querySelector('#ae-sub-scope').value,api=window.AEFactoryWorkforce;
- const queue=s.empire?.economy?.factory?.queue||[];
- return plants().filter(p=>scope!=='idle'||queue.filter(j=>String(j.plantId)===String(p.id)).length<(api?.read(p).lines??n(p.level)*2));
+ const queue=Array.isArray(s.empire?.economy?.factory?.queue)?s.empire.economy.factory.queue:[];
+ const occupied=new Map();
+ for(const job of queue){
+  if(!job||job.plantId==null)continue;
+  const id=String(job.plantId);
+  occupied.set(id,(occupied.get(id)||0)+1);
+ }
+ return plants().filter(p=>scope!=='idle'||(occupied.get(String(p.id))||0)<(api?.read(p).lines??n(p.level)*2));
 }
 function quote(){
  const list=selected(),policy=panel.querySelector('#ae-sub-target').value,api=window.AEFactoryWorkforce;
@@ -56,14 +62,14 @@ function fingerprint(q,isHire){
 }
 function execute(type){
  const q=quote(),isHire=type==='hire',cost=isHire?q.hireCost:q.upgradeCost,count=isHire?q.hires:q.upgrades.length;
- if(!count||s.empire.economy.bankrupt)return;
+ if(!count||!Number.isFinite(cost)||cost<0||s.empire.economy.bankrupt)return;
  if(n(s.cash)<cost)return toast('Caixa insuficiente para executar o lote.');
  const label=isHire?'contratar '+count+' funcionário(s) industriais em '+q.items.length+' unidade(s)':'ampliar '+count+' unidade(s)';
  const salary=isHire?' Folha diária gerenciada: '+money(q.dailyBefore)+' → '+money(q.dailyAfter)+'. A folha da equipe de apoio legada não muda.':'';
  if(!confirm('Deseja '+label+' por '+money(cost)+'?'+salary))return;
  const live=quote(),liveCost=isHire?live.hireCost:live.upgradeCost;
  if(s.empire.economy.bankrupt||fingerprint(live,isHire)!==fingerprint(q,isHire)||liveCost!==cost)return toast('A rede mudou. Confira a nova cotação.');
- if(n(s.cash)<liveCost)return toast('Saldo insuficiente.');
+ if(!Number.isFinite(liveCost)||liveCost<0||n(s.cash)<liveCost)return toast('Saldo insuficiente ou cotação inválida.');
  s.cash-=liveCost;
  if(isHire)live.items.forEach(item=>{item.plant.workforce={staff:item.quote.after.staff,shift:item.quote.after.shift};});
  else live.upgrades.forEach(p=>p.level=Math.min(3,n(p.level)+1));
