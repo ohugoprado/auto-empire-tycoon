@@ -94,24 +94,25 @@ tickDay=function(){
   f.storageSpent=(Number(f.storageSpent)||0)+storage;
   entry('Armazenagem industrial',-storage);
  }
- // Persist storage fees even when automatic distribution is disabled.
- if(!f.autoDistribution||!f.warehouseCars.length){if(storage>0)save();return result;}
- const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
- const stats=fleet(f);
- // Logistics must not turn a negative or invalid balance into capacity.
- const cash=Number(s.cash);
- const affordable=Number.isFinite(cash)&&cash>0?Math.floor(cash/stats.fee):0;
- const quantity=Math.min(stats.capacity,slots,affordable,f.warehouseCars.length);
- if(quantity>0){
-  const moved=f.warehouseCars.splice(0,quantity);
-  s.stock.push(...moved);
-  const fee=quantity*stats.fee;
-  s.cash-=fee;s.profit-=fee;
-  f.logisticsSpent=(Number(f.logisticsSpent)||0)+fee;
-  entry('Logística industrial · '+quantity+' veículo(s)',-fee);
-  note('Distribuição automática: '+quantity+' veículo(s) enviados à concessionária.');
+ let quantity=0;
+ if(f.autoDistribution&&f.warehouseCars.length){
+  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
+  const stats=fleet(f);
+  // Logistics must not turn a negative or invalid balance into capacity.
+  const cash=Number(s.cash);
+  const affordable=Number.isFinite(cash)&&cash>0?Math.floor(cash/stats.fee):0;
+  quantity=Math.min(stats.capacity,slots,affordable,f.warehouseCars.length);
+  if(quantity>0){
+   const moved=f.warehouseCars.splice(0,quantity);
+   s.stock.push(...moved);
+   const fee=quantity*stats.fee;
+   s.cash-=fee;s.profit-=fee;
+   f.logisticsSpent=(Number(f.logisticsSpent)||0)+fee;
+   entry('Logística industrial · '+quantity+' veículo(s)',-fee);
+   note('Distribuição automática: '+quantity+' veículo(s) enviados à concessionária.');
+  }
  }
- // The underlying day tick may save before this logistics wrapper runs.
+ // Persist at most once per turn, after all warehouse charges and transfers.
  if(storage>0||quantity>0)save();
  return result;
 };
