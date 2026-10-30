@@ -82,8 +82,8 @@ function refresh(){
  const modelRows=[...modelStats.values()].sort((a,b)=>(b.stock+b.warehouse+b.production)-(a.stock+a.warehouse+a.production));
  panel.querySelector('#ae-industrial-models').innerHTML='<h4>Planejamento por modelo</h4>'+(modelRows.length?modelRows.map(m=>{const inventory=m.stock+m.warehouse,coverage=m.offers/inventory||0,trendBoost=hotKind&&m.kind===hotKind;const margin=m.ask!=null&&m.unitCost!=null?Math.round((m.ask-m.unitCost)/m.ask*100):null;const status=inventory>=8&&coverage<.25?'Estoque elevado: avalie reduzir a produção':inventory>=4&&m.offers===0?'Pouca procura observada: monitore antes de ampliar':trendBoost&&inventory<3?'Segmento aquecido e estoque baixo':m.production>inventory*2&&inventory>=3?'Produção acima do estoque disponível: acompanhe vendas':'Acompanhar desempenho';return '<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Concessionária '+m.stock+' · pátio '+m.warehouse+' · aguardando montagem '+m.production+' · propostas abertas '+m.offers+'</p><p>'+(margin===null?'Margem estimada indisponível (faltam preço e custo comparáveis)':'Margem bruta indicativa '+margin+'% (sem despesas indiretas)')+' · '+esc(status)+'</p></div>';}).join(''):'<p class="tiny">Sem modelos disponíveis para análise.</p>')+'<p class="tiny">Sinais baseados no estoque atual e nas propostas abertas; não representam vendas realizadas nem garantem procura futura.</p>';
  const policy=economy.productionPolicy&&typeof economy.productionPolicy==='object'?economy.productionPolicy:{};
- const target=Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
- const reserve=Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
+ const target=policy.target!==null&&policy.target!==undefined&&policy.target!==''&&Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
+ const reserve=policy.reserve!==null&&policy.reserve!==undefined&&policy.reserve!==''&&Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
  const cashBalance=Number(s.cash),reserveAmount=Number.isFinite(cashBalance)?Math.max(0,Math.round(cashBalance*reserve/100)):0;
  const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+(Number.isFinite(l.capacity)&&l.capacity>0?Math.max(0,Math.floor(l.capacity)-count(l)):0),0));
  const spendable=Number.isFinite(cashBalance)&&cashBalance>=0&&!economy.bankrupt?Math.max(0,cashBalance-reserveAmount):0;
@@ -91,7 +91,7 @@ function refresh(){
  const proposals=modelRows.filter(m=>target>0&&m.name!=='Modelo não identificado'&&m.stock+m.warehouse+m.production<target).map(m=>{
   const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
   const unitCost=m.unitCost!=null&&Number.isFinite(m.unitCost)&&m.unitCost>0?m.unitCost:null;
-  const margin=m.ask!=null&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
+  const margin=m.ask!=null&&Number.isFinite(m.ask)&&m.ask>0&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
   const risk=m.stock+m.warehouse>=4&&m.offers===0||m.stock+m.warehouse>=Math.max(1,target)&&m.offers===0;
   return {...m,shortfall,unitCost,margin,risk};
  }).sort((a,b)=>Number(a.risk)-Number(b.risk)||(b.margin??-.5)-(a.margin??-.5)||a.name.localeCompare(b.name,'pt-BR'));
