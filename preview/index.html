@@ -535,9 +535,10 @@ if(market)market.appendChild(auction);
 function auctionOffer(){
  const window=Math.floor(s.day/2),existing=s.auctionLot;
  // Keep the same physical lot and quote through market refreshes and reloads.
- if(existing&&existing.window===window&&existing.id==='regional-'+window&&existing.car&&Number.isFinite(existing.price)&&existing.price>0)return existing;
+ if(existing&&existing.window===window&&existing.id==='regional-'+window&&existing.car&&typeof existing.car==='object'&&Number.isFinite(Number(existing.price))&&Number(existing.price)>0)return existing;
  const kind=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'][window%6];
- const sample=(s.market||[]).find(c=>c.kind===kind)||(s.market||[])[0];
+ const availableMarket=Array.isArray(s.market)?s.market.filter(c=>c&&typeof c==='object'&&Number.isFinite(Number(c.ask))&&Number(c.ask)>0):[];
+ const sample=availableMarket.find(c=>c.kind===kind)||availableMarket[0];
  if(!sample)return null;
  const price=Math.round(Number(sample.ask)*.83/100)*100;
  if(!Number.isFinite(price)||price<=0)return null;
@@ -554,9 +555,11 @@ auction.addEventListener('click',e=>{
  if(button.dataset.aeBid!==o.id){render();return toast('O lote mudou. Confira a nova oferta.');}
  if(o.purchased)return toast('Este lote já foi arrematado');
  if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência');
+ if(!Array.isArray(s.stock)||!Number.isFinite(Number(s.cash))||!Number.isFinite(Number(s.slots)))return toast('Dados da campanha indisponíveis');
  if(s.stock.length>=s.slots)return toast('Garagem lotada');
  const reserved=s.empire?.economy?.factory?.queue;
  if(s.stock.length+(Array.isArray(reserved)?reserved.length:0)>=s.slots)return toast('Vagas reservadas para a produção');
+ if(!Number.isFinite(Number(o.price))||Number(o.price)<=0||!o.car||typeof o.car!=='object')return toast('Lote inválido');
  if(s.cash<o.price)return toast('Caixa insuficiente');
  const c={...o.car,id:s.nextId++,bought:o.price,spent:0,listed:false,price:0,days:0,interested:false,offers:[]};
  o.purchased=true;o.purchaseCarId=c.id;o.purchasedDay=s.day;button.disabled=true;
