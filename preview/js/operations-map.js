@@ -22,14 +22,28 @@
     const factory = economy.factory || {};
     const studio = economy.studio || {};
     const stock = Array.isArray(game.stock) ? game.stock : [];
-    const jobs = Array.isArray(factory.queue) ? factory.queue.filter(job => job && typeof job === 'object') : [];
-    const main = jobs.filter(job => !job.plantId);
+    // A single pass keeps main-plant and subsidiary reservations separate.
+    const queue = Array.isArray(factory.queue) ? factory.queue : [];
+    let totalJobs = 0;
+    let mainJobs = 0;
+    let dueDay = null;
+    for (const job of queue) {
+      if (!job || typeof job !== 'object') continue;
+      totalJobs++;
+      if (job.plantId) continue;
+      mainJobs++;
+      if (job.due == null || job.due === '') continue;
+      const due = Number(job.due);
+      if (Number.isFinite(due) && (dueDay === null || due < dueDay)) dueDay = due;
+    }
     const day = Math.max(1, Math.floor(positive(game.day)));
     const capacity = Math.max(0, Math.floor(positive(game.slots)));
     const free = Math.max(0, capacity - stock.length);
-    const offers = stock.reduce((sum, car) => sum + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
-    const dueDates = main.map(job => Number(job.due)).filter(Number.isFinite);
-    const dueDay = dueDates.length ? Math.min(...dueDates) : null;
+    // Sum proposals without building temporary collections on each map refresh.
+    let offers = 0;
+    for (const car of stock) {
+      if (Array.isArray(car?.offers)) offers += car.offers.length;
+    }
     const rawCrisis = economy.crisis || {};
     const city = window.AEWorld?.cities?.find(item => item.id === game.empire?.world?.active);
     const applies = rawCrisis.id && rawCrisis.id !== 'stable' && day < amount(rawCrisis.end) && (!rawCrisis.region || rawCrisis.region === city?.country);
@@ -37,19 +51,32 @@
     const opened = Boolean(factory.opened);
     const warehouseStock = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
     const warehouseCapacity = Math.max(20, positive(factory.warehouseCapacity) || 20);
-    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - jobs.length);
+    // Subsidiary jobs reserve capacity at their own plants, not at the main factory.
+    const industrialFree = Math.max(0, free + Math.max(0, warehouseCapacity - warehouseStock) - mainJobs);
     const level = Math.max(1, Math.min(4, Math.floor(positive(factory.level)) || 1));
     const shifts = factory.workforce?.shift === 2 ? 2 : 1;
     const staff = factory.workforce ? positive(factory.workforce.staff) : level * 6;
     const lines = Math.min(level * 4, Math.floor(staff / (3 * shifts)) * shifts);
-    const pendingUnits = (Array.isArray(factory.industrialOrders) ? factory.industrialOrders : []).filter(order => order && !order.plantId).reduce((sum, order) => sum + positive(order.remaining), 0);
+    // Count only outstanding main-plant units; ignore completed orders and
+    // subsidiary orders when calculating the main factory's workload.
+    let pendingUnits = 0;
+    if (Array.isArray(factory.industrialOrders)) {
+      for (const order of factory.industrialOrders) {
+        if (order && !order.plantId) pendingUnits += Math.ceil(positive(order.remaining));
+      }
+    }
+    // Reserved slots are not the same as physically full storage: existing
+    // production jobs can still finish in their reserved slots. Only show a
+    // storage blockage when both the garage and warehouse are actually full.
+    const storageBlocked = (mainJobs > 0 || pendingUnits > 0) &&
+      free === 0 && warehouseStock >= warehouseCapacity;
     const cost = Math.round(110000 * Math.max(1, Math.min(3, amount(economy.inflation) || 1)));
-    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : (main.length || pendingUnits) && stock.length >= capacity && warehouseStock >= warehouseCapacity ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : main.length ? 'working' : pendingUnits ? 'queued' : 'ready';
+    const status = economy.bankrupt ? 'bankrupt' : !opened ? 'unbuilt' : ['war', 'supply'].includes(crisis.id) ? 'crisis' : storageBlocked ? 'storage-full' : pendingUnits && !lines ? 'waiting-staff' : mainJobs ? 'working' : pendingUnits ? 'queued' : 'ready';
     return Object.freeze({
       day, paused: typeof paused === 'undefined' || Boolean(paused), bankrupt: Boolean(economy.bankrupt),
-      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: jobs.length, free,
-        status: offers ? 'offers' : stock.length >= capacity ? 'full' : !free ? 'reserved' : 'ready' }),
-      factory: Object.freeze({ opened, mainJobs: main.length, totalJobs: jobs.length,
+      garage: Object.freeze({ stock: stock.length, capacity, offers, reserved: mainJobs, free,
+        status: offers ? 'offers' : stock.length >= capacity ? 'full' : mainJobs >= free && mainJobs > 0 ? 'reserved' : 'ready' }),
+      factory: Object.freeze({ opened, mainJobs, totalJobs,
         capacity: lines, warehouseStock, warehouseCapacity, industrialFree, pendingUnits,
         etaDays: dueDay === null ? null : Math.max(0, Math.ceil(dueDay - day)), dueDay,
         status, cost, missing: opened ? 0 : Math.max(0, cost - amount(game.cash)), brand: String(factory.brand || '') }),
@@ -99,7 +126,7 @@
       if (node.row.dataset.state !== value.status) node.row.dataset.state = value.status;
     }
     setText(nodes.get('garage').status, garage.offers ? plural(garage.offers, 'proposta', 'propostas') : garage.status === 'full' ? 'Estoque cheio' : garage.status === 'reserved' ? 'Vagas reservadas' : 'Seu estoque');
-    setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'reserva', 'reservas') : ''));
+    setText(nodes.get('garage').detail, garage.stock + '/' + garage.capacity + ' veículos · ' + plural(garage.free, 'vaga livre', 'vagas livres') + (garage.reserved ? ' · ' + plural(garage.reserved, 'ordem da fábrica', 'ordens da fábrica') : ''));
     const labels = { unbuilt: 'Falta fundar', ready: 'Sem ordens na fila', working: plural(factory.mainJobs, 'ordem na fila', 'ordens na fila'), 'storage-full': 'Estoque e pátio cheios', 'waiting-staff': 'Equipe insuficiente', queued: 'Lote aguardando início', crisis: 'Produção suspensa', bankrupt: 'Campanha encerrada' };
     setText(nodes.get('factory').status, labels[factory.status]);
     let detail;

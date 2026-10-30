@@ -20,7 +20,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'ae-quick-nav';
   dialog.setAttribute('aria-labelledby', 'ae-quick-nav-title'); dialog.setAttribute('aria-describedby', 'ae-quick-nav-description');
-  dialog.innerHTML = '<div class="ae-quick-nav-head"><div><h2 id="ae-quick-nav-title">Aonde você quer ir?</h2><p id="ae-quick-nav-description">Abra uma área para ver seus controles.</p></div><button id="ae-quick-nav-close" type="button" class="ghost">Fechar</button></div><div class="ae-quick-nav-links"></div><p class="ae-quick-nav-hint">Abrir uma área não compra nem produz veículos.</p>';
+  dialog.innerHTML = '<div class="ae-quick-nav-head"><div><h2 id="ae-quick-nav-title">Aonde você quer ir?</h2><p id="ae-quick-nav-description">Abra uma área para ver seus controles.</p><p id="ae-quick-nav-status" aria-live="off"></p></div><button id="ae-quick-nav-close" type="button" class="ghost">Fechar</button></div><div class="ae-quick-nav-links"></div><p class="ae-quick-nav-hint">Abrir uma área não compra nem produz veículos.</p>';
   const actions = new Map();
   for (const [id, title, description] of [
     ['market', 'Mercado', 'Encontrar carros e negociar antes de comprar.'],
@@ -66,13 +66,56 @@
     const stock = Array.isArray(state.stock) ? state.stock : [];
     const economy = state.empire?.economy || {}, factory = economy.factory || {}, studio = economy.studio || {};
     const offers = stock.reduce((count, car) => count + (Array.isArray(car?.offers) ? car.offers.length : 0), 0);
+    const queuedJobs = Array.isArray(factory.queue) ? factory.queue : [];
+    let productionJobs = 0;
+    // Keep delivery calculations linear and avoid spreading large production
+    // queues into Math.min (which can exceed argument limits on mobile Safari).
+    let nextDelivery = null;
+    for (const job of queuedJobs) {
+      if (!job || typeof job !== 'object') continue;
+      productionJobs++;
+      if (job.due == null || job.due === '') continue;
+      const due = Number(job.due);
+      if (Number.isFinite(due) && (nextDelivery === null || due < nextDelivery)) nextDelivery = due;
+    }
+    const warehouseCount = Array.isArray(factory.warehouseCars) ? factory.warehouseCars.length : 0;
+    // A visible pending-offer count helps players notice decisions without
+    // opening the stock panel or repeatedly checking each vehicle.
+    const stockLabel = stock.length + ' veículo' + (stock.length === 1 ? '' : 's');
+    const offerLabel = offers + ' proposta' + (offers === 1 ? '' : 's');
+    const quickLabel = offers ? 'Atalhos · ' + offerLabel : 'Atalhos';
+    setText(button.querySelector('span'), quickLabel);
+    const accessibleLabel = 'Abrir atalhos. ' + stockLabel + ' no estoque, ' + offerLabel + '.';
+    if (button.getAttribute('aria-label') !== accessibleLabel) button.setAttribute('aria-label', accessibleLabel);
     const isPaused = typeof paused === 'undefined' || Boolean(paused), ended = Boolean(economy.bankrupt);
     const gameMenuReady = typeof window.AEGameMenu?.open === 'function';
-    const next = JSON.stringify([stock.length, offers, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
+    // Keep the current day and available cash visible in the shortcut sheet,
+    // so players can navigate without returning to the financial dashboard.
+    const day = Math.max(1, Math.floor(Number(state.day) || 1));
+    const cash = Number(state.cash);
+    // The renderer may call refresh many times per frame; format currency only
+    // when the actual displayed day or balance changes.
+    const statusNode = dialog.querySelector('#ae-quick-nav-status');
+    const statusKey = day + ':' + (Number.isFinite(cash) ? Math.round(cash) : 'unknown');
+    if (statusNode.dataset.statusKey !== statusKey) {
+      const cashLabel = Number.isFinite(cash) ? Math.round(cash).toLocaleString('pt-BR') + ' CR' : '—';
+      setText(statusNode, 'Dia ' + day + ' · Caixa ' + cashLabel);
+      statusNode.dataset.statusKey = statusKey;
+    }
+    const next = JSON.stringify([stock.length, offers, productionJobs, nextDelivery, warehouseCount, Boolean(factory.opened), studio.research || 0, studio.designs?.length || 0, isPaused, ended, gameMenuReady]);
     if (signature !== next) {
       signature = next;
-      setText(actions.get('garage').description, stock.length + ' veículo(s) no estoque · ' + offers + ' proposta(s).');
-      setText(actions.get('factory').description, factory.opened ? 'Ver linhas e acompanhar as entregas da produção.' : 'Conferir o investimento e fundar sua fabricante.');
+      // Prioritize the stock screen when there are offers to review, without
+      // changing the default shortcut order for campaigns with no offers.
+      const links = dialog.querySelector('.ae-quick-nav-links');
+      const marketButton = actions.get('market').button;
+      const garageButton = actions.get('garage').button;
+      if (offers > 0 && garageButton.nextElementSibling !== marketButton) links.insertBefore(garageButton, marketButton);
+      else if (offers === 0 && marketButton.nextElementSibling !== garageButton) links.insertBefore(marketButton, garageButton);
+      setText(actions.get('garage').description, stockLabel + ' no estoque · ' + offerLabel + '.');
+      setText(actions.get('factory').description, factory.opened
+        ? (productionJobs ? productionJobs + ' ordem' + (productionJobs === 1 ? '' : 's') + ' na fila' + (nextDelivery === null ? '' : ' · Próxima entrega: dia ' + Math.max(day, Math.floor(nextDelivery))) : 'Nenhuma ordem na fila') + ' · ' + warehouseCount + ' no depósito.'
+        : 'Conferir o investimento e fundar sua fabricante.');
       setText(actions.get('projects').description, (Number(studio.research) || 0) + ' pontos P&D · ' + (studio.designs?.length || 0) + ' modelo(s) homologado(s).');
       setText(actions.get('simulation').title, ended ? 'Campanha encerrada' : 'Avançar 1 dia');
       setText(actions.get('simulation').description, ended ? 'Consulte a situação financeira da campanha.' : 'Produzir, receber propostas e pagar as despesas do próximo dia.');
@@ -94,8 +137,14 @@
   }
   function focusPanel(target) {
     if (!target) return;
-    if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
-    target.scrollIntoView({ block: 'start', behavior: 'auto' }); target.focus({ preventScroll: true });
+    // Switching workspaces may update hidden panels on the next render frame.
+    // Defer focus so keyboard and screen-reader users land on visible content.
+    requestAnimationFrame(() => {
+      if (!target.isConnected || !target.getClientRects().length) return;
+      if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
+      target.scrollIntoView({ block: 'start', behavior: 'auto' });
+      target.focus({ preventScroll: true });
+    });
   }
   function visitFallback(id) {
     show('garage');
