@@ -94,7 +94,8 @@ tickDay=function(){
   f.storageSpent=(Number(f.storageSpent)||0)+storage;
   entry('Armazenagem industrial',-storage);
  }
- if(!f.autoDistribution||!f.warehouseCars.length)return result;
+ // Persist storage fees even when automatic distribution is disabled.
+ if(!f.autoDistribution||!f.warehouseCars.length){if(storage>0)save();return result;}
  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
  const stats=fleet(f);
  // Logistics must not turn a negative or invalid balance into capacity.
@@ -109,7 +110,9 @@ tickDay=function(){
   f.logisticsSpent=(Number(f.logisticsSpent)||0)+fee;
   entry('Logística industrial · '+quantity+' veículo(s)',-fee);
   note('Distribuição automática: '+quantity+' veículo(s) enviados à concessionária.');
- } 
+ }
+ // The underlying day tick may save before this logistics wrapper runs.
+ if(storage>0||quantity>0)save();
  return result;
 };
 const oldRender=render;let key='';
