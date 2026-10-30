@@ -87,8 +87,13 @@ tickDay=function(){
  if(s?.day===dayBefore)return result;
  const f=state();
  if(!f?.opened)return result;
- const storage=Math.round(f.warehouseCars.length*12*Math.max(1,Number(s.empire?.economy?.inflation)||1));
- if(storage>0){s.cash-=storage;s.profit-=storage;f.storageSpent=(Number(f.storageSpent)||0)+storage;entry('Armazenagem industrial',-storage);}
+ const inflation=Number(s.empire?.economy?.inflation);
+ const storage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflation)?Math.max(1,inflation):1));
+ if(storage>0){
+  s.cash-=storage;s.profit-=storage;
+  f.storageSpent=(Number(f.storageSpent)||0)+storage;
+  entry('Armazenagem industrial',-storage);
+ }
  if(!f.autoDistribution||!f.warehouseCars.length)return result;
  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
  const stats=fleet(f);
