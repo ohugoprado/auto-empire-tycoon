@@ -75,7 +75,7 @@ function refresh(){
  const dailyPayroll=activeLines.reduce((sum,l)=>sum+l.payroll,0);
  const metrics=[['Em produção',jobs.length],['Aguardando montagem',pendingCars],['No pátio',warehouseCars],['Na concessionária',dealerCars],['Custos operacionais acumulados',money(factory.overheadSpent||0)],['Capital em produção',money(invested)],['Folha mensal adicional',money(payroll)],['Ordens atrasadas',delayed],['Capacidade ocupada',totalCapacity?utilization+'%':'Sem linhas'],['Linhas livres',freeLines],['Ordens por linha',totalCapacity?(jobs.length/totalCapacity).toFixed(2):'—'],['Folha industrial gerenciada/dia',money(dailyPayroll)],['Fábricas com gargalo',blocked+overloaded],['Custo médio por ordem',jobs.length?money(invested/jobs.length):'—']];
  const modelStats=new Map();
- const addModel=(car,where)=>{if(!car||typeof car!=='object')return;const name=String(car.name||car.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:String(car.kind||''),stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}if(!m.kind&&car.kind)m.kind=String(car.kind);if(where==='warehouse')m.warehouse++;else m.stock++;const price=Number(car.price||car.ask);if(Number.isFinite(price)&&price>0)m.ask=m.ask==null?price:(m.ask+price)/2;const cost=Number(car.bought??car.cost);if(Number.isFinite(cost)&&cost>0)m.unitCost=m.unitCost==null?cost:(m.unitCost+cost)/2;if(Array.isArray(car.offers))m.offers+=car.offers.length;};
+ const addModel=(car,where)=>{if(!car||typeof car!=='object')return;const name=String(car.name||car.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:String(car.kind||''),stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}if(!m.kind&&car.kind)m.kind=String(car.kind);if(where==='warehouse')m.warehouse++;else m.stock++;const price=Number(car.price||car.ask);if(Number.isFinite(price)&&price>0){m.askTotal=(m.askTotal||0)+price;m.askCount=(m.askCount||0)+1;m.ask=m.askTotal/m.askCount;}const cost=Number(car.bought??car.cost);if(Number.isFinite(cost)&&cost>0){m.costTotal=(m.costTotal||0)+cost;m.costCount=(m.costCount||0)+1;m.unitCost=m.costTotal/m.costCount;}if(Array.isArray(car.offers))m.offers+=car.offers.length;};
  for(const car of (Array.isArray(s.stock)?s.stock:[]))addModel(car,'stock');
  for(const car of (Array.isArray(factory.warehouseCars)?factory.warehouseCars:[]))addModel(car,'warehouse');
  for(const order of contracts){if(!order||typeof order!=='object')continue;const name=String(order.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:'',stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}m.production+=Math.max(0,num(order.remaining));const cost=Number(order.cost);if(Number.isFinite(cost)&&cost>0&&m.unitCost==null)m.unitCost=cost;}
@@ -92,7 +92,7 @@ function refresh(){
   const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
   const unitCost=m.unitCost!=null&&Number.isFinite(m.unitCost)&&m.unitCost>0?m.unitCost:null;
   const margin=m.ask!=null&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
-  const risk=m.stock+m.warehouse>=4&&m.offers===0;
+  const risk=m.stock+m.warehouse>=4&&m.offers===0||m.stock+m.warehouse>=Math.max(1,target)&&m.offers===0;
   return {...m,shortfall,unitCost,margin,risk};
  }).sort((a,b)=>Number(a.risk)-Number(b.risk)||(b.margin??-.5)-(a.margin??-.5)||a.name.localeCompare(b.name,'pt-BR'));
  const recommendations=proposals.map(m=>{
@@ -100,6 +100,7 @@ function refresh(){
   if(m.risk)reason='Estoque sem propostas: aguardar';
   else if(m.margin!==null&&m.margin<=0)reason='Margem bruta não positiva';
   else if(m.unitCost===null)reason='Custo unitário desconhecido';
+  else if(!Number.isFinite(m.unitCost)||m.unitCost<=0)reason='Custo inválido';
   else if(remainingLines===0)reason='Sem linhas livres';
   else if(remainingBudget<m.unitCost)reason='Reserva financeira limita o lote';
   else{suggested=Math.min(m.shortfall,remainingLines,Math.floor(remainingBudget/m.unitCost));remainingLines-=suggested;remainingBudget-=suggested*m.unitCost;reason=suggested<m.shortfall?'Lote parcial sugerido':'Meta atendida pelo lote sugerido';}
@@ -108,7 +109,7 @@ function refresh(){
  const opportunities=recommendations.filter(m=>m.suggested>0);
  const overstock=modelRows.filter(m=>m.stock+m.warehouse>target*2&&m.offers===0);
  const policyPanel=panel.querySelector('#ae-industrial-policy');
- if(document.activeElement?.closest('#ae-industrial-policy')!==policyPanel){
+ if(!policyPanel.contains(document.activeElement)){
  policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p>Linhas livres: '+freeCapacity+' · orçamento acima da reserva: '+money(spendable)+' · lote sugerido: '+recommendations.reduce((sum,m)=>sum+m.suggested,0)+' veículo(s).</p>'+(recommendations.length?recommendations.slice(0,8).map(m=>'<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Faltam '+m.shortfall+' para a meta · sugestão '+m.suggested+' · '+esc(m.reason)+(m.suggested?' · investimento estimado '+money(m.suggested*m.unitCost):'')+'</p></div>').join(''):'')+'<p class="tiny">Estimativas: custos e linhas atuais. Não reserva recursos, não inicia ordens nem garante vendas.</p>';
  }
  panel.querySelector('#ae-industrial-kpis').innerHTML=metrics.map(([label,value])=>'<div class="ae-id-kpi"><small>'+label+'</small><strong>'+value+'</strong></div>').join('');
