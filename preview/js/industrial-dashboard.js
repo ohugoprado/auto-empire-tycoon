@@ -20,7 +20,7 @@ const style=document.createElement('style');style.textContent=`
 .ae-id-line{padding:12px 0;border-top:1px solid #385064}
 #ae-industrial-advice{font-size:12px;line-height:1.6;padding:9px 0;color:#e8d6ae}
 #ae-industrial-market{font-size:12px;line-height:1.6;padding:10px;margin:8px 0;border:1px solid #385064;border-radius:9px;color:#d9e5ee}
-#ae-industrial-models{font-size:12px;line-height:1.6;margin:10px 0}#ae-industrial-models h4{font-size:13px;margin:10px 0}#ae-industrial-models .ae-id-model{border-top:1px solid #385064;padding:9px 0}#ae-industrial-models .ae-id-model p{margin:3px 0;color:#c3d4df}#ae-industrial-policy{padding:10px;border:1px solid #385064;border-radius:9px;margin:10px 0;font-size:12px}#ae-industrial-policy label{display:flex;align-items:center;gap:8px;margin:8px 0}#ae-industrial-policy input{width:72px;min-height:40px;background:#20384b;border:1px solid #547086;border-radius:7px;color:#fff;padding:6px}#ae-industrial-policy button{min-height:42px}
+#ae-industrial-models{font-size:12px;line-height:1.6;margin:10px 0}#ae-industrial-models h4{font-size:13px;margin:10px 0}#ae-industrial-models .ae-id-model{border-top:1px solid #385064;padding:9px 0}#ae-industrial-models .ae-id-model p{margin:3px 0;color:#c3d4df}#ae-industrial-policy{padding:10px;border:1px solid #385064;border-radius:9px;margin:10px 0;font-size:12px}#ae-industrial-policy label{display:flex;align-items:center;gap:8px;margin:8px 0}#ae-industrial-policy input{width:72px;min-height:40px;background:#20384b;border:1px solid #547086;border-radius:7px;color:#fff;padding:6px}#ae-industrial-policy button{min-height:42px}#ae-industrial-policy{background:#1b2630;border-color:#685b45}#ae-industrial-policy h4{color:#f1d59e;margin:2px 0 8px}#ae-industrial-policy .ae-id-model{background:#26323c;border:1px solid #47535b;border-radius:9px;padding:10px;margin:7px 0}#ae-industrial-policy .ae-id-model p{margin:4px 0;color:#cbd5db}#ae-industrial-policy input{background:#101d27;border-color:#7a715f}#ae-industrial-policy button{background:#b88a45;color:#151a20;border:1px solid #e1b76f;border-radius:8px;font-weight:700;padding:8px 12px}
 .ae-id-line h4{margin:0 0 6px;font-size:13px}
 .ae-id-line p{font-size:12px;color:#c3d4df;margin:5px 0}
 .ae-id-progress{height:7px;background:#31495b;border-radius:6px;overflow:hidden;margin-top:8px}
@@ -36,14 +36,14 @@ function refresh(){
  const contracts=Array.isArray(factory.industrialOrders)?factory.industrialOrders.filter(o=>Number(o.remaining)>0||Number(o.delivered)<Number(o.total)):[];
  const plants=Array.isArray(economy.plantNetwork?.plants)?economy.plantNetwork.plants:[];
  const workforce=window.AEFactoryWorkforce;
- const plantLine=(id,name,ref)=>{const info=workforce?.read(ref);const level=Math.max(1,num(ref.level));return {id,name,level,staff:info?.staff??null,capacity:info?.lines??level*2,baseCapacity:info?.baseLines??level*2,payroll:info?.daily??0};};
+ const plantLine=(id,name,ref)=>{const info=ref?workforce?.read(ref):null;const level=Math.max(1,num(ref?.level));return {id,name,level,staff:info?.staff??null,capacity:info?.lines??level*2,baseCapacity:info?.baseLines??level*2,payroll:info?.daily??0};};
  const lines=[plantLine(null,'Fábrica principal',factory),...plants.map(p=>plantLine(p.id,p.name||'Unidade industrial',p))];
  const load=new Map(),jobsByPlant=new Map();for(const job of jobs){if(!job||typeof job!=='object')continue;const id=job.plantId==null?'main':String(job.plantId);load.set(id,(load.get(id)||0)+1);if(!jobsByPlant.has(id))jobsByPlant.set(id,[]);jobsByPlant.get(id).push(job);}
  const count=line=>load.get(line.id===null?'main':String(line.id))||0;
  panel.querySelector('#ae-industrial-contracts').innerHTML=contracts.map(o=>{
   const total=Math.max(1,num(o.total)),remaining=Math.max(0,num(o.remaining)),started=total-remaining,delivered=Math.max(0,num(o.delivered));
   const plant=o.plantId!=null?plants.find(p=>String(p.id)===String(o.plantId)):factory;
-  const capacity=plant?(workforce?.read(plant).lines??Math.max(1,num(plant.level))*2):0;
+  const capacity=plant?(workforce?.read(plant)?.lines??Math.max(1,num(plant.level))*2):0;
   const cycles=capacity>0?Math.ceil(remaining/capacity):null;
   const eta=cycles===null?null:cycles*Math.max(2,num(o.cycleDays)||7);
   return '<div class="ae-id-line"><h4>'+esc(o.model)+' · '+delivered+'/'+total+' entregues</h4><div class="ae-id-progress"><span style="width:'+Math.round(delivered/total*100)+'%"></span></div><p>Restam '+remaining+' veículos · '+(o.plantId!=null?esc(plant?.name||'Unidade industrial indisponível'):'Fábrica principal')+' · prazo mínimo estimado: '+eta+' dias de jogo</p><p>Investimento antecipado: '+money(total*num(o.cost))+'</p></div>';
@@ -75,24 +75,25 @@ function refresh(){
  const dailyPayroll=activeLines.reduce((sum,l)=>sum+l.payroll,0);
  const metrics=[['Em produção',jobs.length],['Aguardando montagem',pendingCars],['No pátio',warehouseCars],['Na concessionária',dealerCars],['Custos operacionais acumulados',money(factory.overheadSpent||0)],['Capital em produção',money(invested)],['Folha mensal adicional',money(payroll)],['Ordens atrasadas',delayed],['Capacidade ocupada',totalCapacity?utilization+'%':'Sem linhas'],['Linhas livres',freeLines],['Ordens por linha',totalCapacity?(jobs.length/totalCapacity).toFixed(2):'—'],['Folha industrial gerenciada/dia',money(dailyPayroll)],['Fábricas com gargalo',blocked+overloaded],['Custo médio por ordem',jobs.length?money(invested/jobs.length):'—']];
  const modelStats=new Map();
- const addModel=(car,where)=>{if(!car||typeof car!=='object')return;const name=String(car.name||car.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:String(car.kind||''),stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}if(!m.kind&&car.kind)m.kind=String(car.kind);if(where==='warehouse')m.warehouse++;else m.stock++;const price=Number(car.price||car.ask);if(Number.isFinite(price)&&price>0)m.ask=m.ask==null?price:(m.ask+price)/2;const cost=Number(car.bought??car.cost);if(Number.isFinite(cost)&&cost>0)m.unitCost=m.unitCost==null?cost:(m.unitCost+cost)/2;if(Array.isArray(car.offers))m.offers+=car.offers.length;};
+ const addModel=(car,where)=>{if(!car||typeof car!=='object')return;const name=String(car.name||car.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:String(car.kind||''),stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}if(!m.kind&&car.kind)m.kind=String(car.kind);if(where==='warehouse')m.warehouse++;else m.stock++;const price=Number(car.price||car.ask);if(Number.isFinite(price)&&price>0){m.askTotal=(m.askTotal||0)+price;m.askCount=(m.askCount||0)+1;m.ask=m.askTotal/m.askCount;}const cost=Number(car.bought??car.cost);if(Number.isFinite(cost)&&cost>0){m.costTotal=(m.costTotal||0)+cost;m.costCount=(m.costCount||0)+1;m.unitCost=m.costTotal/m.costCount;}if(Array.isArray(car.offers))m.offers+=car.offers.length;};
  for(const car of (Array.isArray(s.stock)?s.stock:[]))addModel(car,'stock');
  for(const car of (Array.isArray(factory.warehouseCars)?factory.warehouseCars:[]))addModel(car,'warehouse');
  for(const order of contracts){if(!order||typeof order!=='object')continue;const name=String(order.model||'Modelo não identificado');let m=modelStats.get(name);if(!m){m={name,kind:'',stock:0,warehouse:0,production:0,unitCost:null,ask:null,offers:0};modelStats.set(name,m);}m.production+=Math.max(0,num(order.remaining));const cost=Number(order.cost);if(Number.isFinite(cost)&&cost>0&&m.unitCost==null)m.unitCost=cost;}
- const modelRows=[...modelStats.values()].sort((a,b)=>(b.stock+b.warehouse+b.production)-(a.stock+a.warehouse+a.production)).slice(0,12);
- panel.querySelector('#ae-industrial-models').innerHTML='<h4>Planejamento por modelo</h4>'+(modelRows.length?modelRows.map(m=>{const inventory=m.stock+m.warehouse,coverage=m.offers/inventory||0,trendBoost=hotKind&&m.kind===hotKind;const margin=m.ask!=null&&m.unitCost!=null?Math.round((m.ask-m.unitCost)/m.ask*100):null;const status=inventory>=8&&coverage<.25?'Estoque elevado: avalie reduzir a produção':inventory>=4&&m.offers===0?'Pouca procura observada: monitore antes de ampliar':trendBoost&&inventory<3?'Segmento aquecido e estoque baixo':m.production>inventory*2&&inventory>=3?'Produção acima do estoque disponível: acompanhe vendas':'Acompanhar desempenho';return '<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Concessionária '+m.stock+' · pátio '+m.warehouse+' · aguardando montagem '+m.production+' · propostas abertas '+m.offers+'</p><p>'+(margin===null?'Margem estimada indisponível (faltam preço e custo comparáveis)':'Margem bruta indicativa '+margin+'% (sem despesas indiretas)')+' · '+esc(status)+'</p></div>';}).join(''):'<p class="tiny">Sem modelos disponíveis para análise.</p>')+'<p class="tiny">Sinais baseados no estoque atual e nas propostas abertas; não representam vendas realizadas nem garantem procura futura.</p>';
+ const modelRows=[...modelStats.values()].sort((a,b)=>(b.stock+b.warehouse+b.production)-(a.stock+a.warehouse+a.production));
+ const visibleModelRows=modelRows.slice(0,12);
+ panel.querySelector('#ae-industrial-models').innerHTML='<h4>Planejamento por modelo</h4>'+(modelRows.length?visibleModelRows.map(m=>{const inventory=m.stock+m.warehouse,coverage=m.offers/inventory||0,trendBoost=hotKind&&m.kind===hotKind;const margin=m.ask!=null&&m.unitCost!=null?Math.round((m.ask-m.unitCost)/m.ask*100):null;const status=inventory>=8&&coverage<.25?'Estoque elevado: avalie reduzir a produção':inventory>=4&&m.offers===0?'Pouca procura observada: monitore antes de ampliar':trendBoost&&inventory<3?'Segmento aquecido e estoque baixo':m.production>inventory*2&&inventory>=3?'Produção acima do estoque disponível: acompanhe vendas':'Acompanhar desempenho';return '<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Concessionária '+m.stock+' · pátio '+m.warehouse+' · aguardando montagem '+m.production+' · propostas abertas '+m.offers+'</p><p>'+(margin===null?'Margem estimada indisponível (faltam preço e custo comparáveis)':'Margem bruta indicativa '+margin+'% (sem despesas indiretas)')+' · '+esc(status)+'</p></div>';}).join(''):'<p class="tiny">Sem modelos disponíveis para análise.</p>')+'<p class="tiny">Exibindo '+visibleModelRows.length+' de '+modelRows.length+' modelos por volume de estoque e produção. O planejamento de lotes considera todos os modelos.</p><p class="tiny">Sinais baseados no estoque atual e nas propostas abertas; não representam vendas realizadas nem garantem procura futura.</p>';
  const policy=economy.productionPolicy&&typeof economy.productionPolicy==='object'?economy.productionPolicy:{};
- const target=Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
- const reserve=Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
+ const target=policy.target!==null&&policy.target!==undefined&&policy.target!==''&&Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
+ const reserve=policy.reserve!==null&&policy.reserve!==undefined&&policy.reserve!==''&&Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
  const cashBalance=Number(s.cash),reserveAmount=Number.isFinite(cashBalance)?Math.max(0,Math.round(cashBalance*reserve/100)):0;
- const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+Math.max(0,l.capacity-count(l)),0));
- const spendable=Math.max(0,(Number.isFinite(cashBalance)?cashBalance:0)-reserveAmount);
+ const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+(Number.isFinite(l.capacity)&&l.capacity>0?Math.max(0,Math.floor(l.capacity)-count(l)):0),0));
+ const spendable=Number.isFinite(cashBalance)&&cashBalance>=0&&!economy.bankrupt?Math.max(0,cashBalance-reserveAmount):0;
  let remainingBudget=spendable,remainingLines=freeCapacity;
- const proposals=modelRows.filter(m=>target>0&&m.stock+m.warehouse+m.production<target).map(m=>{
+ const proposals=modelRows.filter(m=>target>0&&m.name!=='Modelo não identificado'&&m.stock+m.warehouse+m.production<target).map(m=>{
   const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
   const unitCost=m.unitCost!=null&&Number.isFinite(m.unitCost)&&m.unitCost>0?m.unitCost:null;
-  const margin=m.ask!=null&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
-  const risk=m.stock+m.warehouse>=4&&m.offers===0;
+  const margin=m.ask!=null&&Number.isFinite(m.ask)&&m.ask>0&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
+  const risk=m.stock+m.warehouse>=4&&m.offers===0||m.stock+m.warehouse>=Math.max(1,target)&&m.offers===0;
   return {...m,shortfall,unitCost,margin,risk};
  }).sort((a,b)=>Number(a.risk)-Number(b.risk)||(b.margin??-.5)-(a.margin??-.5)||a.name.localeCompare(b.name,'pt-BR'));
  const recommendations=proposals.map(m=>{
@@ -100,16 +101,18 @@ function refresh(){
   if(m.risk)reason='Estoque sem propostas: aguardar';
   else if(m.margin!==null&&m.margin<=0)reason='Margem bruta não positiva';
   else if(m.unitCost===null)reason='Custo unitário desconhecido';
+  else if(!Number.isFinite(m.unitCost)||m.unitCost<=0)reason='Custo inválido';
   else if(remainingLines===0)reason='Sem linhas livres';
+  else if(!Number.isFinite(cashBalance)||cashBalance<0||economy.bankrupt)reason='Caixa indisponível ou campanha encerrada';
   else if(remainingBudget<m.unitCost)reason='Reserva financeira limita o lote';
   else{suggested=Math.min(m.shortfall,remainingLines,Math.floor(remainingBudget/m.unitCost));remainingLines-=suggested;remainingBudget-=suggested*m.unitCost;reason=suggested<m.shortfall?'Lote parcial sugerido':'Meta atendida pelo lote sugerido';}
   return {...m,suggested,reason};
  });
  const opportunities=recommendations.filter(m=>m.suggested>0);
- const overstock=modelRows.filter(m=>m.stock+m.warehouse>target*2&&m.offers===0);
+ const overstock=modelRows.filter(m=>m.stock+m.warehouse>Math.max(2,target*2)&&m.offers===0);
  const policyPanel=panel.querySelector('#ae-industrial-policy');
- if(document.activeElement?.closest('#ae-industrial-policy')!==policyPanel){
- policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p>Linhas livres: '+freeCapacity+' · orçamento acima da reserva: '+money(spendable)+' · lote sugerido: '+recommendations.reduce((sum,m)=>sum+m.suggested,0)+' veículo(s).</p>'+(recommendations.length?recommendations.slice(0,8).map(m=>'<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Faltam '+m.shortfall+' para a meta · sugestão '+m.suggested+' · '+esc(m.reason)+(m.suggested?' · investimento estimado '+money(m.suggested*m.unitCost):'')+'</p></div>').join(''):'')+'<p class="tiny">Estimativas: custos e linhas atuais. Não reserva recursos, não inicia ordens nem garante vendas.</p>';
+ if(!policyPanel.contains(document.activeElement)){
+ policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p>Linhas livres: '+freeCapacity+' · orçamento acima da reserva: '+money(spendable)+' · lote sugerido: '+recommendations.reduce((sum,m)=>sum+m.suggested,0)+' veículo(s).</p>'+(recommendations.length?recommendations.slice(0,8).map(m=>'<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Faltam '+m.shortfall+' para a meta · sugestão '+m.suggested+' · '+esc(m.reason)+(m.suggested?' · investimento estimado '+money(m.suggested*m.unitCost):'')+'</p></div>').join(''):'')+'<p class="tiny">Prévia de planejamento. O custo médio de estoque não é uma cotação da fábrica. Para produzir, abra o formulário de fabricação e confirme os valores reais. Nenhuma ordem é criada aqui.</p>';
  }
  panel.querySelector('#ae-industrial-kpis').innerHTML=metrics.map(([label,value])=>'<div class="ae-id-kpi"><small>'+label+'</small><strong>'+value+'</strong></div>').join('');
  panel.querySelector('#ae-industrial-advice').textContent=blocked?'Prioridade: '+blocked+' fábrica(s) possuem ordens, mas nenhuma linha operacional. Revise funcionários e turnos antes de investir em expansão.':overloaded?'Atenção: '+overloaded+' fábrica(s) com mais ordens do que linhas disponíveis. Confira equipe e prazos.':freeLines===0&&jobs.length?'Todas as linhas estão ocupadas. Compare demanda, estoque e caixa antes de ampliar.':freeLines>0?'Há '+freeLines+' linha(s) livres na rede. Aproveite a capacidade existente antes de ampliar instalações.':'Sem ordens industriais ativas.';
@@ -143,7 +146,7 @@ panel.querySelector('#ae-industrial-policy').addEventListener('click',event=>{
  const target=Number(targetInput?.value),reserve=Number(reserveInput?.value);
  if(!Number.isInteger(target)||target<0||target>100||!Number.isInteger(reserve)||reserve<0||reserve>95)return toast('Defina uma meta de 0 a 100 e uma reserva de 0% a 95%.');
  const economy=s?.empire?.economy;if(!economy||economy.bankrupt)return toast('Política indisponível nesta campanha.');
- economy.productionPolicy={target,reserve};save();refresh();toast('Política industrial salva.');
+ economy.productionPolicy={target,reserve};save();if(document.activeElement instanceof HTMLElement)document.activeElement.blur();refresh();toast('Política industrial salva.');
 });
 panel.querySelector('#ae-id-filter').addEventListener('change',refresh);
 panel.querySelector('#ae-id-sort').addEventListener('change',refresh);

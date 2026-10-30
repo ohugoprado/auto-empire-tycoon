@@ -497,7 +497,7 @@ document.title='Auto Empire Tycoon — Alpha 1.0.0';
 const banner=document.getElementById('ae-version');
 if(banner)banner.textContent='AUTO EMPIRE TYCOON · ALPHA 1.0.0 · BUILD 1000';
 const css=document.createElement('style');
-css.textContent='.scene-wrap{background:#101f2a;border:2px solid #567788;border-radius:13px;overflow:hidden;box-shadow:0 12px 30px #0006}#scene{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:manipulation}#ae-auction,#ae-rivals{margin:12px 0}#ae-auction .kv,#ae-rivals .kv{padding:7px 0}#ae-auction button{width:100%;margin-top:9px}';
+css.textContent='.scene-wrap{background:#101f2a;border:2px solid #567788;border-radius:13px;overflow:hidden;box-shadow:0 12px 30px #0006}#scene{display:block;width:100%;height:auto;image-rendering:pixelated;touch-action:manipulation}#ae-auction,#ae-rivals{margin:12px 0}#ae-auction{background:#171d26;color:#f2eee5;border:1px solid #77654a;border-radius:14px;padding:16px;box-shadow:0 8px 22px #0003}#ae-auction .ae-auction-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}#ae-auction .ae-auction-title{font-size:15px;font-weight:800;color:#f1d59e}#ae-auction .ae-auction-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:#413626;color:#f4d9a6;border:1px solid #786342;padding:5px 8px;border-radius:20px}#ae-auction .ae-auction-lot{background:#252932;border:1px solid #454b55;border-radius:11px;padding:13px;margin:12px 0}#ae-auction .ae-auction-model{font-size:14px;font-weight:750;color:#fff}#ae-auction .ae-auction-kind{font-size:11px;color:#c7c5bf;margin-top:4px}#ae-auction .ae-auction-price{font-size:23px;font-weight:850;color:#f4d396;margin:10px 0 4px;font-variant-numeric:tabular-nums}#ae-auction .ae-auction-meta{font-size:11px;color:#c5c8ce;line-height:1.6}#ae-auction .ae-auction-status{font-size:12px;color:#e6d6b4;margin:10px 0}#ae-auction button[data-ae-bid]{width:100%;min-height:48px;margin-top:10px;background:#b88a45;border:1px solid #e1b76f;color:#171b20;border-radius:10px;font-weight:800}#ae-auction button[data-ae-bid]:disabled{background:#494c50;border-color:#5b5e62;color:#d2d3d5;opacity:1}#ae-rivals{background:#1c232b;color:#f2eee5;border:1px solid #5d605f;border-radius:14px;padding:15px}#ae-rivals .ae-rivals-heading{font-size:14px;color:#f1d59e;font-weight:800;margin-bottom:7px}#ae-rivals .ae-rivals-note{font-size:11px;line-height:1.5;color:#bfc5cb;margin:0 0 12px}#ae-rivals .kv{padding:10px 0;border-top:1px solid #414952;display:flex;justify-content:space-between;gap:12px;align-items:center}#ae-rivals .kv span{color:#d3d8dd;font-size:12px}#ae-rivals .kv b{color:#f1d59e;font-size:13px;font-variant-numeric:tabular-nums}@media(max-width:390px){#ae-auction{padding:12px}#ae-auction .ae-auction-head{align-items:flex-start}#ae-auction .ae-auction-price{font-size:21px}}';
 document.head.appendChild(css);
 const canvas=document.getElementById('scene'),market=document.getElementById('market'),reports=document.getElementById('reports');
 function polygon(ctx,pts,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fill()}
@@ -535,9 +535,10 @@ if(market)market.appendChild(auction);
 function auctionOffer(){
  const window=Math.floor(s.day/2),existing=s.auctionLot;
  // Keep the same physical lot and quote through market refreshes and reloads.
- if(existing&&existing.window===window&&existing.id==='regional-'+window&&existing.car&&Number.isFinite(existing.price)&&existing.price>0)return existing;
+ if(existing&&existing.window===window&&existing.id==='regional-'+window&&existing.car&&typeof existing.car==='object'&&Number.isFinite(Number(existing.price))&&Number(existing.price)>0)return existing;
  const kind=['Hatch','SUV','Sedã','Picape','Compacto','Esportivo'][window%6];
- const sample=(s.market||[]).find(c=>c.kind===kind)||(s.market||[])[0];
+ const availableMarket=Array.isArray(s.market)?s.market.filter(c=>c&&typeof c==='object'&&Number.isFinite(Number(c.ask))&&Number(c.ask)>0):[];
+ const sample=availableMarket.find(c=>c.kind===kind)||availableMarket[0];
  if(!sample)return null;
  const price=Math.round(Number(sample.ask)*.83/100)*100;
  if(!Number.isFinite(price)||price<=0)return null;
@@ -554,9 +555,11 @@ auction.addEventListener('click',e=>{
  if(button.dataset.aeBid!==o.id){render();return toast('O lote mudou. Confira a nova oferta.');}
  if(o.purchased)return toast('Este lote já foi arrematado');
  if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência');
+ if(!Array.isArray(s.stock)||!Number.isFinite(Number(s.cash))||!Number.isFinite(Number(s.slots)))return toast('Dados da campanha indisponíveis');
  if(s.stock.length>=s.slots)return toast('Garagem lotada');
  const reserved=s.empire?.economy?.factory?.queue;
  if(s.stock.length+(Array.isArray(reserved)?reserved.length:0)>=s.slots)return toast('Vagas reservadas para a produção');
+ if(!Number.isFinite(Number(o.price))||Number(o.price)<=0||!o.car||typeof o.car!=='object')return toast('Lote inválido');
  if(s.cash<o.price)return toast('Caixa insuficiente');
  const c={...o.car,id:s.nextId++,bought:o.price,spent:0,listed:false,price:0,days:0,interested:false,offers:[]};
  o.purchased=true;o.purchaseCarId=c.id;o.purchasedDay=s.day;button.disabled=true;
@@ -570,10 +573,10 @@ const oldRender=render;
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(update);
 function update(){
  const o=auctionOffer();
- auction.innerHTML='<b>🔨 Leilão regional</b><p class="tiny">Um único veículo por lote. A oferta gira a cada dois dias e depende de uma vaga livre.</p>'+
- (o?'<div class="kv"><span>'+esc(o.car.name)+' · '+esc(o.car.kind)+'</span><b>'+fmt(o.price)+'</b></div><div class="tiny">Referência de mercado: '+fmt(o.car.ask)+' · Próximo lote no dia '+((o.window+1)*2)+'</div><p id="ae-auction-status" class="tiny">'+(o.purchased?'Lote arrematado. Aguarde a próxima oferta.':'Lote disponível · 1 veículo')+'</p><button data-ae-bid="'+esc(o.id)+'" type="button"'+(o.purchased?' disabled':'')+'>'+(o.purchased?'Lote arrematado':'Arrematar por '+fmt(o.price))+'</button>':'<p id="ae-auction-status" class="tiny">Nenhuma oportunidade disponível.</p>');
+ auction.innerHTML='<div class="ae-auction-head"><span class="ae-auction-title">Leilão regional</span><span class="ae-auction-tag">Lote único</span></div><p class="ae-auction-meta">Uma oferta a cada dois dias de jogo. É necessária uma vaga livre na garagem.</p>'+
+ (o?'<div class="ae-auction-lot"><div class="ae-auction-model">'+esc(o.car.name)+'</div><div class="ae-auction-kind">'+esc(o.car.kind)+'</div><div class="ae-auction-price">'+fmt(o.price)+'</div><div class="ae-auction-meta">Valor de referência: '+fmt(o.car.ask)+' · Próximo lote no dia '+((o.window+1)*2)+'</div></div><p id="ae-auction-status" class="ae-auction-status">'+(o.purchased?'Arrematado · aguarde a próxima oferta':'Disponível · 1 veículo')+'</p><button data-ae-bid="'+esc(o.id)+'" type="button"'+(o.purchased?' disabled':'')+'>'+(o.purchased?'Lote arrematado':'Arrematar por '+fmt(o.price))+'</button>':'<p id="ae-auction-status" class="ae-auction-status">Nenhuma oportunidade disponível.</p>');
  const rivalsData=[['Atlas Motors',1.08],['Norte Auto',.95],['Prime Select',1.16]];
- rivals.innerHTML='<b>🏁 Concorrência regional</b><p class="tiny">Índice fictício de preço pedido em relação ao valor estimado do mercado. Painel informativo nesta versão.</p>'+
+ rivals.innerHTML='<div class="ae-rivals-heading">Concorrência regional</div><p class="ae-rivals-note">Índices simulados de preço pedido em relação ao mercado. Painel informativo, não representa vendas reais.</p>'+
  rivalsData.map(([name,m],i)=>'<div class="kv"><span>'+name+'</span><b>'+Math.round((m+Math.sin(s.day*.12+i)*.04)*100)+'%</b></div>').join('')+
  '<div class="kv"><span>Reputação São Paulo</span><b>'+s.rep+'/100</b></div>';
 }

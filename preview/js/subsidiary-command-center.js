@@ -31,7 +31,7 @@ function selected(){
  const scope=panel.querySelector('#ae-sub-scope').value,api=window.AEFactoryWorkforce;
  const occupied=occupiedJobs();
  return plants().filter(p=>{
-  const lines=api?.read(p).lines??n(p.level)*2;
+  const lines=api?.read(p)?.lines??n(p.level)*2;
   const jobs=occupied.get(String(p.id))||0;
   return scope==='idle'?lines>jobs:scope==='busy'?lines>0&&jobs>=lines:true;
  });
@@ -39,20 +39,20 @@ function selected(){
 function quote(){
  const list=selected(),policy=panel.querySelector('#ae-sub-target').value,api=window.AEFactoryWorkforce;
  const items=api?list.map(plant=>{
-  const current=api.read(plant);
+  const current=api.read(plant);if(!current||!Number.isFinite(current.shift)||current.shift<=0)return null;
   // Staffing required for the requested number of lines, capped by plant level.
   const desiredLines=policy==='4'?1:policy==='12'?current.baseLines*2:current.baseLines;
   const target=Math.min(500,Math.ceil(desiredLines/current.shift)*3*current.shift);
   return {plant,quote:api.quote(plant,Math.max(current.staff,target),current.shift)};
- }).filter(item=>item.quote?.added>0):[];
+ }).filter(item=>item?.quote?.added>0):[];
  const hires=items.reduce((sum,item)=>sum+item.quote.added,0),hireCost=items.reduce((sum,item)=>sum+item.quote.hiring,0);
  // Only propose expansion where current staffed capacity is fully occupied.
  const load=occupiedJobs();
- const upgrades=list.filter(p=>{const lines=api?.read(p).lines??Math.max(0,n(p.level)*2);return n(p.level)<3&&lines>0&&(load.get(String(p.id))||0)>=lines;});
+ const upgrades=list.filter(p=>{const lines=api?.read(p)?.lines??Math.max(0,n(p.level)*2);return n(p.level)<3&&lines>0&&(load.get(String(p.id))||0)>=lines;});
  const understaffed=list.filter(p=>{const current=api?.read(p);return current&&current.lines<current.baseLines;}).length;
- const saturated=list.filter(p=>{const lines=api?.read(p).lines??0;return lines>0&&(load.get(String(p.id))||0)>=lines;}).length;
+ const saturated=list.filter(p=>{const lines=api?.read(p)?.lines??0;return lines>0&&(load.get(String(p.id))||0)>=lines;}).length;
  const upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
- const dailyBefore=api?plants().reduce((sum,p)=>sum+api.read(p).daily,0):0;
+ const dailyBefore=api?plants().reduce((sum,p)=>sum+(api.read(p)?.daily||0),0):0;
  const dailyAfter=dailyBefore+items.reduce((sum,item)=>sum+item.quote.after.daily-item.quote.before.daily,0);
  return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,saturated,understaffed,ready:!!api};
 }
@@ -63,7 +63,7 @@ function refresh(){
  const q=quote(),units=plants(),total=units.length;
  const api=window.AEFactoryWorkforce;
  const apiLines=new Map();
- if(api)for(const p of units)apiLines.set(String(p.id),api.read(p).lines);
+ if(api)for(const p of units)apiLines.set(String(p.id),(api.read(p)?.lines||0));
  const load=occupiedJobs();
  let activeJobs=0,availableLines=0,freeLines=0,overloaded=0,withoutStaff=0;
  for(const p of units){
