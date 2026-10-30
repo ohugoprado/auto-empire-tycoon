@@ -56,8 +56,9 @@ function refresh(){
  let activeJobs=0;
  for(const job of queue)if(job&&job.plantId!=null&&activeIds.has(String(job.plantId)))activeJobs++;
  const availableLines=api?units.reduce((sum,p)=>sum+api.read(p).lines,0):0;
+ const freeLines=Math.max(0,availableLines-activeJobs);
  const support=units.reduce((sum,p)=>sum+n(p.staff)*1100*n(p.level),0);
- panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+availableLines+' linhas disponíveis · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
+ panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
  panel.querySelector('#ae-sub-quote').textContent=q.ready?'Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+'. Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
  const blocked=!!economy.bankrupt;
  panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||n(s.cash)<q.hireCost;
