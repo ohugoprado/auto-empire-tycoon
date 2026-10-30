@@ -85,11 +85,31 @@ function refresh(){
  const target=Number.isFinite(Number(policy.target))?Math.max(0,Math.min(100,Math.floor(Number(policy.target)))):3;
  const reserve=Number.isFinite(Number(policy.reserve))?Math.max(0,Math.min(95,Math.floor(Number(policy.reserve)))):25;
  const cashBalance=Number(s.cash),reserveAmount=Number.isFinite(cashBalance)?Math.max(0,Math.round(cashBalance*reserve/100)):0;
- const opportunities=modelRows.filter(m=>{const available=m.stock+m.warehouse+m.production;return available<target&&(!m.ask||!m.unitCost||m.ask>m.unitCost);});
+ const freeCapacity=Math.max(0,activeLines.reduce((sum,l)=>sum+Math.max(0,l.capacity-count(l)),0));
+ const spendable=Math.max(0,(Number.isFinite(cashBalance)?cashBalance:0)-reserveAmount);
+ let remainingBudget=spendable,remainingLines=freeCapacity;
+ const proposals=modelRows.filter(m=>target>0&&m.stock+m.warehouse+m.production<target).map(m=>{
+  const shortfall=Math.max(0,target-m.stock-m.warehouse-m.production);
+  const unitCost=m.unitCost!=null&&Number.isFinite(m.unitCost)&&m.unitCost>0?m.unitCost:null;
+  const margin=m.ask!=null&&unitCost!=null?(m.ask-unitCost)/m.ask:null;
+  const risk=m.stock+m.warehouse>=4&&m.offers===0;
+  return {...m,shortfall,unitCost,margin,risk};
+ }).sort((a,b)=>Number(a.risk)-Number(b.risk)||(b.margin??-.5)-(a.margin??-.5)||a.name.localeCompare(b.name,'pt-BR'));
+ const recommendations=proposals.map(m=>{
+  let suggested=0,reason='';
+  if(m.risk)reason='Estoque sem propostas: aguardar';
+  else if(m.margin!==null&&m.margin<=0)reason='Margem bruta não positiva';
+  else if(m.unitCost===null)reason='Custo unitário desconhecido';
+  else if(remainingLines===0)reason='Sem linhas livres';
+  else if(remainingBudget<m.unitCost)reason='Reserva financeira limita o lote';
+  else{suggested=Math.min(m.shortfall,remainingLines,Math.floor(remainingBudget/m.unitCost));remainingLines-=suggested;remainingBudget-=suggested*m.unitCost;reason=suggested<m.shortfall?'Lote parcial sugerido':'Meta atendida pelo lote sugerido';}
+  return {...m,suggested,reason};
+ });
+ const opportunities=recommendations.filter(m=>m.suggested>0);
  const overstock=modelRows.filter(m=>m.stock+m.warehouse>target*2&&m.offers===0);
  const policyPanel=panel.querySelector('#ae-industrial-policy');
  if(document.activeElement?.closest('#ae-industrial-policy')!==policyPanel){
- policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p class="tiny">Os indicadores usam registros atuais; a reserva é orientativa e não bloqueia gastos de outros sistemas.</p>';
+ policyPanel.innerHTML='<h4>Política industrial assistida</h4><p>Meta de estoque e reserva de caixa para orientar os próximos lotes. Nenhuma produção é iniciada automaticamente.</p><label>Meta por modelo <input id="ae-policy-target" type="number" min="0" max="100" step="1" value="'+target+'"></label><label>Reserva de caixa (%) <input id="ae-policy-reserve" type="number" min="0" max="95" step="1" value="'+reserve+'"></label><button type="button" id="ae-policy-save">Salvar política</button><p>Reserva estimada '+money(reserveAmount)+' · '+opportunities.length+' modelo(s) abaixo da meta com custo/preço compatível ou não informado · '+overstock.length+' com estoque elevado sem propostas.</p><p>Linhas livres: '+freeCapacity+' · orçamento acima da reserva: '+money(spendable)+' · lote sugerido: '+recommendations.reduce((sum,m)=>sum+m.suggested,0)+' veículo(s).</p>'+(recommendations.length?recommendations.slice(0,8).map(m=>'<div class="ae-id-model"><b>'+esc(m.name)+'</b><p>Faltam '+m.shortfall+' para a meta · sugestão '+m.suggested+' · '+esc(m.reason)+(m.suggested?' · investimento estimado '+money(m.suggested*m.unitCost):'')+'</p></div>').join(''):'')+'<p class="tiny">Estimativas: custos e linhas atuais. Não reserva recursos, não inicia ordens nem garante vendas.</p>';
  }
  panel.querySelector('#ae-industrial-kpis').innerHTML=metrics.map(([label,value])=>'<div class="ae-id-kpi"><small>'+label+'</small><strong>'+value+'</strong></div>').join('');
  panel.querySelector('#ae-industrial-advice').textContent=blocked?'Prioridade: '+blocked+' fábrica(s) possuem ordens, mas nenhuma linha operacional. Revise funcionários e turnos antes de investir em expansão.':overloaded?'Atenção: '+overloaded+' fábrica(s) com mais ordens do que linhas disponíveis. Confira equipe e prazos.':freeLines===0&&jobs.length?'Todas as linhas estão ocupadas. Compare demanda, estoque e caixa antes de ampliar.':freeLines>0?'Há '+freeLines+' linha(s) livres na rede. Aproveite a capacidade existente antes de ampliar instalações.':'Sem ordens industriais ativas.';
