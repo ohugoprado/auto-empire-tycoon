@@ -8,7 +8,7 @@ const panel=document.createElement('section');panel.id='ae-factory-warehouse';pa
 panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><div id="ae-warehouse-pages"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
 (document.getElementById('ae-industrial-dashboard')||garage).after(panel);
 const css=document.createElement('style');css.textContent='#ae-factory-warehouse{margin:12px 0;padding:13px}#ae-factory-warehouse h3{font-size:15px;color:#f3d28e}#ae-factory-warehouse p{font-size:12px;line-height:1.6}#ae-factory-warehouse button{min-height:44px;margin:5px 0}.ae-warehouse-auto{display:flex;gap:9px;align-items:center;font-size:12px;margin:12px 0}.ae-warehouse-auto input{width:20px;height:20px;flex:none}.ae-warehouse-car{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #415b6c;padding:8px 0;font-size:12px}';document.head.append(css);
-function state(){const f=s?.empire?.economy?.factory;if(!f)return null;if(!Array.isArray(f.warehouseCars))f.warehouseCars=[];f.warehouseCapacity=Math.max(20,Math.min(5000,Number(f.warehouseCapacity)||20));return f}
+function state(){const f=s?.empire?.economy?.factory;if(!f)return null;if(!Array.isArray(f.warehouseCars))f.warehouseCars=[];const cap=Number(f.warehouseCapacity);f.warehouseCapacity=Number.isFinite(cap)?Math.max(20,Math.min(5000,Math.floor(cap))):20;return f}
 function fleet(f){const level=Math.max(1,Math.min(10,Math.floor(Number(f.logisticsLevel)||1)));return {level,capacity:level*2,fee:Math.max(70,150-(level-1)*8),upgrade:Math.round(12000*Math.pow(1.45,level-1))}}
 let warehousePage=0;
 function refresh(){
@@ -22,7 +22,8 @@ function refresh(){
  const pressure=f.warehouseCars.length/Math.max(1,f.warehouseCapacity);
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const fleetStats=fleet(f);
- const dailyStorage=Math.round(f.warehouseCars.length*12*Math.max(1,Number(s.empire?.economy?.inflation)||1));
+ const inflation=Number(s.empire?.economy?.inflation);
+ const dailyStorage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflation)?Math.max(1,inflation):1));
  panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · gasto acumulado: '+money(f.logisticsSpent||0)+'</p><p>Armazenagem: '+money(dailyStorage)+'/dia · total pago: '+money(f.storageSpent||0)+'</p>';
  panel.querySelector('#ae-fleet-upgrade').textContent=fleetStats.level>=10?'Frota no nível máximo':'Ampliar frota · '+money(fleetStats.upgrade);
  panel.querySelector('#ae-fleet-upgrade').disabled=fleetStats.level>=10||s.cash<fleetStats.upgrade;
@@ -118,6 +119,6 @@ tickDay=function(){
  return result;
 };
 const oldRender=render;let key='';
-render=function(){const result=oldRender.apply(this,arguments);const f=s?.empire?.economy?.factory;const next=[s?.day,s?.cash,s?.stock?.length,f?.warehouseCars?.length,f?.warehouseCapacity,f?.autoDistribution,f?.logisticsLevel].join('|');if(next!==key){key=next;refresh()}return result};
+render=function(){const result=oldRender.apply(this,arguments);const f=s?.empire?.economy?.factory;const next=[s?.day,s?.cash,s?.stock?.length,s?.slots,s?.empire?.economy?.inflation,s?.empire?.economy?.bankrupt,f?.warehouseCars?.length,f?.queue?.length,f?.warehouseCapacity,f?.autoDistribution,f?.logisticsLevel].join('|');if(next!==key){key=next;refresh()}return result};
 (window.aeUiRefreshers||(window.aeUiRefreshers=[])).push(refresh);refresh();
 })();
