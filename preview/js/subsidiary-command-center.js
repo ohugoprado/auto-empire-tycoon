@@ -50,10 +50,11 @@ function quote(){
  const load=new Map();
  for(const job of queue)if(job&&job.plantId!=null){const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}
  const upgrades=list.filter(p=>{const lines=api?.read(p).lines??Math.max(0,n(p.level)*2);return n(p.level)<3&&lines>0&&(load.get(String(p.id))||0)>=lines;});
+ const saturated=list.filter(p=>{const lines=api?.read(p).lines??0;return lines>0&&(load.get(String(p.id))||0)>=lines;}).length;
  const upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
  const dailyBefore=api?plants().reduce((sum,p)=>sum+api.read(p).daily,0):0;
  const dailyAfter=dailyBefore+items.reduce((sum,item)=>sum+item.quote.after.daily-item.quote.before.daily,0);
- return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,ready:!!api};
+ return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,saturated,ready:!!api};
 }
 function refresh(){
  const economy=s?.empire?.economy;if(!economy)return;
@@ -79,7 +80,7 @@ function refresh(){
  }
  const support=units.reduce((sum,p)=>sum+n(p.staff)*1100*n(p.level),0);
  panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · '+overloaded+' unidade(s) acima da capacidade · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
- panel.querySelector('#ae-sub-quote').textContent=q.ready?'Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+' (aumento '+money(Math.max(0,q.dailyAfter-q.dailyBefore))+'/dia). Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
+ panel.querySelector('#ae-sub-quote').textContent=q.ready?'Saturadas na seleção: '+q.saturated+'. Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+' (aumento '+money(Math.max(0,q.dailyAfter-q.dailyBefore))+'/dia). Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
  const blocked=!!economy.bankrupt;
  const cash=Number(s.cash),validCash=Number.isFinite(cash)&&cash>=0;
  const scope=panel.querySelector('#ae-sub-scope').value;
