@@ -6,9 +6,12 @@ const n=x=>Number.isFinite(Number(x))?Number(x):0;
 const money=x=>Math.round(x).toLocaleString('pt-BR')+' CR';
 const inflation=()=>Math.max(1,n(s.empire?.economy?.inflation)||1);
 const upgrade=p=>Math.round((80000+n(p.level)*55000)*inflation());
+const balance=()=>Number(s.cash);
+const canSpend=cost=>Number.isFinite(cost)&&cost>=0&&Number.isFinite(balance())&&balance()>=cost;
 const plants=()=>Array.isArray(s?.empire?.economy?.plantNetwork?.plants)?s.empire.economy.plantNetwork.plants:[];
 const occupiedJobs=()=>{const load=new Map();const queue=s?.empire?.economy?.factory?.queue;if(Array.isArray(queue))for(const job of queue){if(job?.plantId==null)continue;const id=String(job.plantId);load.set(id,(load.get(id)||0)+1);}return load;};
 let operationMessage='';
+let lastDay=null;
 const panel=document.createElement('section');panel.id='ae-subsidiary-command';panel.className='panel';
 panel.innerHTML='<h3>Equipes e expansão industrial em lote</h3><p class="tiny">Aplique uma política às fábricas adicionais com uma única confirmação. Novos funcionários usam o mesmo quadro de pessoal da produção; a equipe de apoio legada e sua folha mensal são preservadas.</p><div id="ae-sub-summary"></div><div id="ae-sub-controls"><label>Política de produção<select id="ae-sub-target"><option value="4">Enxuta · 1 linha operacional</option><option value="8" selected>Equilibrada · linhas da capacidade base</option><option value="12">Expansão · todas as linhas disponíveis</option></select></label><label>Unidades<select id="ae-sub-scope"><option value="all">Todas as fábricas adicionais</option><option value="idle">Somente com linha livre</option><option value="busy">Somente com capacidade ocupada</option></select></label></div><div id="ae-sub-quote"></div><div class="ae-sub-actions"><button id="ae-sub-hire" type="button">Aplicar equipe em lote</button><button id="ae-sub-upgrade" type="button">Ampliar em lote</button></div><p class="tiny" id="ae-sub-feedback" role="status"></p>';
 network.parentNode.insertBefore(panel,network);
@@ -46,36 +49,39 @@ function quote(){
  // Only propose expansion where current staffed capacity is fully occupied.
  const load=occupiedJobs();
  const upgrades=list.filter(p=>{const lines=api?.read(p).lines??Math.max(0,n(p.level)*2);return n(p.level)<3&&lines>0&&(load.get(String(p.id))||0)>=lines;});
+ const understaffed=list.filter(p=>{const current=api?.read(p);return current&&current.lines<current.baseLines;}).length;
  const saturated=list.filter(p=>{const lines=api?.read(p).lines??0;return lines>0&&(load.get(String(p.id))||0)>=lines;}).length;
  const upgradeCost=upgrades.reduce((sum,p)=>sum+upgrade(p),0);
  const dailyBefore=api?plants().reduce((sum,p)=>sum+api.read(p).daily,0):0;
  const dailyAfter=dailyBefore+items.reduce((sum,item)=>sum+item.quote.after.daily-item.quote.before.daily,0);
- return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,saturated,ready:!!api};
+ return {list,items,hires,hireCost,upgrades,upgradeCost,dailyBefore,dailyAfter,saturated,understaffed,ready:!!api};
 }
 function refresh(){
  const economy=s?.empire?.economy;if(!economy)return;
  panel.hidden=!economy.factory?.opened;
+ if(lastDay!==s.day){operationMessage='';lastDay=s.day;}
  const q=quote(),units=plants(),total=units.length;
  const api=window.AEFactoryWorkforce;
  const apiLines=new Map();
  if(api)for(const p of units)apiLines.set(String(p.id),api.read(p).lines);
  const load=occupiedJobs();
- let activeJobs=0,availableLines=0,freeLines=0,overloaded=0;
+ let activeJobs=0,availableLines=0,freeLines=0,overloaded=0,withoutStaff=0;
  for(const p of units){
   const id=String(p.id),jobs=load.get(id)||0,lines=apiLines.get(id)||0;
   activeJobs+=jobs;availableLines+=lines;
   freeLines+=Math.max(0,lines-jobs);
   if(lines>0&&jobs>lines)overloaded++;
+  if(lines===0&&jobs>0)withoutStaff++;
  }
  const support=units.reduce((sum,p)=>sum+n(p.staff)*1100*n(p.level),0);
- panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · '+overloaded+' unidade(s) acima da capacidade · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
- panel.querySelector('#ae-sub-quote').textContent=q.ready?'Saturadas na seleção: '+q.saturated+'. Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+' (aumento '+money(Math.max(0,q.dailyAfter-q.dailyBefore))+'/dia). Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
+ panel.querySelector('#ae-sub-summary').textContent=total+' fábrica(s) adicionais · '+activeJobs+' ordem(ns) em produção · '+freeLines+'/'+availableLines+' linhas livres · '+overloaded+' unidade(s) acima da capacidade · '+withoutStaff+' com ordens sem equipe · folha industrial gerenciada '+money(q.dailyBefore)+'/dia · apoio legado '+money(support)+'/30 dias · caixa '+money(s.cash);
+ panel.querySelector('#ae-sub-quote').textContent=q.ready?'Saturadas na seleção: '+q.saturated+' · abaixo da capacidade base: '+q.understaffed+'. Selecionadas: '+q.list.length+' de '+total+' fábrica(s). Contratação: '+q.hires+' funcionário(s) em '+q.items.length+' unidade(s), '+money(q.hireCost)+'. Folha diária após aplicar: '+money(q.dailyAfter)+' (aumento '+money(Math.max(0,q.dailyAfter-q.dailyBefore))+'/dia). Ampliações: '+q.upgrades.length+' unidade(s), '+money(q.upgradeCost)+'. A política não demite funcionários nem muda turnos.':'Preparando quadro de pessoal industrial.';
  const blocked=!!economy.bankrupt;
- const cash=Number(s.cash),validCash=Number.isFinite(cash)&&cash>=0;
+
  const scope=panel.querySelector('#ae-sub-scope').value;
  panel.querySelector('#ae-sub-feedback').textContent=operationMessage||(scope==='busy'&&q.list.length===0?'Nenhuma fábrica está com todas as linhas ocupadas. Evite ampliar sem necessidade.':scope==='idle'&&q.list.length===0?'Nenhuma fábrica possui linhas livres no momento.':'');
- panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||!Number.isFinite(q.hireCost)||!validCash||cash<q.hireCost;
- panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||!Number.isFinite(q.upgradeCost)||!validCash||cash<q.upgradeCost;
+ panel.querySelector('#ae-sub-hire').disabled=blocked||!q.ready||!q.hires||!canSpend(q.hireCost);
+ panel.querySelector('#ae-sub-upgrade').disabled=blocked||!q.upgrades.length||!canSpend(q.upgradeCost);
 }
 function fingerprint(q,isHire){
  return JSON.stringify(isHire?q.items.map(item=>[item.plant.id,item.quote.before.staff,item.quote.before.shift,item.quote.before.managed,item.quote.after.staff,item.quote.hiring,item.quote.after.daily]):q.upgrades.map(p=>[p.id,p.level,upgrade(p)]));
@@ -83,13 +89,13 @@ function fingerprint(q,isHire){
 function execute(type){
  const q=quote(),isHire=type==='hire',cost=isHire?q.hireCost:q.upgradeCost,count=isHire?q.hires:q.upgrades.length;
  if(!count||!Number.isFinite(cost)||cost<0||s.empire.economy.bankrupt)return;
- if(!Number.isFinite(Number(s.cash))||Number(s.cash)<cost)return toast('Caixa insuficiente para executar o lote.');
+ if(!canSpend(cost))return toast('Caixa insuficiente para executar o lote.');
  const label=isHire?'contratar '+count+' funcionário(s) industriais em '+q.items.length+' unidade(s)':'ampliar '+count+' unidade(s)';
  const salary=isHire?' Folha diária gerenciada: '+money(q.dailyBefore)+' → '+money(q.dailyAfter)+'. A folha da equipe de apoio legada não muda.':'';
  if(!confirm('Deseja '+label+' por '+money(cost)+'?'+salary))return;
  const live=quote(),liveCost=isHire?live.hireCost:live.upgradeCost;
  if(s.empire.economy.bankrupt||fingerprint(live,isHire)!==fingerprint(q,isHire)||liveCost!==cost)return toast('A rede mudou. Confira a nova cotação.');
- if(!Number.isFinite(liveCost)||liveCost<0||(!Number.isFinite(Number(s.cash))||Number(s.cash)<liveCost))return toast('Saldo insuficiente ou cotação inválida.');
+ if(!canSpend(liveCost))return toast('Saldo insuficiente ou cotação inválida.');
  s.cash-=liveCost;
  if(isHire)live.items.forEach(item=>{item.plant.workforce={staff:item.quote.after.staff,shift:item.quote.after.shift};});
  else live.upgrades.forEach(p=>p.level=Math.min(3,n(p.level)+1));
