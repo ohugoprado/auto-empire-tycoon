@@ -6,6 +6,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>Math.round(Number(n)||0).toLocaleString('pt-BR')+' CR';
 const validCash=()=>Number.isFinite(Number(s.cash))&&Number(s.cash)>=0;
 const slotsFree=()=>Math.max(0,Math.floor(Number(s.slots)||0)-(Array.isArray(s.stock)?s.stock.length:0));
+const dealerStock=()=>Array.isArray(s.stock)?s.stock:null;
 const cashAvailable=()=>validCash()?Number(s.cash):0;
 const panel=document.createElement('section');panel.id='ae-factory-warehouse';panel.className='panel';
 panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><div id="ae-warehouse-advice" role="status"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><div id="ae-warehouse-pages"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
@@ -20,7 +21,7 @@ function refresh(){
  // Subsidiary jobs belong to their own plants and must not inflate
  // the main warehouse's in-production count.
  const waiting=Array.isArray(f.queue)
-  ? f.queue.reduce((count,job)=>count+(job&&typeof job==='object'&&!job.plantId?1:0),0)
+  ? f.queue.reduce((count,job)=>count+(job&&typeof job==='object'&&job.plantId==null?1:0),0)
   : 0;
  const pressure=f.warehouseCars.length/Math.max(1,f.warehouseCapacity);
  const fleetStats=fleet(f);
@@ -55,6 +56,7 @@ panel.addEventListener('click',ev=>{
  const f=state();if(!f?.opened)return;
  if(s.empire?.economy?.bankrupt)return toast('Campanha encerrada por falência.');
  if(ev.target.closest('#ae-warehouse-bulk')){
+  const stock=dealerStock();if(!stock)return toast('Estoque da concessionária indisponível.');
   const count=Math.min(slotsFree(),f.warehouseCars.length);
   if(!count)return toast('Não há vagas ou veículos para transferir.');
   // Move in bounded chunks: spreading a large warehouse batch can exceed
@@ -62,7 +64,7 @@ panel.addEventListener('click',ev=>{
   let remaining=count;
   while(remaining>0){
    const batch=f.warehouseCars.splice(0,Math.min(remaining,200));
-   for(const car of batch)s.stock.push(car);
+   for(const car of batch)stock.push(car);
    remaining-=batch.length;
   }
   note('Transferência em lote: '+count+' veículo(s) enviados à concessionária.');
@@ -71,9 +73,10 @@ panel.addEventListener('click',ev=>{
  const page=ev.target.closest('[data-page]');if(page){const pages=Math.max(1,Math.ceil(f.warehouseCars.length/30));warehousePage=Math.max(0,Math.min(pages-1,warehousePage+(page.dataset.page==='next'?1:-1)));refresh();return;}
  const transfer=ev.target.closest('[data-transfer]');
  if(transfer){
+  const stock=dealerStock();if(!stock)return toast('Estoque da concessionária indisponível.');
   if(slotsFree()<1)return toast('Concessionária sem vagas.');
   const index=f.warehouseCars.findIndex(c=>String(c.id)===transfer.dataset.transfer);if(index<0)return;
-  const car=f.warehouseCars.splice(index,1)[0];s.stock.push(car);
+  const car=f.warehouseCars.splice(index,1)[0];stock.push(car);
   note('Transferência do pátio: '+car.name+'.');save();render();refresh();return;
  }
  if(ev.target.closest('#ae-fleet-upgrade')){
@@ -114,7 +117,8 @@ tickDay=function(){
  }
  let quantity=0;
  if(f.autoDistribution&&f.warehouseCars.length){
-  const slots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
+  const stock=dealerStock();
+  const slots=stock?slotsFree():0;
   const stats=fleet(f);
   // Logistics must not turn a negative or invalid balance into capacity.
   const cash=Number(s.cash);
@@ -122,7 +126,7 @@ tickDay=function(){
   quantity=Math.min(stats.capacity,slots,affordable,f.warehouseCars.length);
   if(quantity>0){
    const moved=f.warehouseCars.splice(0,quantity);
-   s.stock.push(...moved);
+   for(const car of moved)stock.push(car);
    const fee=quantity*stats.fee;
    s.cash-=fee;s.profit-=fee;
    f.logisticsSpent=(Number(f.logisticsSpent)||0)+fee;
