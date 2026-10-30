@@ -6,8 +6,9 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=n=>Math.round(Number(n)||0).toLocaleString('pt-BR')+' CR';
 const validCash=()=>Number.isFinite(Number(s.cash))&&Number(s.cash)>=0;
 const slotsFree=()=>Math.max(0,Math.floor(Number(s.slots)||0)-(Array.isArray(s.stock)?s.stock.length:0));
+const cashAvailable=()=>validCash()?Number(s.cash):0;
 const panel=document.createElement('section');panel.id='ae-factory-warehouse';panel.className='panel';
-panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><div id="ae-warehouse-pages"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
+panel.innerHTML='<h3>Pátio da fabricante</h3><p class="tiny">Carros concluídos podem ficar no pátio até haver espaço na concessionária. Amplie a capacidade para não interromper a produção.</p><div id="ae-warehouse-stats"></div><label class="ae-warehouse-auto"><input id="ae-warehouse-auto" type="checkbox"> Distribuição automática</label><p class="tiny">O envio automático só acontece quando há vagas e caixa suficiente. Transferências manuais continuam disponíveis.</p><div id="ae-warehouse-fleet"></div><div id="ae-warehouse-advice" role="status"></div><button id="ae-fleet-upgrade" type="button">Ampliar frota</button><button id="ae-warehouse-bulk" type="button">Transferir vagas disponíveis</button><div id="ae-warehouse-cars"></div><div id="ae-warehouse-pages"></div><button id="ae-warehouse-upgrade" type="button">Ampliar pátio</button>';
 (document.getElementById('ae-industrial-dashboard')||garage).after(panel);
 const css=document.createElement('style');css.textContent='#ae-factory-warehouse{margin:12px 0;padding:13px}#ae-factory-warehouse h3{font-size:15px;color:#f3d28e}#ae-factory-warehouse p{font-size:12px;line-height:1.6}#ae-factory-warehouse button{min-height:44px;margin:5px 0}.ae-warehouse-auto{display:flex;gap:9px;align-items:center;font-size:12px;margin:12px 0}.ae-warehouse-auto input{width:20px;height:20px;flex:none}.ae-warehouse-car{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #415b6c;padding:8px 0;font-size:12px}';document.head.append(css);
 function state(){const f=s?.empire?.economy?.factory;if(!f)return null;if(!Array.isArray(f.warehouseCars))f.warehouseCars=[];const cap=Number(f.warehouseCapacity);f.warehouseCapacity=Number.isFinite(cap)?Math.max(20,Math.min(5000,Math.floor(cap))):20;return f}
@@ -23,7 +24,7 @@ function refresh(){
   : 0;
  const pressure=f.warehouseCars.length/Math.max(1,f.warehouseCapacity);
  const fleetStats=fleet(f);
- const cash=Number(s.cash);
+ const cash=cashAvailable();
  const freeSlots=slotsFree();
  const inflationFactor=Number(s.empire?.economy?.inflation);
  const projectedStorage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflationFactor)?Math.max(1,inflationFactor):1));
@@ -33,12 +34,15 @@ function refresh(){
  const congestion=pressure>=1?'Pátio lotado':pressure>=.9?'Pátio quase lotado':pressure>=.7?'Pátio em atenção':'Pátio normal';
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const dailyStorage=projectedStorage;
+ const blocked=!!s.empire?.economy?.bankrupt;
+ const advice=blocked?'Operações encerradas por falência.':pressure>=1&&free===0?'Pátio cheio e concessionária sem vagas: libere estoque antes de ampliar a produção.':pressure>=.9&&free>0?'Pátio quase cheio: transfira veículos para liberar espaço de produção.':f.autoDistribution&&f.warehouseCars.length&&planned===0?'Distribuição automática sem saída prevista: confira vagas e caixa após armazenagem.':f.autoDistribution&&planned>0?'Distribuição programada para o próximo avanço de dia, sujeita a novas despesas e mudanças no estoque.':f.warehouseCars.length?'Há veículos aguardando transferência; ative a distribuição automática ou transfira manualmente.':'Pátio livre para receber veículos.';
+ panel.querySelector('#ae-warehouse-advice').textContent=advice;
  panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · previsão para o próximo dia: '+planned+' veículo(s), '+money(planned*fleetStats.fee)+' · dias estimados no ritmo atual, se houver vagas: '+(daysToClear===null?'indisponível':daysToClear+'')+' · gasto acumulado: '+money(f.logisticsSpent||0)+'</p><p>Armazenagem: '+money(dailyStorage)+'/dia · total pago: '+money(f.storageSpent||0)+'</p>';
  panel.querySelector('#ae-fleet-upgrade').textContent=fleetStats.level>=10?'Frota no nível máximo':'Ampliar frota · '+money(fleetStats.upgrade);
  panel.querySelector('#ae-fleet-upgrade').disabled=!!s.empire?.economy?.bankrupt||fleetStats.level>=10||!Number.isFinite(cash)||cash<fleetStats.upgrade;
  const cost=Math.round(20000*Math.pow(1.35,Math.max(0,(f.warehouseCapacity-20)/20)));
  panel.querySelector('#ae-warehouse-stats').innerHTML='<p><b>'+congestion+'</b> · Pátio: '+f.warehouseCars.length+'/'+f.warehouseCapacity+' vagas · <b>Vagas na concessionária:</b> '+free+' · <b>Em produção:</b> '+waiting+'</p>'+(pressure>=.9?'<p role="status"><b>Atenção:</b> pátio quase lotado. Amplie vagas ou transfira veículos para evitar paradas na fábrica.</p>':'');
- panel.querySelector('#ae-warehouse-bulk').disabled=!!s.empire?.economy?.bankrupt||free<1||!f.warehouseCars.length;
+ panel.querySelector('#ae-warehouse-bulk').disabled=blocked||free<1||!f.warehouseCars.length;
  panel.querySelector('#ae-warehouse-bulk').textContent='Transferir até '+Math.min(free,f.warehouseCars.length)+' veículo(s) para a concessionária';
  const pageCount=Math.max(1,Math.ceil(f.warehouseCars.length/30));warehousePage=Math.max(0,Math.min(warehousePage,pageCount-1));
  panel.querySelector('#ae-warehouse-cars').innerHTML=f.warehouseCars.slice(warehousePage*30,(warehousePage+1)*30).map(c=>'<div class="ae-warehouse-car"><span>'+esc(c.name)+' · '+esc(c.colorName||'')+'</span><button type="button" data-transfer="'+esc(c.id)+'"'+(free<1||s.empire?.economy?.bankrupt?' disabled':'')+'>Transferir</button></div>').join('');
