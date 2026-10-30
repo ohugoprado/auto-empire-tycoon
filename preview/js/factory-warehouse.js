@@ -23,11 +23,13 @@ function refresh(){
  const fleetStats=fleet(f);
  const cash=Number(s.cash);
  const freeSlots=Math.max(0,Math.floor(Number(s.slots)||0)-s.stock.length);
- const affordable=Number.isFinite(cash)&&cash>0?Math.floor(cash/fleetStats.fee):0;
+ const inflationFactor=Number(s.empire?.economy?.inflation);
+ const projectedStorage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflationFactor)?Math.max(1,inflationFactor):1));
+ const affordable=Number.isFinite(cash)&&cash>projectedStorage?Math.floor((cash-projectedStorage)/fleetStats.fee):0;
  const planned=f.autoDistribution?Math.min(fleetStats.capacity,freeSlots,affordable,f.warehouseCars.length):0;
  panel.querySelector('#ae-warehouse-auto').checked=!!f.autoDistribution;
  const inflation=Number(s.empire?.economy?.inflation);
- const dailyStorage=Math.round(f.warehouseCars.length*12*(Number.isFinite(inflation)?Math.max(1,inflation):1));
+ const dailyStorage=projectedStorage;
  panel.querySelector('#ae-warehouse-fleet').innerHTML='<p><b>Frota logística nível '+fleetStats.level+'</b> · até '+fleetStats.capacity+' veículos/dia · '+money(fleetStats.fee)+' por veículo · previsão para o próximo dia: '+planned+' veículo(s), '+money(planned*fleetStats.fee)+' · gasto acumulado: '+money(f.logisticsSpent||0)+'</p><p>Armazenagem: '+money(dailyStorage)+'/dia · total pago: '+money(f.storageSpent||0)+'</p>';
  panel.querySelector('#ae-fleet-upgrade').textContent=fleetStats.level>=10?'Frota no nível máximo':'Ampliar frota · '+money(fleetStats.upgrade);
  panel.querySelector('#ae-fleet-upgrade').disabled=!!s.empire?.economy?.bankrupt||fleetStats.level>=10||s.cash<fleetStats.upgrade;
